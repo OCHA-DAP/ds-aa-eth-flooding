@@ -1,0 +1,180 @@
+---
+title: "Rainfall Return Period for Flooding"
+output: html_document
+params:
+  iso3: "ETH"
+  adm_level: 2
+  dataset: "seas5"
+  year: 2025
+  issue_month: 7
+  months: [7, 8, 9]
+  season: "JAS"
+  year_start: 2000
+---
+
+```{r setup, include=FALSE}
+library(shiny)
+library(dplyr)
+library(ggplot2)
+library(gghdx)
+library(cumulus)
+library(lubridate)
+library(glue)
+library(countrycode)
+
+gghdx()
+iso3 <- params$iso3
+country <- countrycode(iso3, origin = "iso3c", destination = "country.name")
+adm_level <- params$adm_level
+dataset <- params$dataset
+year_sel <- params$year
+year_start <- params$year_start
+issue_month <- params$issue_month
+months <- params$months
+season <- params$season
+pc_col <- glue("ADM{adm_level}_PCODE")
+```
+
+Loading Data
+
+```{r, echo=FALSE}
+gdf <- cumulus::download_fieldmaps_sf(iso3, glue("{iso3}_adm{adm_level}"))[[1]]
+gdf_adm1 <- cumulus::download_fieldmaps_sf(iso3, glue("{iso3}_adm1"))[[1]]
+if (dataset == "seas5") {
+  df_seas5 <- pg_load_seas5_historical(
+    iso3 = iso3,
+    adm_level = adm_level,
+    adm_name = gdf[[glue("ADM{adm_level}_EN")]]
+  )
+
+  df_seas5_months <- seas5_aggregate_forecast(
+    df_seas5,
+    value = "mean", # or median
+    valid_months = months,
+    by = c("iso3", "pcode", "name", "issued_date")
+  )
+
+} else {
+  stop("Only seas5 supported in this example.")
+}
+```
+
+Return Period
+
+```{r, echo=FALSE}
+df_filtered <- df_seas5_months |>
+  filter(month(issued_date) == issue_month & year(issued_date) >= 2000) |>
+  group_by(pcode, leadtime) |>
+  mutate(tercile = cut(
+    mean,
+    breaks = c(-Inf, quantile(mean, probs = c(1/3, 2/3), na.rm = TRUE), Inf),
+    labels = c("1st", "2nd", "3rd"),
+    include.lowest = TRUE
+  ))
+
+df_rp <- df_filtered |>
+  group_by(pcode) |>
+  mutate(
+    rank = rank(-mean, ties.method = "average"),
+    exceedance_prob = rank / (n() + 1),
+    return_period = 1 / exceedance_prob
+  ) |>
+  ungroup() |>
+  filter(year(issued_date) == year_sel)
+
+gdf_map <- gdf |>
+  left_join(df_rp, by = setNames("pcode", pc_col)) |>
+  mutate(
+    rp_bin = cut(return_period,
+                 breaks = c(0, 5, 10, 20, 30, 50, Inf),
+                 labels = c("0-5", "5-10", "10-20", "20-30", "30-50", "50+"),
+                 right = FALSE)
+  )
+
+ggplot(gdf_map) +
+  geom_sf(aes(fill = rp_bin), color = "grey70") +
+  geom_sf(data = gdf_adm1, fill = NA, color = "grey30", size = 0.75) +
+  #scale_fill_gradient_hdx_sapphire() +
+  scale_fill_manual(
+    values = c(
+      "0-5" = "white",
+      "5-10" = "#deebf7",
+      "10-20" = "#c6dbef",
+      "20-30" = "#6baed6",
+      "30-50" = "#3182bd",
+      "50+" = "#08519c"
+    ),
+    na.value = "grey90", 
+    guide = guide_legend(nrow = 1)
+  ) +
+  labs(
+    title = glue("Rainfall Return Periods for {country}, {season}-{year_sel} for ADM{adm_level}"),
+    subtitle = glue("Return periods are calculated based on the mean rainfall from {year_start}"),
+    fill = "Return Period\n(Years)"
+  ) + 
+  theme(
+    axis.title = element_blank(),
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid = element_blank(),
+    panel.background = element_blank()
+  )
+```
+
+Rainfall Anomalies
+
+```{r, echo=FALSE}
+df_anom <- df_filtered |>
+  group_by(pcode) |>
+  mutate(
+    mean_anom = mean - mean(mean, na.rm = TRUE),
+    tercile_anom = cut(
+      mean_anom,
+      breaks = c(-Inf, quantile(mean_anom, probs = c(1/3, 2/3), na.rm = TRUE), Inf),
+      labels = c("1st", "2nd", "3rd"),
+      include.lowest = TRUE
+    )
+  ) |>
+  ungroup() |>
+  filter(year(issued_date) == year_sel)
+
+# plot
+gdf_anom <- gdf |>
+  left_join(df_anom, by = setNames("pcode", pc_col)) |>
+  mutate(
+    anom_bin = cut(
+      mean_anom,
+      breaks = c(-Inf, 0, 50, 100, 150, 200, Inf),
+      labels = c("<0", "0-50", "50-100", "100-150", "150-200", ">200"),
+      right = FALSE
+    )
+  )
+ggplot(gdf_anom) +
+  geom_sf(aes(fill = anom_bin), color = "grey70") +
+  geom_sf(data = gdf_adm1, fill = NA, color = "grey30", size = 0.75) +
+  scale_fill_manual(
+    values = c(
+      "<0" = "white",
+      "0-50" = "#deebf7",
+      "50-100" = "#c6dbef",
+      "100-150" = "#6baed6",
+      "150-200" = "#3182bd",
+      ">200" = "#08519c"
+    ),
+    na.value = "grey90", 
+    guide = guide_legend(nrow = 1)
+  ) +
+  labs(
+    title = glue("Rainfall Anomalies for {country}, {season}-{year_sel} for ADM{adm_level}"),
+    subtitle = glue("Anomalies are based on the difference from the mean rainfall from {year_start}"),
+    fill = "Rainfall Anomaly\n(mm)"
+  ) + 
+  theme(
+    axis.title = element_blank(),
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid = element_blank(),
+    panel.background = element_blank()
+  )
+```
+
