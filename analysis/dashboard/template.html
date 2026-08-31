@@ -122,6 +122,16 @@
   .legend .swatch { display: inline-block; width: 14px; height: 8px; border-radius: 2px; margin-right: 5px; vertical-align: baseline; }
   .legend .line-swatch { display: inline-block; width: 14px; height: 0; border-top: 2px solid; margin-right: 5px; vertical-align: middle; }
 
+  .map-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 14px; margin-bottom: 22px;
+  }
+  .map-card .legend { margin-top: 2px; }
+  .map-zone { fill: transparent; stroke: var(--grid); stroke-width: 1; }
+  .map-zone.validation { fill: var(--shabelle-band); stroke: var(--baseline); }
+  .map-station { cursor: pointer; }
+  .map-station:hover circle { stroke-width: 3; }
+
   .prob-row { margin-top: 10px; }
   .prob-row .row-label { font-size: 11.5px; color: var(--muted); margin-bottom: 3px; }
   .skill-note { font-size: 11.5px; color: var(--ink-2); margin-top: 10px; border-top: 1px solid var(--grid); padding-top: 8px; }
@@ -153,6 +163,7 @@
   </p>
 
   <div id="legs-panel"></div>
+  <div id="map-panel"></div>
   <div class="tiles" id="tiles"></div>
   <div id="sections"></div>
 
@@ -218,6 +229,105 @@ if (DATA.legs && DATA.legs.length) {
   }
 }
 
+/* ---- station map ---- */
+if (DATA.map && DATA.map.length) {
+  const panel = document.getElementById("map-panel");
+  const card = document.createElement("div");
+  card.className = "map-card";
+  panel.appendChild(card);
+
+  const allPts = DATA.map.flatMap((z) => z.rings.flat());
+  const lons = allPts.map((p) => p[0]).concat(DATA.stations.map((s) => s.lon));
+  const lats = allPts.map((p) => p[1]).concat(DATA.stations.map((s) => s.lat));
+  const pad = 0.25;
+  const minLon = Math.min(...lons) - pad, maxLon = Math.max(...lons) + pad;
+  const minLat = Math.min(...lats) - pad, maxLat = Math.max(...lats) + pad;
+  const W = 760;
+  const H = Math.round(W * (maxLat - minLat) / (maxLon - minLon) * 0.995);
+  const px = (lon) => ((lon - minLon) / (maxLon - minLon)) * W;
+  const py = (lat) => H - ((lat - minLat) / (maxLat - minLat)) * H;
+
+  const ns = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(ns, "svg");
+  svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+
+  for (const z of DATA.map) {
+    for (const ring of z.rings) {
+      const path = document.createElementNS(ns, "path");
+      path.setAttribute("d", ring.map((p, i) => (i ? "L" : "M") + px(p[0]).toFixed(1) + " " + py(p[1]).toFixed(1)).join("") + "Z");
+      path.setAttribute("class", "map-zone" + (z.validation ? " validation" : ""));
+      svg.appendChild(path);
+    }
+    const c = z.rings[0];
+    const cx = c.reduce((a, p) => a + px(p[0]), 0) / c.length;
+    const cy = c.reduce((a, p) => a + py(p[1]), 0) / c.length;
+    const lbl = document.createElementNS(ns, "text");
+    lbl.setAttribute("x", cx);
+    lbl.setAttribute("y", cy);
+    lbl.setAttribute("text-anchor", "middle");
+    lbl.setAttribute("font-size", 11);
+    lbl.setAttribute("fill", "var(--muted)");
+    lbl.setAttribute("opacity", z.validation ? 0.95 : 0.55);
+    lbl.textContent = z.name;
+    svg.appendChild(lbl);
+  }
+
+  // river schematics: stations connected in downstream order per river
+  const RIVER_ORDER = {
+    Shabelle: ["station_1", "G1904", "station_2", "station_3", "station_4"],
+    Genale: ["RP_4045_0535", "station_5", "RP_4205_0415"],
+  };
+  for (const [river, ids] of Object.entries(RIVER_ORDER)) {
+    const pts = ids.map((id) => DATA.stations.find((s) => s.id === id)).filter(Boolean);
+    if (pts.length < 2) continue;
+    const path = document.createElementNS(ns, "path");
+    path.setAttribute("d", pts.map((s, i) => (i ? "L" : "M") + px(s.lon).toFixed(1) + " " + py(s.lat).toFixed(1)).join(""));
+    path.setAttribute("fill", "none");
+    path.setAttribute("stroke", RIVER[river].color);
+    path.setAttribute("stroke-width", 1.5);
+    path.setAttribute("stroke-dasharray", "3 4");
+    path.setAttribute("opacity", 0.7);
+    svg.appendChild(path);
+  }
+
+  for (const st of DATA.stations) {
+    const g = document.createElementNS(ns, "g");
+    g.setAttribute("class", "map-station");
+    const dot = document.createElementNS(ns, "circle");
+    dot.setAttribute("cx", px(st.lon));
+    dot.setAttribute("cy", py(st.lat));
+    dot.setAttribute("r", 6);
+    dot.setAttribute("fill", STATUS_META[st.status].color);
+    dot.setAttribute("stroke", RIVER[st.river].color);
+    dot.setAttribute("stroke-width", 2);
+    g.appendChild(dot);
+    const lbl = document.createElementNS(ns, "text");
+    lbl.setAttribute("x", px(st.lon) + 9);
+    lbl.setAttribute("y", py(st.lat) + 4);
+    lbl.setAttribute("font-size", 11);
+    lbl.setAttribute("fill", "var(--ink-2)");
+    lbl.textContent = st.label.replace(/ \(.*\)$/, "");
+    g.appendChild(lbl);
+    const title = document.createElementNS(ns, "title");
+    title.textContent = st.label + " · " + st.zone + " zone · " + STATUS_META[st.status].label;
+    g.appendChild(title);
+    g.addEventListener("click", () => {
+      document.getElementById("card-" + st.id).scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+    svg.appendChild(g);
+  }
+  card.appendChild(svg);
+
+  const legend = document.createElement("div");
+  legend.className = "legend";
+  legend.innerHTML =
+    '<span><span class="swatch" style="background:var(--shabelle-band); border:1px solid var(--baseline)"></span>FloodScan validation zones</span>' +
+    '<span><span class="line-swatch" style="border-color:var(--shabelle); border-top-style:dashed"></span>Shabelle stations (schematic)</span>' +
+    '<span><span class="line-swatch" style="border-color:var(--genale); border-top-style:dashed"></span>Genale stations (schematic)</span>' +
+    '<span>dot color = station status · click a station to jump to its panel</span>';
+  card.appendChild(legend);
+}
+
 /* ---- summary tiles ---- */
 const tiles = document.getElementById("tiles");
 for (const st of DATA.stations) {
@@ -257,10 +367,18 @@ function buildCard(st) {
   card.id = "card-" + st.id;
   const s = STATUS_META[st.status];
   const seasons = [...new Set(st.leads.map((l) => l.season))].map((x) => SEASON_LABEL[x]).join(" → ");
+  const thrTxt = st.deyr_thresholds
+    ? "Deyr thresholds: " + ["rp2", "rp3", "rp5"].map((k) =>
+        k.toUpperCase() + " " + fmt(st.deyr_thresholds[k])).join(" · ") + " m³/s"
+    : "";
+  const evYears = (st.deyr_event_years && st.deyr_event_years.rp3) || [];
+  const evTxt = "FloodScan Deyr floods in " + st.zone + " (RP3): " +
+    (evYears.length ? evYears.join(", ") : "none since 2003");
   card.innerHTML =
     "<h3>" + st.label +
     '<span class="status-pill"><span class="dot" style="background:' + s.color + '"></span>' + s.label + "</span></h3>" +
-    '<div class="meta">' + st.zone + " zone · " + st.lat + "°N " + st.lon + "°E · forecast window season: " + seasons + "</div>";
+    '<div class="meta">' + st.zone + " zone · " + st.lat + "°N " + st.lon + "°E · forecast window season: " + seasons +
+    "<br>" + thrTxt + " · " + evTxt + "</div>";
 
   const box = document.createElement("div");
   box.className = "chart-box";

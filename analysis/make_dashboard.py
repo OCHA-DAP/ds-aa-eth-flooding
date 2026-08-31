@@ -20,9 +20,13 @@ the record.
 """
 
 import json
+import os
+import tempfile
+import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 
+import geopandas as gpd
 import numpy as np
 import ocha_stratus as stratus
 import pandas as pd
@@ -81,6 +85,33 @@ def month_season(m: int) -> str:
     return "jilaal"
 
 
+def build_map_payload(validation_pcodes: set) -> list:
+    """Somali-region admin2 outlines, simplified for inline SVG rendering."""
+    shp = stratus.load_blob_data("eth_shp.zip", stage=STAGE, container_name="polygon")
+    tmp = tempfile.mkdtemp()
+    zpath = os.path.join(tmp, "eth_shp.zip")
+    with open(zpath, "wb") as f:
+        f.write(shp)
+    zipfile.ZipFile(zpath).extractall(tmp)
+    adm2 = gpd.read_file(os.path.join(tmp, "eth_adm2.shp"))
+    som = adm2[adm2["ADM2_PCODE"].str.startswith("ET05")].copy()
+    som["geometry"] = som.geometry.simplify(0.02)
+    zones = []
+    for _, z in som.iterrows():
+        geoms = z.geometry.geoms if z.geometry.geom_type == "MultiPolygon" else [z.geometry]
+        rings = [
+            [[round(x, 3), round(y, 3)] for x, y in g.exterior.coords]
+            for g in geoms
+        ]
+        zones.append({
+            "pcode": z["ADM2_PCODE"],
+            "name": z["ADM2_EN"],
+            "validation": z["ADM2_PCODE"] in validation_pcodes,
+            "rings": rings,
+        })
+    return zones
+
+
 def main() -> None:
     fc = stratus.load_parquet_from_blob(
         f"{PROJECT_PREFIX}/processed/glofas/glofas_forecast_latest.parquet", stage=STAGE
@@ -94,6 +125,10 @@ def main() -> None:
     skill = stratus.load_parquet_from_blob(
         f"{PROJECT_PREFIX}/processed/comparison/reforecast_trigger_skill.parquet", stage=STAGE
     )
+    fs_events = stratus.load_parquet_from_blob(
+        f"{PROJECT_PREFIX}/processed/floodscan/floodscan_event_catalogue.parquet", stage=STAGE
+    )
+    fs_events["peak_date"] = pd.to_datetime(fs_events["peak_date"])
 
     version = sorted(thresholds["version"].unique())[-1]
     thr = thresholds[thresholds["version"] == version].set_index(
@@ -178,6 +213,17 @@ def main() -> None:
         else:
             status = "good"
 
+        focus = SEASON_FOCUS or "deyr"
+        focus_thr = {
+            f"rp{rp}": (round(float(thr.loc[(sid, focus, rp)]), 0) if (sid, focus, rp) in thr.index else None)
+            for rp in RP_SHOW
+        }
+        ev = fs_events[(fs_events["pcode"] == meta["pcode"]) & (fs_events["season"] == focus)]
+        event_years = {
+            f"rp{r}": sorted(int(y) for y in ev[ev["fs_rp"] == r]["peak_date"].dt.year.unique())
+            for r in [2, 3]
+        }
+
         stations_payload.append({
             "id": sid,
             "label": meta["label"],
@@ -187,6 +233,8 @@ def main() -> None:
             "lon": round(float(meta["station_lon"]), 3),
             "status": status,
             "max_prob": {"rp2": max_prob_rp2, "rp3": max_prob_rp3, "rp5": max_prob_rp5},
+            "deyr_thresholds": focus_thr,
+            "deyr_event_years": event_years,
             "leads": leads,
             "skill": skill_notes,
         })
@@ -213,6 +261,7 @@ def main() -> None:
         "season_focus": SEASON_FOCUS,
         "season_label": "Deyr 2026 (Oct-Dec)" if SEASON_FOCUS == "deyr" else None,
         "legs": legs_payload,
+        "map": build_map_payload(set(mapping["pcode"])),
         "stations": stations_payload,
     }
 
