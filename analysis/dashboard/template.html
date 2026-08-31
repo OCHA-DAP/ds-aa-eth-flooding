@@ -272,24 +272,6 @@ if (DATA.map && DATA.map.length) {
     svg.appendChild(lbl);
   }
 
-  // river schematics: stations connected in downstream order per river
-  const RIVER_ORDER = {
-    Shabelle: ["station_1", "G1904", "station_2", "station_3", "station_4"],
-    Genale: ["RP_4045_0535", "station_5", "RP_4205_0415"],
-  };
-  for (const [river, ids] of Object.entries(RIVER_ORDER)) {
-    const pts = ids.map((id) => DATA.stations.find((s) => s.id === id)).filter(Boolean);
-    if (pts.length < 2) continue;
-    const path = document.createElementNS(ns, "path");
-    path.setAttribute("d", pts.map((s, i) => (i ? "L" : "M") + px(s.lon).toFixed(1) + " " + py(s.lat).toFixed(1)).join(""));
-    path.setAttribute("fill", "none");
-    path.setAttribute("stroke", RIVER[river].color);
-    path.setAttribute("stroke-width", 1.5);
-    path.setAttribute("stroke-dasharray", "3 4");
-    path.setAttribute("opacity", 0.7);
-    svg.appendChild(path);
-  }
-
   for (const st of DATA.stations) {
     const g = document.createElementNS(ns, "g");
     g.setAttribute("class", "map-station");
@@ -322,8 +304,8 @@ if (DATA.map && DATA.map.length) {
   legend.className = "legend";
   legend.innerHTML =
     '<span><span class="swatch" style="background:var(--shabelle-band); border:1px solid var(--baseline)"></span>FloodScan validation zones</span>' +
-    '<span><span class="line-swatch" style="border-color:var(--shabelle); border-top-style:dashed"></span>Shabelle stations (schematic)</span>' +
-    '<span><span class="line-swatch" style="border-color:var(--genale); border-top-style:dashed"></span>Genale stations (schematic)</span>' +
+    '<span><span class="swatch" style="background:var(--shabelle); height:8px; width:8px; border-radius:50%"></span>Shabelle station ring</span>' +
+    '<span><span class="swatch" style="background:var(--genale); height:8px; width:8px; border-radius:50%"></span>Genale station ring</span>' +
     '<span>dot color = station status · click a station to jump to its panel</span>';
   card.appendChild(legend);
 }
