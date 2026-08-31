@@ -2,3 +2,6 @@
 .Rhistory
 .RData
 .Ruserdata
+__pycache__/
+analysis/scratch_glofas_rp/
+.claude/
