@@ -67,13 +67,13 @@ TRIGGER_LEGS = [
         "skill": "POD 0.67 · FAR 0.55 (sensitive; use as heads-up, not release)",
     },
     {
-        "id": "gode_rp3",
+        "id": "gode_rp5",
         "station_id": "G1904",
         "name": "Shabelle at Gode",
-        "rule": "≥50% of members over Deyr RP3, any lead",
-        "rp": 3, "prob_gate": 0.5,
-        "grade": "Pending v5",
-        "skill": "v4 forecast blind in Deyr (POD 0.00) — awaiting v5 rescore before this leg is usable",
+        "rule": "≥50% of members over Deyr RP5, any lead",
+        "rp": 5, "prob_gate": 0.5,
+        "grade": "Watch-grade",
+        "skill": "POD 0.67 · FAR 0.67 on v5 reanalysis vs FloodScan Deyr events (v4 was blind here; lead-time skill unverified — no v5 reforecast archive)",
     },
 ]
 
