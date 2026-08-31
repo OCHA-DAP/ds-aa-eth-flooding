@@ -13,7 +13,7 @@ committed here.
 
 Monitoring points (8): the 3 official GloFAS reporting points (Shabelle at
 Gode G1904, Genale/Juba at Dolow, upper Genale) and 5 ad-hoc grid points
-(4 on the Shabelle, 1 on the Genale in Afder). All are channel-snapped to
+(4 on the Shabelle, 1 on the Webe Gestro in Afder). All are channel-snapped to
 GloFAS's 0.05 degree river network: the raw reporting-point coordinates sit
 on dry cells (see `analysis/resnap_reporting_points.py`).
 
