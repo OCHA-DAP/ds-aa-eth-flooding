@@ -201,7 +201,7 @@ def main() -> None:
             legs_payload.append({
                 **{k: leg[k] for k in ["id", "station_id", "name", "rule", "grade", "skill"]},
                 "current_prob": cur,
-                "fired": (cur is not None and cur >= leg["prob_gate"]),
+                "reached": (cur is not None and cur >= leg["prob_gate"]),
                 "in_window": bool(counted),
             })
 

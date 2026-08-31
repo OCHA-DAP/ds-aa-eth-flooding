@@ -201,8 +201,8 @@ if (DATA.legs && DATA.legs.length) {
   grid.className = "tiles";
   panel.appendChild(grid);
   for (const leg of DATA.legs) {
-    const stateColor = leg.fired ? "var(--critical)" : (leg.in_window ? "var(--good)" : "var(--muted)");
-    const stateLabel = leg.fired ? "TRIGGERED" : (leg.in_window ? "Not triggered" : "Pre-season");
+    const stateColor = leg.reached ? "var(--critical)" : (leg.in_window ? "var(--good)" : "var(--muted)");
+    const stateLabel = leg.reached ? "REACHED" : (leg.in_window ? "Not reached" : "Pre-season");
     const probTxt = leg.current_prob == null ? "–" : Math.round(leg.current_prob * 100) + "%";
     const t = document.createElement("div");
     t.className = "tile";
