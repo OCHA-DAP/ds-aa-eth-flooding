@@ -23,46 +23,7 @@
     --tooltip-bg: #0b0b0b;
     --tooltip-ink: #fcfcfb;
   }
-  @media (prefers-color-scheme: dark) {
-    :root:where(:not([data-theme="light"])) {
-      color-scheme: dark;
-      --page: #0d0d0d;
-      --surface: #1a1a19;
-      --ink: #ffffff;
-      --ink-2: #c3c2b7;
-      --muted: #898781;
-      --grid: #2c2c2a;
-      --baseline: #383835;
-      --border: rgba(255, 255, 255, 0.10);
-      --shabelle: #3987e5;
-      --shabelle-band: rgba(57, 135, 229, 0.20);
-      --shabelle-band2: rgba(57, 135, 229, 0.38);
-      --genale: #199e70;
-      --genale-band: rgba(25, 158, 112, 0.20);
-      --genale-band2: rgba(25, 158, 112, 0.38);
-      --tooltip-bg: #fcfcfb;
-      --tooltip-ink: #0b0b0b;
-    }
-  }
-  :root[data-theme="dark"] {
-    color-scheme: dark;
-    --page: #0d0d0d;
-    --surface: #1a1a19;
-    --ink: #ffffff;
-    --ink-2: #c3c2b7;
-    --muted: #898781;
-    --grid: #2c2c2a;
-    --baseline: #383835;
-    --border: rgba(255, 255, 255, 0.10);
-    --shabelle: #3987e5;
-    --shabelle-band: rgba(57, 135, 229, 0.20);
-    --shabelle-band2: rgba(57, 135, 229, 0.38);
-    --genale: #199e70;
-    --genale-band: rgba(25, 158, 112, 0.20);
-    --genale-band2: rgba(25, 158, 112, 0.38);
-    --tooltip-bg: #fcfcfb;
-    --tooltip-ink: #0b0b0b;
-  }
+  /* deliberately light-only: the page keeps its light palette in any viewer theme */
 
   * { box-sizing: border-box; }
   body {
