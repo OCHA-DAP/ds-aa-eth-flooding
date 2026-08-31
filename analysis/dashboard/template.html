@@ -16,6 +16,9 @@
     --genale: #1baf7a;
     --genale-band: rgba(27, 175, 122, 0.16);
     --genale-band2: rgba(27, 175, 122, 0.30);
+    --gestro: #eb6834;
+    --gestro-band: rgba(235, 104, 52, 0.16);
+    --gestro-band2: rgba(235, 104, 52, 0.30);
     --good: #0ca30c;
     --warning: #fab219;
     --serious: #ec835a;
@@ -144,6 +147,7 @@ const STATUS_META = {
 const RIVER = {
   Shabelle: { color: "var(--shabelle)", band: "var(--shabelle-band)", band2: "var(--shabelle-band2)" },
   Genale:   { color: "var(--genale)",   band: "var(--genale-band)",   band2: "var(--genale-band2)" },
+  Gestro:   { color: "var(--gestro)",   band: "var(--gestro-band)",   band2: "var(--gestro-band2)" },
 };
 const SEASON_LABEL = { gu: "Gu", kiremt: "Kiremt", deyr: "Deyr", jilaal: "Jilaal" };
 const fmt = (v) => v == null ? "–" : Math.round(v).toLocaleString();
@@ -267,6 +271,7 @@ if (DATA.map && DATA.map.length) {
     '<span><span class="swatch" style="background:var(--shabelle-band); border:1px solid var(--baseline)"></span>FloodScan validation zones</span>' +
     '<span><span class="swatch" style="background:var(--shabelle); height:8px; width:8px; border-radius:50%"></span>Shabelle station ring</span>' +
     '<span><span class="swatch" style="background:var(--genale); height:8px; width:8px; border-radius:50%"></span>Genale station ring</span>' +
+    '<span><span class="swatch" style="background:var(--gestro); height:8px; width:8px; border-radius:50%"></span>Webe Gestro station ring</span>' +
     '<span>dot color = station status · click a station to jump to its panel</span>';
   card.appendChild(legend);
 }
@@ -291,12 +296,12 @@ for (const st of DATA.stations) {
 
 /* ---- station cards grouped by river ---- */
 const sections = document.getElementById("sections");
-for (const river of ["Shabelle", "Genale"]) {
+for (const river of ["Shabelle", "Genale", "Gestro"]) {
   const group = DATA.stations.filter((s) => s.river === river);
   if (!group.length) continue;
   const label = document.createElement("div");
   label.className = "section-label";
-  label.textContent = river + " river";
+  label.textContent = river === "Gestro" ? "Webe Gestro" : river + " river";
   sections.appendChild(label);
   const grid = document.createElement("div");
   grid.className = "cards";
