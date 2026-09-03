@@ -350,8 +350,8 @@ if (DATA.map && DATA.map.length) {
     dot.setAttribute("cy", py(st.lat));
     dot.setAttribute("r", 6);
     dot.setAttribute("fill", STATUS_META[st.status].color);
-    dot.setAttribute("stroke", RIVER[st.river].color);
-    dot.setAttribute("stroke-width", 2.2);
+    dot.setAttribute("stroke", "var(--surface)");
+    dot.setAttribute("stroke-width", 2);
     g.appendChild(dot);
     const title = document.createElementNS(ns, "title");
     title.textContent = st.label + " · " + st.zone + " zone · " + STATUS_META[st.status].label;
@@ -367,10 +367,7 @@ if (DATA.map && DATA.map.length) {
   legend.className = "legend";
   legend.innerHTML =
     '<span><span class="swatch" style="background:rgba(21,94,117,0.06); border:1px solid var(--baseline)"></span>zones checked against satellite flood data</span>' +
-    '<span><span class="swatch" style="background:var(--shabelle); height:9px; width:9px; border-radius:50%"></span>Shabelle</span>' +
-    '<span><span class="swatch" style="background:var(--genale); height:9px; width:9px; border-radius:50%"></span>Genale/Juba</span>' +
-    '<span><span class="swatch" style="background:var(--gestro); height:9px; width:9px; border-radius:50%"></span>Webe Gestro</span>' +
-    "<span>dot fill: current status | click a station to open its panel</span>";
+    "<span>dot colour: current status | click a station to open its panel</span>";
   card.appendChild(legend);
 }
 
