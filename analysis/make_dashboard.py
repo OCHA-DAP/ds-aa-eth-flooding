@@ -39,6 +39,13 @@ HERE = Path(__file__).resolve().parent
 OUT_DIR = HERE / "dashboard"
 OUT_DIR.mkdir(exist_ok=True)
 
+# The operational forecast and the GloFAS map viewer thresholds are v4-scale
+# (verified 2026-08-31: viewer shows RP1.5 ~ 200 m3/s at the Webe Gestro point,
+# matching v4 annual RP2 = 236, not v5's 59). Pin v4 so forecast and thresholds
+# always share a scale; the climatology matcher below runs as a tripwire and
+# the build warns if the operational system stops matching the pin.
+THRESHOLD_VERSION_PIN = "v4_0"
+
 # Deyr monitoring mode: thresholds and trigger status use the Deyr fit only,
 # and only forecast days falling in Deyr months count toward the trigger
 # (Kiremt flows routinely exceed the Deyr thresholds on the Shabelle, so an
@@ -72,8 +79,8 @@ TRIGGER_LEGS = [
         "name": "Shabelle at Gode",
         "rule": "At least half of the 51 forecast runs put the river above its RP5 level for the season (a flow reached about once in 5 years)",
         "rp": 5, "prob_gate": 0.5,
-        "grade": "Early signal · new",
-        "skill": "Added with GloFAS v5 (v4 missed all Shabelle Deyr floods). Flags 4 of 6 past Deyr floods | about 2 in 3 alerts false | forecast lead time not yet verified.",
+        "grade": "Not usable yet",
+        "skill": "v4 forecasts missed all past Shabelle Deyr floods (0 of 6). Becomes usable when the operational system upgrades to v5, whose reanalysis flags 4 of 6.",
     },
 ]
 
@@ -145,12 +152,22 @@ def load_reanalysis_by_version() -> pd.DataFrame:
     return out
 
 
-def pick_threshold_version(fc: pd.DataFrame, rean: pd.DataFrame) -> tuple:
+def pick_threshold_version(fc: pd.DataFrame, rean: pd.DataFrame, rivers: pd.Series) -> tuple:
     """Match the operational forecast to the GloFAS version whose climatology it
     follows. The 'operational' EWDS forecast does not necessarily run the newest
-    reanalysis version (as of 2026-08 its magnitudes match v4, not v5): comparing
-    it against the wrong version's thresholds manufactures false severity, so the
-    version is detected from the data on every rebuild rather than assumed."""
+    reanalysis version, and comparing it against the wrong version's thresholds
+    manufactures false severity, so the version is detected from the data on
+    every rebuild rather than assumed.
+
+    The test is COHERENCE, not closeness to 1: a real weather anomaly shifts a
+    whole basin by a similar factor, while a version mismatch distorts stations
+    by station-specific factors. Ratios are averaged per RIVER first (the five
+    Shabelle points are one near-identical series in v4 and must not vote five
+    times), then the version with the smallest spread of log-ratios across
+    rivers wins. Anchor for this choice (2026-08-31): the GloFAS map viewer
+    shows RP1.5 ~ 200 m3/s at the Webe Gestro point, matching v4's threshold
+    scale (v4 annual RP2 = 236) and far above v5's (RP2 = 59) - the operational
+    system is v4-scale, which only the river-grouped metric identifies."""
     doys = set(pd.to_datetime(fc["valid_time"]).dt.dayofyear)
     window = rean[rean["valid_time"].dt.dayofyear.isin(doys)]
     fc_med = fc.groupby("station_id")["discharge"].median()
@@ -159,7 +176,8 @@ def pick_threshold_version(fc: pd.DataFrame, rean: pd.DataFrame) -> tuple:
         rean_med = g.groupby("station_id")["discharge"].median()
         ratio = (fc_med / rean_med).dropna()
         ratio = ratio[np.isfinite(ratio) & (ratio > 0)]
-        scores[version] = float(np.abs(np.log(ratio)).median())
+        logr = np.log(ratio).groupby(rivers).mean()  # one vote per river
+        scores[version] = float((logr - logr.median()).abs().median())
     best = min(scores, key=scores.get)
     return best, scores
 
@@ -187,9 +205,15 @@ def main() -> None:
     issue = fc["issued_time"].max()
     fc = fc[fc["issued_time"] == issue]
 
-    version, match_scores = pick_threshold_version(fc, load_reanalysis_by_version())
-    print(f"threshold version matched to forecast climatology: {version} "
-          f"(median |log ratio| per version: { {k: round(v, 2) for k, v in match_scores.items()} })")
+    rivers = mapping.set_index("station_id")["river"]
+    matched, match_scores = pick_threshold_version(fc, load_reanalysis_by_version(), rivers)
+    version = THRESHOLD_VERSION_PIN or matched
+    print(f"thresholds: {version} (pinned) | climatology match: {matched} "
+          f"(spread per version: { {k: round(v, 2) for k, v in match_scores.items()} })")
+    if matched != version:
+        print(f"WARNING: forecast climatology now matches {matched}, not the pinned {version}. "
+              "The operational GloFAS system may have been upgraded - re-check the map viewer "
+              "thresholds and update THRESHOLD_VERSION_PIN.")
     thr = thresholds[thresholds["version"] == version].set_index(
         ["station_id", "season", "rp"]
     )["threshold_gumbel"]
