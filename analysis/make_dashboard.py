@@ -112,6 +112,18 @@ def build_map_payload(validation_pcodes: set) -> list:
     return zones
 
 
+def load_river_cells() -> list:
+    """GloFAS channel cells for the map's river layer (precomputed on blob)."""
+    try:
+        data = stratus.load_blob_data(
+            f"{PROJECT_PREFIX}/processed/dashboard/river_cells.json",
+            stage=STAGE, container_name="projects",
+        )
+        return json.loads(data)["cells"]
+    except Exception:
+        return []
+
+
 def load_reanalysis_by_version() -> pd.DataFrame:
     """Daily reanalysis per version | station | date (for climatology matching)."""
     frames = []
@@ -314,6 +326,7 @@ def main() -> None:
         "season_label": "Deyr 2026 (Oct-Dec)" if SEASON_FOCUS == "deyr" else None,
         "legs": legs_payload,
         "map": build_map_payload(set(mapping["pcode"])),
+        "rivers": load_river_cells(),
         "stations": stations_payload,
     }
 

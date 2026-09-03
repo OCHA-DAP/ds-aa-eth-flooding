@@ -342,6 +342,18 @@ if (DATA.map && DATA.map.length) {
     svg.appendChild(lbl);
   }
 
+  if (DATA.rivers && DATA.rivers.length) {
+    for (const c of DATA.rivers) {
+      const dot = document.createElementNS(ns, "circle");
+      dot.setAttribute("cx", px(c[0]));
+      dot.setAttribute("cy", py(c[1]));
+      dot.setAttribute("r", c[2] >= 100 ? 2.6 : 1.9);
+      dot.setAttribute("fill", "#84aecf");
+      dot.setAttribute("opacity", 0.65);
+      svg.appendChild(dot);
+    }
+  }
+
   for (const st of DATA.stations) {
     const g = document.createElementNS(ns, "g");
     g.setAttribute("class", "map-station");
@@ -367,6 +379,7 @@ if (DATA.map && DATA.map.length) {
   legend.className = "legend";
   legend.innerHTML =
     '<span><span class="swatch" style="background:rgba(21,94,117,0.06); border:1px solid var(--baseline)"></span>zones checked against satellite flood data</span>' +
+    '<span><span class="swatch" style="background:#84aecf; height:8px; width:8px; border-radius:50%"></span>river channels (GloFAS; southern box only)</span>' +
     "<span>dot colour: current status | click a station to open its panel</span>";
   card.appendChild(legend);
 }
@@ -660,7 +673,10 @@ document.getElementById("footer").innerHTML =
   " reanalysis at channel-snapped cells (Gu = Mar–Jun, Kiremt = Jul–Sep, Deyr = Oct–Dec). " +
   "Forecast: operational GloFAS ensemble (51 members, leads 1–10 days); each forecast day is compared " +
   "against its own season's levels. Station status: max share of members over a level on any day " +
-  "(≥30% over RP5 / RP3 / RP2). The Deyr monitored conditions count October–December days only.</p>" +
+  "(≥30% over RP5 / RP3 / RP2). The Deyr monitored conditions count October–December days only. " +
+  "Note: these seasonal levels are deliberately lower than the annual return-period thresholds shown in the " +
+  "GloFAS map viewer. Annual thresholds are set by the July–September peak flows and would miss most Gu and " +
+  "Deyr floods here; a comparison table is in notebook 01.</p>" +
   "<p><strong>Caveats.</strong> Flows are model quantities, not gauge readings. Track records are scored " +
   "against satellite-detected (FloodScan) flood events, 6–8 events per zone, so all skill numbers carry wide " +
   "uncertainty; the forecast backtest uses the older GloFAS v4 system. Analysis: notebooks 01–03 in " +
