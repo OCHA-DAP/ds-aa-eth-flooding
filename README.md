@@ -57,8 +57,13 @@ Key findings so far:
 operational forecast (`analysis/fetch_glofas_forecast_live.py`): station map,
 per-station ensemble fan charts vs seasonal RP2/RP3/RP5 levels, and the
 monitored Deyr conditions. Output: `docs/index.html`, served via GitHub Pages
-at https://ocha-dap.github.io/ds-aa-eth-flooding/. A daily scheduled task
-refreshes it (fetch, rebuild, publish).
+at https://ocha-dap.github.io/ds-aa-eth-flooding/.
+
+Daily refresh runs on GitHub: `.github/workflows/deyr-monitoring.yml`
+(11:15 UTC) fetches the latest forecast from EWDS, writes the extracted data
+to blob, rebuilds the page and commits it. Repository secrets required:
+`EWDS_API_KEY`, `DSCI_AZ_BLOB_DEV_SAS`, `DSCI_AZ_BLOB_DEV_SAS_WRITE`. The
+page carries an update log (one line per run) so missed days are visible.
 
 ## Fetch scripts
 

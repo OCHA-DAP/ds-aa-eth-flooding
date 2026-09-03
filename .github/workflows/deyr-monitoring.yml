@@ -1,0 +1,65 @@
+name: deyr-monitoring
+
+# Daily refresh of the Deyr flood-monitoring dashboard: fetch the latest
+# operational GloFAS forecast from EWDS, extract the station cells to blob,
+# rebuild docs/index.html and commit it (GitHub Pages redeploys on push).
+#
+# Required repository secrets:
+#   EWDS_API_KEY                the key from ~/.cdsapirc (EWDS / CDS account)
+#   DSCI_AZ_BLOB_DEV_SAS        read SAS token for the dev storage account
+#   DSCI_AZ_BLOB_DEV_SAS_WRITE  write SAS token for the dev storage account
+
+on:
+  schedule:
+    - cron: "15 11 * * *" # 14:15 East Africa Time
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency: deyr-monitoring
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      DSCI_AZ_BLOB_DEV_SAS: ${{ secrets.DSCI_AZ_BLOB_DEV_SAS }}
+      DSCI_AZ_BLOB_DEV_SAS_WRITE: ${{ secrets.DSCI_AZ_BLOB_DEV_SAS_WRITE }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: >
+          pip install cdsapi ocha-stratus pandas numpy xarray netcdf4
+          geopandas pyyaml requests pyarrow
+
+      - name: Write EWDS credentials
+        run: |
+          cat > ~/.cdsapirc <<EOF
+          url: https://ewds.climate.copernicus.eu/api
+          key: ${{ secrets.EWDS_API_KEY }}
+          EOF
+
+      - name: Fetch latest operational forecast
+        run: python analysis/fetch_glofas_forecast_live.py
+
+      - name: Build dashboard
+        run: python analysis/make_dashboard.py
+
+      - name: Commit and push the page
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/index.html
+          if git diff --cached --quiet; then
+            echo "page unchanged, nothing to commit"
+          else
+            git commit -m "Refresh Deyr monitoring dashboard ($(date -u +%F))"
+            git pull --rebase origin main
+            git push origin main
+          fi
