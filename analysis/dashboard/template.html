@@ -74,6 +74,18 @@
   }
   .banner .dot { margin-top: 7px; }
 
+  .run-log {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 16px 11px; margin-bottom: 14px;
+  }
+  .run-log .row-label {
+    font-family: var(--display); font-size: 12px; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--muted); font-weight: 600; margin-bottom: 5px;
+  }
+  .log-line { font-size: 13px; color: var(--ink-2); padding: 2px 0; }
+  .log-line .log-date { font-weight: 600; display: inline-block; min-width: 58px; }
+  .log-line .log-hit { color: var(--critical); font-weight: 600; }
+
   details.howto {
     background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
     padding: 10px 16px; margin-bottom: 26px; color: var(--ink-2); max-width: 100%;
@@ -183,6 +195,7 @@
   </header>
 
   <div class="banner" id="banner"></div>
+  <div id="run-log"></div>
 
   <details class="howto">
     <summary>How to read this page</summary>
@@ -260,6 +273,20 @@ document.getElementById("issue-chip").textContent =
       ". See the station panels below." + deyrNote + "</div>";
   }
   banner.innerHTML = '<span class="dot" style="background:' + STATUS_META[worst].color + '"></span>' + msg;
+}
+
+/* ---- update log ---- */
+if (DATA.run_log && DATA.run_log.length) {
+  const box = document.getElementById("run-log");
+  box.className = "run-log";
+  const lines = DATA.run_log.map((e) => {
+    const what = e.reached && e.reached.length
+      ? e.reached.map((r) => '<span class="log-hit">' + r.level + " reached</span> at " + r.station).join(" | ")
+      : "no RP level reached";
+    return '<div class="log-line"><span class="log-date">' + fmtDate(e.date) + "</span>" +
+      "issue " + fmtDate(e.issue) + ", checked " + e.checked_at + " | " + what + "</div>";
+  });
+  box.innerHTML = '<div class="row-label">Update log · one line per daily run</div>' + lines.join("");
 }
 
 /* ---- proposed triggers ---- */

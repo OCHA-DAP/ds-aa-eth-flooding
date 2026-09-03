@@ -121,6 +121,43 @@ def build_map_payload(validation_pcodes: set) -> list:
     return zones
 
 
+RUN_LOG_BLOB = f"{PROJECT_PREFIX}/processed/dashboard/run_log.json"
+
+
+def update_run_log(issue: pd.Timestamp, stations_payload: list) -> list:
+    """Append today's run to the persistent update log (one entry per date,
+    newest first, capped at 30). An RP level counts as reached when at least
+    half of the 51 runs are above it on the first forecast day."""
+    try:
+        log = json.loads(stratus.load_blob_data(RUN_LOG_BLOB, stage=STAGE, container_name="projects"))
+    except Exception:
+        log = []
+    reached = []
+    for st in stations_payload:
+        lead1 = st["leads"][0]
+        top = None
+        for rp in ["rp2", "rp3", "rp5"]:
+            if (lead1["prob"][rp] or 0) >= 0.5:
+                top = rp
+        if top:
+            reached.append({"station": st["label"], "level": top.upper()})
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    entry = {
+        "date": today,
+        "issue": issue.strftime("%Y-%m-%d"),
+        "checked_at": datetime.now(timezone.utc).strftime("%H:%M UTC"),
+        "reached": reached,
+    }
+    log = [e for e in log if e.get("date") != today]
+    log.insert(0, entry)
+    log = log[:30]
+    stratus.upload_blob_data(
+        json.dumps(log).encode(), RUN_LOG_BLOB,
+        stage=STAGE, container_name="projects", content_type="application/json",
+    )
+    return log
+
+
 def load_river_cells() -> list:
     """GloFAS channel cells for the map's river layer (precomputed on blob)."""
     try:
@@ -353,6 +390,7 @@ def main() -> None:
         "legs": legs_payload,
         "map": build_map_payload(set(mapping["pcode"])),
         "rivers": load_river_cells(),
+        "run_log": update_run_log(issue, stations_payload)[:7],
         "stations": stations_payload,
     }
 
