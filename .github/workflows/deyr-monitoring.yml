@@ -60,7 +60,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/index.html
+          git add docs/index.html analysis/dashboard/eth_flood_dashboard.html
           if git diff --cached --quiet; then
             echo "page unchanged, nothing to commit"
           else
