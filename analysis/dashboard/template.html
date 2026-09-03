@@ -181,9 +181,9 @@
       <span class="issue-chip" id="issue-chip"></span>
     </div>
     <p class="subtitle">
-      Will the rivers of Ethiopia's Somali region flood in the coming Deyr rains
-      (October&ndash;December 2026)? This page checks the latest 10-day GloFAS river
-      forecast every day and raises a flag when flood levels become likely.
+      Daily monitoring of GloFAS river forecasts for the Shabelle, Genale/Juba and Webe
+      Gestro in Ethiopia's Somali region, ahead of the Deyr season (October to December
+      2026). Each day's forecast is compared against seasonal flood levels.
     </p>
   </header>
 
@@ -192,23 +192,19 @@
   <details class="howto">
     <summary>How to read this page</summary>
     <ol>
-      <li><strong>The forecast is a bundle of 51 runs.</strong> GloFAS runs the same 10-day
-        river forecast 51 times with slightly different starting weather. In each station
-        panel, the shaded band is the range those runs cover (dark: the middle half;
-        light: the widest 80%), and the solid line is the middle run.</li>
-      <li><strong>The dashed grey lines are that river's flood levels for the season</strong>, estimated
-        from 46 years of model history: <em>moderate</em> is reached about once every 2 years,
-        <em>high</em> about once every 3, <em>severe</em> about once every 5. Each season has its own
-        levels, because these rivers naturally run much higher in July&ndash;September, fed by rains in
-        the Ethiopian highlands upstream (the Somali region itself is largely dry then), than during
-        the local Gu or Deyr rains: a flow that is normal in August would be a flood in November.</li>
-      <li><strong>A signal means runs are crossing a flood level.</strong> The small bars under each
-        panel show, day by day, what share of the 51 runs are above that day's <em>high</em> level;
-        that share drives the station's color, at any time of year.</li>
-      <li><strong>The Deyr monitored conditions only count October&ndash;December days.</strong> The
-        overview cards watch specifically for Deyr flooding, so they read "waiting" until the
-        10-day forecast starts reaching October (around 21 September), even while the station
-        panels above stay live.</li>
+      <li>GloFAS runs the same 10-day river forecast 51 times with slightly different starting
+        weather. In each station panel, the shaded band is the range those runs cover (dark:
+        the middle half | light: the widest 80%) and the solid line is the middle run.</li>
+      <li>The dashed lines are the river's flood levels for the season, estimated from 46 years
+        of model history: moderate is reached about once every 2 years, high about once every 3,
+        severe about once every 5. Levels are seasonal because these rivers run much higher in
+        July to September, fed by rain in the Ethiopian highlands upstream (the Somali region
+        itself is largely dry then), than during the local Gu or Deyr rains.</li>
+      <li>The bars under each panel show the share of the 51 runs above that day's high level.
+        This share sets the station's colour.</li>
+      <li>The conditions in the monitoring overview only count days in October to December, so
+        they read "waiting" until the forecast horizon reaches October, around 21 September.
+        The station panels stay live year-round.</li>
     </ol>
   </details>
 
@@ -253,16 +249,16 @@ document.getElementById("issue-chip").textContent =
   banner.style.borderLeftColor = STATUS_META[worst].color;
   const deyrWaiting = DATA.season_focus && DATA.legs && DATA.legs.length && DATA.legs.every((l) => !l.in_window);
   const deyrNote = deyrWaiting
-    ? " The Deyr monitored conditions below start counting when forecasts reach October (around 21 September)."
+    ? " The Deyr conditions below start counting when forecasts reach October, around 21 September."
     : "";
   let msg;
   if (worst === "good" || worst === "preseason") {
-    msg = "<div><strong>No flood signal.</strong> All 51 forecast runs sit below this season's flood levels " +
+    msg = "<div><strong>No flood signal.</strong> All 51 forecast runs are below this season's flood levels " +
       "at every station." + deyrNote + "</div>";
   } else {
     const hot = DATA.stations.filter((st) => st.status === worst).map((st) => st.label).join(", ");
     msg = "<div><strong>" + STATUS_META[worst].label + ":</strong> " + hot +
-      " — see the station panels below." + deyrNote + "</div>";
+      ". See the station panels below." + deyrNote + "</div>";
   }
   banner.innerHTML = '<span class="dot" style="background:' + STATUS_META[worst].color + '"></span>' + msg;
 }
@@ -299,7 +295,7 @@ if (DATA.map && DATA.map.length) {
   const panel = document.getElementById("map-panel");
   const label = document.createElement("div");
   label.className = "section-label";
-  label.textContent = "Where the stations are";
+  label.textContent = "Station map";
   panel.appendChild(label);
   const card = document.createElement("div");
   card.className = "map-card";
@@ -376,7 +372,7 @@ if (DATA.map && DATA.map.length) {
     '<span><span class="swatch" style="background:var(--shabelle); height:9px; width:9px; border-radius:50%"></span>Shabelle</span>' +
     '<span><span class="swatch" style="background:var(--genale); height:9px; width:9px; border-radius:50%"></span>Genale/Juba</span>' +
     '<span><span class="swatch" style="background:var(--gestro); height:9px; width:9px; border-radius:50%"></span>Webe Gestro</span>' +
-    "<span>dot fill = today's status · click a station to jump to its panel</span>";
+    "<span>dot fill: current status | click a station to open its panel</span>";
   card.appendChild(legend);
 }
 
@@ -385,7 +381,7 @@ if (DATA.map && DATA.map.length) {
   const panel = document.getElementById("tiles-panel");
   const label = document.createElement("div");
   label.className = "section-label";
-  label.textContent = "All stations at a glance";
+  label.textContent = "Stations";
   panel.appendChild(label);
   const tiles = document.createElement("div");
   tiles.className = "tiles";
@@ -435,8 +431,8 @@ function buildCard(st) {
     : "";
   const evYears = (st.deyr_event_years && st.deyr_event_years.rp3) || [];
   const evTxt = evYears.length
-    ? "Satellite data saw major Deyr flooding in " + st.zone + " in " + evYears.join(", ") + "."
-    : "No major Deyr flooding seen by satellite in " + st.zone + " since 2003.";
+    ? "Major Deyr flooding recorded by satellite in " + st.zone + " zone: " + evYears.join(", ") + "."
+    : "No major Deyr flooding recorded by satellite in " + st.zone + " zone since 2003.";
   card.innerHTML =
     "<h3>" + st.label +
     '<span class="status-pill"><span class="dot" style="background:' + s.color + '"></span>' + s.label + "</span></h3>" +
@@ -455,12 +451,12 @@ function buildCard(st) {
     '<span><span class="swatch" style="background:' + rc.band + '"></span>widest 80% of the 51 runs</span>' +
     '<span><span class="swatch" style="background:' + rc.band2 + '"></span>middle half</span>' +
     '<span><span class="line-swatch" style="border-color:' + rc.color + '"></span>middle run</span>' +
-    '<span><span class="line-swatch" style="border-color:var(--baseline); border-top-style:dashed"></span>Deyr flood levels</span>';
+    '<span><span class="line-swatch" style="border-color:var(--baseline); border-top-style:dashed"></span>seasonal flood levels</span>';
   card.appendChild(legend);
 
   const probRow = document.createElement("div");
   probRow.className = "prob-row";
-  probRow.innerHTML = '<div class="row-label">Share of the 51 runs above that day’s <strong>high</strong> flood level</div>';
+  probRow.innerHTML = '<div class="row-label">Share of the 51 runs above that day’s high flood level</div>';
   drawProbStrip(probRow, st);
   card.appendChild(probRow);
 
@@ -471,8 +467,8 @@ function buildCard(st) {
     if (bits.length) {
       const note = document.createElement("div");
       note.className = "skill-note";
-      note.innerHTML = "<strong>Track record</strong> (forecast backtest 2003–2023, " +
-        (st.skill[0].kind === "ensemble p50" ? "full ensemble" : "single run only") + "): " + bits.join(" · ") + ".";
+      note.innerHTML = "<strong>Backtest 2003–2023</strong> (" +
+        (st.skill[0].kind === "ensemble p50" ? "full ensemble" : "single run only") + "): " + bits.join(" | ") + ".";
       card.appendChild(note);
     }
   }
@@ -661,7 +657,7 @@ function drawProbStrip(parent, st) {
 
 /* ---- footer ---- */
 document.getElementById("footer").innerHTML =
-  "<p><strong>Method (for the technical reader).</strong> Flood levels are return-period thresholds " +
+  "<p><strong>Method.</strong> Flood levels are return-period thresholds " +
   "(moderate = RP2, high = RP3, severe = RP5), Gumbel-fitted on 2003–2025 seasonal maxima of GloFAS " +
   DATA.threshold_version.replace("_", ".") + " reanalysis at channel-snapped cells (Gu = Mar–Jun, Kiremt = Jul–Sep, " +
   "Deyr = Oct–Dec). Forecast: operational GloFAS ensemble (51 members, leads 1–10 days); each forecast day " +

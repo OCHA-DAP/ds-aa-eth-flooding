@@ -55,7 +55,7 @@ TRIGGER_LEGS = [
         "rule": "At least half of the 51 forecast runs put the river above its severe flood level (reached about once in 5 years)",
         "rp": 5, "prob_gate": 0.5,
         "grade": "Strong signal · rarely false",
-        "skill": "Backtest 2003-2023: this condition was reached twice (2017 and the Deyr 2023 disaster), never falsely. The trade-off: it misses smaller floods.",
+        "skill": "Backtest 2003-2023: reached twice (2017 and Deyr 2023), no false activations. Misses smaller floods.",
     },
     {
         "id": "genale_upper_rp2",
@@ -64,7 +64,7 @@ TRIGGER_LEGS = [
         "rule": "At least half of the 51 forecast runs put the river above its moderate flood level (reached about once in 2 years)",
         "rp": 2, "prob_gate": 0.5,
         "grade": "Early signal · sensitive",
-        "skill": "Backtest 2003-2023: caught 4 of the 6 big Deyr floods, but was reached roughly every other year and over half of those were false alarms. Treat as a heads-up.",
+        "skill": "Backtest 2003-2023: caught 4 of 6 Deyr floods | reached about every second year, over half of those false alarms.",
     },
     {
         "id": "gode_rp5",
@@ -73,7 +73,7 @@ TRIGGER_LEGS = [
         "rule": "At least half of the 51 forecast runs put the river above its severe flood level (reached about once in 5 years)",
         "rp": 5, "prob_gate": 0.5,
         "grade": "Early signal · new",
-        "skill": "New with GloFAS v5, which finally sees Shabelle floods (v4 missed all of them): flags 4 of 6 past Deyr floods, but about 2 in 3 alerts were false, and its forecast lead time is not yet verified.",
+        "skill": "Added with GloFAS v5 (v4 missed all Shabelle Deyr floods). Flags 4 of 6 past Deyr floods | about 2 in 3 alerts false | forecast lead time not yet verified.",
     },
 ]
 
