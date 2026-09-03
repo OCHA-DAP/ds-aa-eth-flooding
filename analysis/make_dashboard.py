@@ -112,6 +112,46 @@ def build_map_payload(validation_pcodes: set) -> list:
     return zones
 
 
+def load_reanalysis_by_version() -> pd.DataFrame:
+    """Daily reanalysis per version | station | date (for climatology matching)."""
+    frames = []
+    for blob in ["glofas_discharge.parquet", "glofas_discharge_reporting_points.parquet"]:
+        df = stratus.load_parquet_from_blob(f"{PROJECT_PREFIX}/processed/glofas/{blob}", stage=STAGE)
+        df = df[df["dataset"] == "reanalysis"].copy()
+        df["version"] = "v4_0"
+        frames.append(df[["version", "station_id", "valid_time", "discharge"]])
+    try:
+        v5 = stratus.load_parquet_from_blob(
+            f"{PROJECT_PREFIX}/processed/glofas/glofas_discharge_v5.parquet", stage=STAGE
+        )
+        v5["version"] = "v5_0"
+        frames.append(v5[["version", "station_id", "valid_time", "discharge"]])
+    except Exception:
+        pass
+    out = pd.concat(frames, ignore_index=True)
+    out["valid_time"] = pd.to_datetime(out["valid_time"]).dt.normalize()
+    return out
+
+
+def pick_threshold_version(fc: pd.DataFrame, rean: pd.DataFrame) -> tuple:
+    """Match the operational forecast to the GloFAS version whose climatology it
+    follows. The 'operational' EWDS forecast does not necessarily run the newest
+    reanalysis version (as of 2026-08 its magnitudes match v4, not v5): comparing
+    it against the wrong version's thresholds manufactures false severity, so the
+    version is detected from the data on every rebuild rather than assumed."""
+    doys = set(pd.to_datetime(fc["valid_time"]).dt.dayofyear)
+    window = rean[rean["valid_time"].dt.dayofyear.isin(doys)]
+    fc_med = fc.groupby("station_id")["discharge"].median()
+    scores = {}
+    for version, g in window.groupby("version"):
+        rean_med = g.groupby("station_id")["discharge"].median()
+        ratio = (fc_med / rean_med).dropna()
+        ratio = ratio[np.isfinite(ratio) & (ratio > 0)]
+        scores[version] = float(np.abs(np.log(ratio)).median())
+    best = min(scores, key=scores.get)
+    return best, scores
+
+
 def main() -> None:
     fc = stratus.load_parquet_from_blob(
         f"{PROJECT_PREFIX}/processed/glofas/glofas_forecast_latest.parquet", stage=STAGE
@@ -130,15 +170,17 @@ def main() -> None:
     )
     fs_events["peak_date"] = pd.to_datetime(fs_events["peak_date"])
 
-    version = sorted(thresholds["version"].unique())[-1]
-    thr = thresholds[thresholds["version"] == version].set_index(
-        ["station_id", "season", "rp"]
-    )["threshold_gumbel"]
-
     fc["issued_time"] = pd.to_datetime(fc["issued_time"])
     fc["valid_time"] = pd.to_datetime(fc["valid_time"])
     issue = fc["issued_time"].max()
     fc = fc[fc["issued_time"] == issue]
+
+    version, match_scores = pick_threshold_version(fc, load_reanalysis_by_version())
+    print(f"threshold version matched to forecast climatology: {version} "
+          f"(median |log ratio| per version: { {k: round(v, 2) for k, v in match_scores.items()} })")
+    thr = thresholds[thresholds["version"] == version].set_index(
+        ["station_id", "season", "rp"]
+    )["threshold_gumbel"]
 
     stations_payload = []
     for _, meta in mapping.iterrows():
@@ -153,10 +195,10 @@ def main() -> None:
         for lead, g in ens.groupby("leadtime_days"):
             valid = g["valid_time"].iloc[0]
             season = month_season(valid.month)
-            # threshold basis: the focus season's fit in monitoring mode,
-            # otherwise each valid date's own season
-            thr_season = SEASON_FOCUS or season
-            in_season = season == thr_season
+            # each day is judged against its own season's flood levels; the
+            # in_season flag gates only the Deyr monitored conditions
+            thr_season = season if season != "jilaal" else "annual"
+            in_season = (season == SEASON_FOCUS) if SEASON_FOCUS else True
             probs, thr_vals = {}, {}
             for rp in RP_SHOW:
                 key = (sid, thr_season, rp)
@@ -198,7 +240,9 @@ def main() -> None:
             if g["pod"].notna().any()
         ]
 
-        counted = [l for l in leads if l["in_season"]]
+        # station status is live: every forecast day counts, each against its
+        # own season's levels (only the Deyr conditions wait for their window)
+        counted = leads
         max_prob_rp3 = max(((l["prob"]["rp3"] or 0) for l in counted), default=0)
         max_prob_rp5 = max(((l["prob"]["rp5"] or 0) for l in counted), default=0)
         max_prob_rp2 = max(((l["prob"]["rp2"] or 0) for l in counted), default=0)
@@ -214,6 +258,7 @@ def main() -> None:
             status = "good"
 
         focus = SEASON_FOCUS or "deyr"
+        window_levels = {"season": leads[0]["season"], **leads[0]["thresholds"]}
         focus_thr = {
             f"rp{rp}": (round(float(thr.loc[(sid, focus, rp)]), 0) if (sid, focus, rp) in thr.index else None)
             for rp in RP_SHOW
@@ -234,6 +279,7 @@ def main() -> None:
             "status": status,
             "max_prob": {"rp2": max_prob_rp2, "rp3": max_prob_rp3, "rp5": max_prob_rp5},
             "deyr_thresholds": focus_thr,
+            "window_levels": window_levels,
             "deyr_event_years": event_years,
             "leads": leads,
             "skill": skill_notes,
