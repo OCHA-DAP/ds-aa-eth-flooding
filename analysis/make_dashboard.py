@@ -52,7 +52,7 @@ TRIGGER_LEGS = [
         "id": "dolow_rp5",
         "station_id": "RP_4205_0415",
         "name": "Genale/Juba at Dolow",
-        "rule": "At least half of the 51 forecast runs put the river above its severe flood level (reached about once in 5 years)",
+        "rule": "At least half of the 51 forecast runs put the river above its RP5 level for the season (a flow reached about once in 5 years)",
         "rp": 5, "prob_gate": 0.5,
         "grade": "Strong signal · rarely false",
         "skill": "Backtest 2003-2023: reached twice (2017 and Deyr 2023), no false activations. Misses smaller floods.",
@@ -61,7 +61,7 @@ TRIGGER_LEGS = [
         "id": "genale_upper_rp2",
         "station_id": "RP_4045_0535",
         "name": "Genale upper",
-        "rule": "At least half of the 51 forecast runs put the river above its moderate flood level (reached about once in 2 years)",
+        "rule": "At least half of the 51 forecast runs put the river above its RP2 level for the season (a flow reached about once in 2 years)",
         "rp": 2, "prob_gate": 0.5,
         "grade": "Early signal · sensitive",
         "skill": "Backtest 2003-2023: caught 4 of 6 Deyr floods | reached about every second year, over half of those false alarms.",
@@ -70,7 +70,7 @@ TRIGGER_LEGS = [
         "id": "gode_rp5",
         "station_id": "G1904",
         "name": "Shabelle at Gode",
-        "rule": "At least half of the 51 forecast runs put the river above its severe flood level (reached about once in 5 years)",
+        "rule": "At least half of the 51 forecast runs put the river above its RP5 level for the season (a flow reached about once in 5 years)",
         "rp": 5, "prob_gate": 0.5,
         "grade": "Early signal · new",
         "skill": "Added with GloFAS v5 (v4 missed all Shabelle Deyr floods). Flags 4 of 6 past Deyr floods | about 2 in 3 alerts false | forecast lead time not yet verified.",
@@ -290,13 +290,19 @@ def main() -> None:
         by_id = {s["id"]: s for s in stations_payload}
         for leg in TRIGGER_LEGS:
             st = by_id.get(leg["station_id"])
-            counted = [l for l in st["leads"] if l["in_season"]] if st else []
-            cur = max(((l["prob"][f"rp{leg['rp']}"] or 0) for l in counted), default=None)
+            leads = st["leads"] if st else []
+            deyr_leads = [l for l in leads if l["in_season"]]
+            # before the Deyr window reaches the forecast horizon, evaluate the
+            # same rule against the current season's levels as a live preview
+            eval_leads = deyr_leads if deyr_leads else leads
+            scored = [((l["prob"][f"rp{leg['rp']}"] or 0), l["season"]) for l in eval_leads]
+            cur, cur_season = max(scored, key=lambda t: t[0]) if scored else (None, None)
             legs_payload.append({
                 **{k: leg[k] for k in ["id", "station_id", "name", "rule", "grade", "skill"]},
                 "current_prob": cur,
                 "reached": (cur is not None and cur >= leg["prob_gate"]),
-                "in_window": bool(counted),
+                "in_window": bool(deyr_leads),
+                "eval_season": cur_season,
             })
 
     payload = {

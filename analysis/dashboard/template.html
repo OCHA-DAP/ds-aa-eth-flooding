@@ -195,16 +195,18 @@
       <li>GloFAS runs the same 10-day river forecast 51 times with slightly different starting
         weather. In each station panel, the shaded band is the range those runs cover (dark:
         the middle half | light: the widest 80%) and the solid line is the middle run.</li>
-      <li>The dashed lines are the river's flood levels for the season, estimated from 46 years
-        of model history: moderate is reached about once every 2 years, high about once every 3,
-        severe about once every 5. Levels are seasonal because these rivers run much higher in
-        July to September, fed by rain in the Ethiopian highlands upstream (the Somali region
-        itself is largely dry then), than during the local Gu or Deyr rains.</li>
-      <li>The bars under each panel show the share of the 51 runs above that day's high level.
+      <li>The dashed lines are the river's return-period levels for the season, estimated from
+        46 years of model history: <span style="color:var(--warning); font-weight:600">RP2</span> is
+        reached about once every 2 years, <span style="color:var(--serious); font-weight:600">RP3</span>
+        about once every 3, <span style="color:var(--critical); font-weight:600">RP5</span> about once
+        every 5. Levels are seasonal because these rivers run much higher in July to September, fed
+        by rain in the Ethiopian highlands upstream (the Somali region itself is largely dry then),
+        than during the local Gu or Deyr rains.</li>
+      <li>The bars under each panel show the share of the 51 runs above that day's RP3 level.
         This share sets the station's colour.</li>
-      <li>The conditions in the monitoring overview only count days in October to December, so
-        they read "waiting" until the forecast horizon reaches October, around 21 September.
-        The station panels stay live year-round.</li>
+      <li>The monitored conditions in the overview target Deyr flooding, and their backtest record
+        is Deyr-specific. Before the forecast horizon reaches October they are evaluated against
+        the current season's levels, marked accordingly; from October they run on Deyr levels.</li>
     </ol>
   </details>
 
@@ -220,19 +222,20 @@
 const DATA = __DASHBOARD_DATA__;
 
 const STATUS_META = {
-  preseason:{ color: "var(--waiting)",  label: "Waiting for Deyr",        tile: "monitoring starts when forecasts reach October" },
-  good:     { color: "var(--good)",     label: "No flood signal",         tile: "no runs near flood levels" },
-  warning:  { color: "var(--warning)",  label: "Moderate flood possible", tile: "at least 30% of runs cross the moderate (1-in-2-yr) level" },
-  serious:  { color: "var(--serious)",  label: "High flood possible",     tile: "at least 30% of runs cross the high (1-in-3-yr) level" },
-  critical: { color: "var(--critical)", label: "Severe flood possible",   tile: "at least 30% of runs cross the severe (1-in-5-yr) level" },
+  preseason:{ color: "var(--waiting)",  label: "Waiting for Deyr", tile: "monitoring starts when forecasts reach October" },
+  good:     { color: "var(--good)",     label: "No flood signal",  tile: "no runs near the RP levels" },
+  warning:  { color: "var(--warning)",  label: "RP2 possible",     tile: "at least 30% of runs cross the RP2 (1-in-2-yr) level" },
+  serious:  { color: "var(--serious)",  label: "RP3 possible",     tile: "at least 30% of runs cross the RP3 (1-in-3-yr) level" },
+  critical: { color: "var(--critical)", label: "RP5 possible",     tile: "at least 30% of runs cross the RP5 (1-in-5-yr) level" },
 };
+const RP_COLORS = { rp2: "var(--warning)", rp3: "var(--serious)", rp5: "var(--critical)" };
 const RIVER = {
   Shabelle: { color: "var(--shabelle)", band: "var(--shabelle-band)", band2: "var(--shabelle-band2)", title: "Shabelle river" },
   Genale:   { color: "var(--genale)",   band: "var(--genale-band)",   band2: "var(--genale-band2)",   title: "Genale / Juba river" },
   Gestro:   { color: "var(--gestro)",   band: "var(--gestro-band)",   band2: "var(--gestro-band2)",   title: "Webe Gestro" },
 };
 const SEASON_LABEL = { gu: "Gu (Mar–Jun)", kiremt: "Jul–Sep (highland rains)", deyr: "Deyr (Oct–Dec)", jilaal: "Jilaal (Jan–Feb)" };
-const LEVEL_NAMES = { rp2: "moderate", rp3: "high", rp5: "severe" };
+const LEVEL_NAMES = { rp2: "RP2", rp3: "RP3", rp5: "RP5" };
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const fmt = (v) => v == null ? "–" : Math.round(v).toLocaleString();
 const pct = (v) => v == null ? "–" : Math.round(v * 100) + "%";
@@ -249,7 +252,8 @@ document.getElementById("issue-chip").textContent =
   banner.style.borderLeftColor = STATUS_META[worst].color;
   const deyrWaiting = DATA.season_focus && DATA.legs && DATA.legs.length && DATA.legs.every((l) => !l.in_window);
   const deyrNote = deyrWaiting
-    ? " The Deyr conditions below start counting when forecasts reach October, around 21 September."
+    ? " The monitored conditions switch to Deyr levels once forecasts reach October, around 21 September; " +
+      "until then they are checked against the current season's levels."
     : "";
   let msg;
   if (worst === "good" || worst === "preseason") {
@@ -274,10 +278,11 @@ if (DATA.legs && DATA.legs.length) {
   grid.className = "legs";
   panel.appendChild(grid);
   for (const leg of DATA.legs) {
-    const stateColor = leg.reached ? "var(--critical)" : (leg.in_window ? "var(--good)" : "var(--waiting)");
-    const stateLabel = leg.reached ? "REACHED" : (leg.in_window ? "Not reached" : "Waiting for Deyr");
+    const stateColor = leg.reached ? "var(--critical)" : "var(--good)";
+    const seasonNote = leg.in_window ? "" : " at " + SEASON_LABEL[leg.eval_season] + " levels";
+    const stateLabel = (leg.reached ? "REACHED" : "Not reached") + seasonNote;
     const probTxt = leg.current_prob == null
-      ? "" : " · currently " + pct(leg.current_prob) + " of runs above the level";
+      ? "" : " · " + pct(leg.current_prob) + " of runs above the level";
     const t = document.createElement("div");
     t.className = "leg";
     t.innerHTML =
@@ -348,13 +353,6 @@ if (DATA.map && DATA.map.length) {
     dot.setAttribute("stroke", RIVER[st.river].color);
     dot.setAttribute("stroke-width", 2.2);
     g.appendChild(dot);
-    const lbl = document.createElementNS(ns, "text");
-    lbl.setAttribute("x", px(st.lon) + 9);
-    lbl.setAttribute("y", py(st.lat) + 4);
-    lbl.setAttribute("font-size", 11.5);
-    lbl.setAttribute("fill", "var(--ink-2)");
-    lbl.textContent = st.label.replace(/ \(.*\)$/, "");
-    g.appendChild(lbl);
     const title = document.createElementNS(ns, "title");
     title.textContent = st.label + " · " + st.zone + " zone · " + STATUS_META[st.status].label;
     g.appendChild(title);
@@ -426,8 +424,8 @@ function buildCard(st) {
   const s = STATUS_META[st.status];
   const wl = st.window_levels;
   const thrTxt = wl
-    ? SEASON_LABEL[wl.season] + " flood levels here: moderate " + fmt(wl.rp2) +
-      " · high " + fmt(wl.rp3) + " · severe " + fmt(wl.rp5) + " m³/s."
+    ? SEASON_LABEL[wl.season] + " levels here: RP2 " + fmt(wl.rp2) +
+      " | RP3 " + fmt(wl.rp3) + " | RP5 " + fmt(wl.rp5) + " m³/s."
     : "";
   const evYears = (st.deyr_event_years && st.deyr_event_years.rp3) || [];
   const evTxt = evYears.length
@@ -451,12 +449,14 @@ function buildCard(st) {
     '<span><span class="swatch" style="background:' + rc.band + '"></span>widest 80% of the 51 runs</span>' +
     '<span><span class="swatch" style="background:' + rc.band2 + '"></span>middle half</span>' +
     '<span><span class="line-swatch" style="border-color:' + rc.color + '"></span>middle run</span>' +
-    '<span><span class="line-swatch" style="border-color:var(--baseline); border-top-style:dashed"></span>seasonal flood levels</span>';
+    '<span><span class="line-swatch" style="border-color:var(--warning); border-top-style:dashed"></span>RP2</span>' +
+    '<span><span class="line-swatch" style="border-color:var(--serious); border-top-style:dashed"></span>RP3</span>' +
+    '<span><span class="line-swatch" style="border-color:var(--critical); border-top-style:dashed"></span>RP5</span>';
   card.appendChild(legend);
 
   const probRow = document.createElement("div");
   probRow.className = "prob-row";
-  probRow.innerHTML = '<div class="row-label">Share of the 51 runs above that day’s high flood level</div>';
+  probRow.innerHTML = '<div class="row-label">Share of the 51 runs above that day’s RP3 level</div>';
   drawProbStrip(probRow, st);
   card.appendChild(probRow);
 
@@ -523,12 +523,13 @@ function drawFanChart(box, st) {
     for (const sgm of segs) {
       add("line", {
         x1: x(sgm.from), x2: x(sgm.to), y1: y(sgm.v), y2: y(sgm.v),
-        stroke: "var(--baseline)", "stroke-width": 1.5, "stroke-dasharray": "5 3",
+        stroke: RP_COLORS[rp], "stroke-width": 1.5, "stroke-dasharray": "5 3", opacity: 0.85,
       });
     }
     if (lastThr[rp] != null) {
       add("text", {
-        x: W - m.r + 5, y: y(lastThr[rp]) + 3.5, "text-anchor": "start", "font-size": 10.5, fill: "var(--muted)",
+        x: W - m.r + 5, y: y(lastThr[rp]) + 3.5, "text-anchor": "start", "font-size": 10.5,
+        fill: RP_COLORS[rp], "font-weight": 600,
       }).textContent = LEVEL_NAMES[rp];
     }
   }
@@ -585,8 +586,8 @@ function drawFanChart(box, st) {
       tip.innerHTML =
         '<div class="tt-title">' + fmtDate(l.valid) + " · " + SEASON_LABEL[l.season] + " levels" +
         (DATA.season_focus && !l.in_season ? " (Deyr conditions don’t count this day)" : "") + "</div>" +
-        "middle run " + fmt(l.median) + " m³/s · runs span " + fmt(l.p10) + "–" + fmt(l.p90) + "<br>" +
-        "runs above moderate " + pct(l.prob.rp2) + " · high " + pct(l.prob.rp3) + " · severe " + pct(l.prob.rp5);
+        "middle run " + fmt(l.median) + " m³/s | runs span " + fmt(l.p10) + "–" + fmt(l.p90) + "<br>" +
+        "runs above RP2 " + pct(l.prob.rp2) + " | RP3 " + pct(l.prob.rp3) + " | RP5 " + pct(l.prob.rp5);
       const r = box.getBoundingClientRect();
       const pxc = ev.clientX - r.left, pyc = ev.clientY - r.top;
       tip.style.left = Math.min(pxc + 14, r.width - tip.offsetWidth - 4) + "px";
@@ -657,12 +658,12 @@ function drawProbStrip(parent, st) {
 
 /* ---- footer ---- */
 document.getElementById("footer").innerHTML =
-  "<p><strong>Method.</strong> Flood levels are return-period thresholds " +
-  "(moderate = RP2, high = RP3, severe = RP5), Gumbel-fitted on 2003–2025 seasonal maxima of GloFAS " +
-  DATA.threshold_version.replace("_", ".") + " reanalysis at channel-snapped cells (Gu = Mar–Jun, Kiremt = Jul–Sep, " +
-  "Deyr = Oct–Dec). Forecast: operational GloFAS ensemble (51 members, leads 1–10 days); each forecast day " +
-  "is compared against its own season's levels. Station status: max share of members over a level on any " +
-  "day (≥30% over severe / high / moderate). The Deyr monitored conditions count October–December days only.</p>" +
+  "<p><strong>Method.</strong> RP2 / RP3 / RP5 are return-period thresholds, Gumbel-fitted on 2003–2025 " +
+  "seasonal maxima of GloFAS " + DATA.threshold_version.replace("_", ".") +
+  " reanalysis at channel-snapped cells (Gu = Mar–Jun, Kiremt = Jul–Sep, Deyr = Oct–Dec). " +
+  "Forecast: operational GloFAS ensemble (51 members, leads 1–10 days); each forecast day is compared " +
+  "against its own season's levels. Station status: max share of members over a level on any day " +
+  "(≥30% over RP5 / RP3 / RP2). The Deyr monitored conditions count October–December days only.</p>" +
   "<p><strong>Caveats.</strong> Flows are model quantities, not gauge readings. Track records are scored " +
   "against satellite-detected (FloodScan) flood events, 6–8 events per zone, so all skill numbers carry wide " +
   "uncertainty; the forecast backtest uses the older GloFAS v4 system. Analysis: notebooks 01–03 in " +
