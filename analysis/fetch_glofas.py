@@ -33,12 +33,8 @@ CONTAINER = "projects"
 PROJECT_PREFIX = "ds-aa-eth-flooding"
 
 SCRATCH_DIR = Path(
-    os.environ.get(
-        "GLOFAS_SCRATCH",
-        r"C:\Users\pauni\AppData\Local\Temp\claude\c--Users-pauni-Desktop-Work-OCHA-GitHub-ds-aa-eth-flooding"
-        r"\48949c80-5b31-4989-b807-9845baccc6ea\scratchpad\glofas",
-    )
-)
+    os.environ.get("GLOFAS_SCRATCH", str(Path(__file__).resolve().parent / "scratch_glofas_rp"))
+) / "glofas_box"
 SCRATCH_DIR.mkdir(parents=True, exist_ok=True)
 
 logging.basicConfig(

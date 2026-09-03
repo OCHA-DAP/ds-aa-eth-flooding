@@ -99,14 +99,9 @@
     background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
     padding: 14px 16px; display: flex; flex-direction: column; gap: 7px;
   }
-  .leg .grade {
-    font-family: var(--display); font-size: 11.5px; text-transform: uppercase;
-    letter-spacing: 0.08em; font-weight: 600; color: var(--muted);
-  }
   .leg .name { font-family: var(--display); font-size: 17px; font-weight: 650; }
   .leg .rule { font-size: 14px; color: var(--ink-2); }
   .leg .state { display: flex; align-items: center; gap: 7px; font-weight: 600; font-size: 14.5px; }
-  .leg .record { font-size: 13.5px; color: var(--muted); border-top: 1px solid var(--grid); padding-top: 8px; }
 
   /* ---- tiles ---- */
   .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
@@ -234,11 +229,11 @@ const RIVER = {
   Genale:   { color: "var(--genale)",   band: "var(--genale-band)",   band2: "var(--genale-band2)",   title: "Genale / Juba river" },
   Gestro:   { color: "var(--gestro)",   band: "var(--gestro-band)",   band2: "var(--gestro-band2)",   title: "Webe Gestro" },
 };
-const SEASON_LABEL = { gu: "Gu (Mar–Jun)", kiremt: "Jul–Sep (highland rains)", deyr: "Deyr (Oct–Dec)", jilaal: "Jilaal (Jan–Feb)" };
+const SEASON_LABEL = { gu: "Gu (Mar-Jun)", kiremt: "Jul-Sep (highland rains)", deyr: "Deyr (Oct-Dec)", jilaal: "Jilaal (Jan-Feb)" };
 const LEVEL_NAMES = { rp2: "RP2", rp3: "RP3", rp5: "RP5" };
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const fmt = (v) => v == null ? "–" : Math.round(v).toLocaleString();
-const pct = (v) => v == null ? "–" : Math.round(v * 100) + "%";
+const fmt = (v) => v == null ? "-" : Math.round(v).toLocaleString();
+const pct = (v) => v == null ? "-" : Math.round(v * 100) + "%";
 const fmtDate = (iso) => { const [y, m, d] = iso.split("-").map(Number); return d + " " + MONTHS[m - 1]; };
 
 document.getElementById("issue-chip").textContent =
@@ -475,7 +470,7 @@ function buildCard(st) {
     if (bits.length) {
       const note = document.createElement("div");
       note.className = "skill-note";
-      note.innerHTML = "<strong>Backtest 2003–2023</strong> (" +
+      note.innerHTML = "<strong>Backtest 2003-2023</strong> (" +
         (st.skill[0].kind === "ensemble p50" ? "full ensemble" : "single run only") + "): " + bits.join(" | ") + ".";
       card.appendChild(note);
     }
@@ -594,7 +589,7 @@ function drawFanChart(box, st) {
       tip.innerHTML =
         '<div class="tt-title">' + fmtDate(l.valid) + " · " + SEASON_LABEL[l.season] + " levels" +
         (DATA.season_focus && !l.in_season ? " (Deyr conditions don’t count this day)" : "") + "</div>" +
-        "middle run " + fmt(l.median) + " m³/s | runs span " + fmt(l.p10) + "–" + fmt(l.p90) + "<br>" +
+        "middle run " + fmt(l.median) + " m³/s | runs span " + fmt(l.p10) + "-" + fmt(l.p90) + "<br>" +
         "runs above RP2 " + pct(l.prob.rp2) + " | RP3 " + pct(l.prob.rp3) + " | RP5 " + pct(l.prob.rp5);
       const r = box.getBoundingClientRect();
       const pxc = ev.clientX - r.left, pyc = ev.clientY - r.top;
@@ -666,18 +661,18 @@ function drawProbStrip(parent, st) {
 
 /* ---- footer ---- */
 document.getElementById("footer").innerHTML =
-  "<p><strong>Method.</strong> RP2 / RP3 / RP5 are return-period thresholds, Gumbel-fitted on 2003–2025 " +
+  "<p><strong>Method.</strong> RP2 / RP3 / RP5 are return-period thresholds, Gumbel-fitted on 2003-2025 " +
   "seasonal maxima of GloFAS " + DATA.threshold_version.replace("_", ".") +
-  " reanalysis at channel-snapped cells (Gu = Mar–Jun, Kiremt = Jul–Sep, Deyr = Oct–Dec). " +
-  "Forecast: operational GloFAS ensemble (51 members, leads 1–10 days); each forecast day is compared " +
+  " reanalysis at channel-snapped cells (Gu = Mar-Jun, Kiremt = Jul-Sep, Deyr = Oct-Dec). " +
+  "Forecast: operational GloFAS ensemble (51 members, leads 1-10 days); each forecast day is compared " +
   "against its own season's levels. Station status: max share of members over a level on any day " +
-  "(≥30% over RP5 / RP3 / RP2). The Deyr monitored conditions count October–December days only. " +
+  "(≥30% over RP5 / RP3 / RP2). The monitored conditions switch to Deyr levels for October-December days. " +
   "Note: these seasonal levels are deliberately lower than the annual return-period thresholds shown in the " +
-  "GloFAS map viewer. Annual thresholds are set by the July–September peak flows and would miss most Gu and " +
+  "GloFAS map viewer. Annual thresholds are set by the July-September peak flows and would miss most Gu and " +
   "Deyr floods here; a comparison table is in notebook 01.</p>" +
   "<p><strong>Caveats.</strong> Flows are model quantities, not gauge readings. Track records are scored " +
-  "against satellite-detected (FloodScan) flood events, 6–8 events per zone, so all skill numbers carry wide " +
-  "uncertainty; the forecast backtest uses the older GloFAS v4 system. Analysis: notebooks 01–03 in " +
+  "against satellite-detected (FloodScan) flood events, 6-8 events per zone, so all skill numbers carry wide " +
+  "uncertainty; the forecast backtest uses the older GloFAS v4 system. Analysis: notebooks 01-03 in " +
   "<code>ds-aa-eth-flooding/analysis</code>.</p>" +
   "<p>Generated " + DATA.generated + " · forecast issued " + DATA.issued + ".</p>";
 </script>

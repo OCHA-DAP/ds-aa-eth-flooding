@@ -3,20 +3,22 @@ Build the GloFAS forecast dashboard for the Somali-region stations.
 
 Reads from blob:
 - processed/glofas/glofas_forecast_latest.parquet   (fetch_glofas_forecast_live.py)
-- processed/glofas/glofas_return_periods.parquet    (notebook 01; newest version wins)
+- processed/glofas/glofas_return_periods.parquet    (notebook 01)
 - processed/glofas/station_zone_mapping_all.csv
 - processed/comparison/reforecast_trigger_skill.parquet (notebook 03)
+- processed/floodscan/floodscan_event_catalogue.parquet (notebook 02)
+- processed/dashboard/river_cells.json (map river layer, precomputed)
 
 Computes, per station and lead: ensemble quantiles, control run, and the
 probability of exceeding the seasonal RP2 / RP3 / RP5 thresholds (each valid
-date uses its own season's threshold: Gu = Mar-Jun | Kiremt = Jul-Sep |
-Deyr = Oct-Dec). Historic trigger skill (2003-2023 v4 reforecast vs FloodScan
-RP3 events, averaged over leads because skill is lead-flat) is attached per
-station | season as context.
+date uses its own season's threshold: Gu = Mar-Jun | Jul-Sep highland flows |
+Deyr = Oct-Dec). Thresholds are PINNED to the GloFAS version the operational
+forecast actually runs (THRESHOLD_VERSION_PIN, currently v4) and a
+climatology-coherence check warns when that stops being true.
 
-Writes analysis/dashboard/eth_flood_dashboard.html from template.html
-(placeholder __DASHBOARD_DATA__) and uploads the JSON payload to blob for
-the record.
+Writes analysis/dashboard/eth_flood_dashboard.html (artifact copy) and
+docs/index.html (GitHub Pages copy) from template.html (placeholder
+__DASHBOARD_DATA__), and uploads the JSON payload to blob for the record.
 """
 
 import json

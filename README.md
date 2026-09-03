@@ -38,13 +38,27 @@ Run order:
 
 Key findings so far:
 
-- Kiremt (Jul-Sep highland rains) dominates the annual discharge maxima, so Gu
-  and Deyr triggers need seasonal thresholds: annual ones are blind to both.
+- The Jul-Sep highland rains dominate the annual discharge maxima, so Gu and
+  Deyr triggers need seasonal thresholds: annual ones are blind to both.
 - GloFAS v4 misses the 2023 Deyr floods entirely at Gode (below RP2), consistent
-  with the Somalia finding that v4 is poorly calibrated on the Shabelle; v5 is
-  the threshold basis to use, and the operational forecast runs the current system.
+  with the Somalia finding that v4 is poorly calibrated on the Shabelle. v5
+  reanalysis fixes this (Gode Deyr POD 0.00 -> 0.67 vs FloodScan events), BUT
+  the operational forecast and the GloFAS map viewer thresholds are still
+  v4-scale (verified 2026-08-31: viewer RP1.5 ~ 200 m3/s at the Webe Gestro
+  point = v4 annual RP2 236, vs v5's 59), so the live dashboard pins v4
+  thresholds and carries a tripwire for the v5 operational upgrade
+  (`THRESHOLD_VERSION_PIN` in `analysis/make_dashboard.py`).
 - Reforecast skill is flat across leads 1-7 days (initial-condition memory), so
   the trigger lead time can be chosen operationally rather than by skill decay.
+
+## Monitoring dashboard
+
+`analysis/make_dashboard.py` builds the Deyr 2026 flood watch from the latest
+operational forecast (`analysis/fetch_glofas_forecast_live.py`): station map,
+per-station ensemble fan charts vs seasonal RP2/RP3/RP5 levels, and the
+monitored Deyr conditions. Output: `docs/index.html`, served via GitHub Pages
+at https://ocha-dap.github.io/ds-aa-eth-flooding/. A daily scheduled task
+refreshes it (fetch, rebuild, publish).
 
 ## Fetch scripts
 
