@@ -286,11 +286,9 @@ if (DATA.legs && DATA.legs.length) {
     const t = document.createElement("div");
     t.className = "leg";
     t.innerHTML =
-      '<span class="grade">' + leg.grade + "</span>" +
       '<span class="name">' + leg.name + "</span>" +
       '<span class="rule">' + leg.rule + "</span>" +
-      '<span class="state"><span class="dot" style="background:' + stateColor + '"></span>' + stateLabel + probTxt + "</span>" +
-      '<span class="record">' + leg.skill + "</span>";
+      '<span class="state"><span class="dot" style="background:' + stateColor + '"></span>' + stateLabel + probTxt + "</span>";
     grid.appendChild(t);
   }
 }
