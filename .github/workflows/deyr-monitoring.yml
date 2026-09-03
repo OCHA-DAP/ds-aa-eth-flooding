@@ -9,9 +9,14 @@ name: deyr-monitoring
 #   DSCI_AZ_BLOB_DEV_SAS        read SAS token for the dev storage account
 #   DSCI_AZ_BLOB_DEV_SAS_WRITE  write SAS token for the dev storage account
 
+# The operational issue usually lands on EWDS around 10:00-10:15 UTC. The
+# fetch always takes the newest available issue, so the first run normally
+# gets today's; the second is a catch-up for late publication days (it skips
+# already-downloaded data and commits nothing when the page is unchanged).
 on:
   schedule:
     - cron: "15 11 * * *" # 14:15 East Africa Time
+    - cron: "15 14 * * *" # 17:15 East Africa Time, catch-up
   workflow_dispatch:
 
 permissions:
