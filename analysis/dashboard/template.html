@@ -1,227 +1,117 @@
-<title>Shabelle & Genale Flood Watch</title>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shabelle &amp; Genale Flood Watch</title>
+<meta name="description" content="Daily monitoring of GloFAS river forecasts at eight stations on the Shabelle, Genale/Juba and Webe Gestro in Ethiopia's Somali region, against each station's seasonal 1-in-3 year level.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  /* deliberately light-only: the page keeps its light palette in any viewer theme */
-  :root {
-    color-scheme: light;
-    --page: #f5f8f9;
-    --surface: #ffffff;
-    --ink: #152430;
-    --ink-2: #48606f;
-    --muted: #7d919e;
-    --grid: #e3ebee;
-    --baseline: #b9c9d1;
-    --border: rgba(21, 36, 48, 0.10);
-    --accent: #155e75;
-    --accent-soft: rgba(21, 94, 117, 0.07);
-    --shabelle: #2a78d6;
-    --shabelle-band: rgba(42, 120, 214, 0.14);
-    --shabelle-band2: rgba(42, 120, 214, 0.30);
-    --genale: #1baf7a;
-    --genale-band: rgba(27, 175, 122, 0.14);
-    --genale-band2: rgba(27, 175, 122, 0.30);
-    --gestro: #eb6834;
-    --gestro-band: rgba(235, 104, 52, 0.14);
-    --gestro-band2: rgba(235, 104, 52, 0.30);
-    --good: #0ca30c;
-    --warning: #d99204;
-    --serious: #d96a3d;
-    --critical: #d03b3b;
-    --waiting: #7d919e;
-    --tooltip-bg: #152430;
-    --tooltip-ink: #f5f8f9;
-    --display: "Archivo", system-ui, -apple-system, "Segoe UI", sans-serif;
-    --body: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
-  }
-
-  * { box-sizing: border-box; }
-  body {
-    background: var(--page);
-    color: var(--ink);
-    font-family: var(--body);
-    font-size: 15.5px;
-    margin: 0;
-    padding: 34px 24px 56px;
-    line-height: 1.5;
-  }
-  .wrap { max-width: 1180px; margin: 0 auto; }
-
-  /* ---- masthead ---- */
-  header { border-bottom: 3px solid var(--accent); padding-bottom: 14px; margin-bottom: 18px; }
-  .masthead-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 18px; }
-  h1 {
-    font-family: var(--display);
-    font-size: 30px; font-weight: 700; letter-spacing: -0.015em;
-    margin: 0;
-  }
-  h1 .wave { color: var(--accent); margin-right: 6px; }
-  .issue-chip {
-    font-size: 13.5px; font-weight: 600; color: var(--accent);
-    background: var(--accent-soft);
-    border-radius: 999px; padding: 3px 13px;
-    white-space: nowrap;
-  }
-  .subtitle { color: var(--ink-2); font-size: 16px; margin: 10px 0 0; max-width: 78ch; }
-
-  /* ---- status banner ---- */
-  .banner {
-    display: flex; align-items: flex-start; gap: 10px;
-    background: var(--surface); border: 1px solid var(--border);
-    border-left: 4px solid var(--good);
-    border-radius: 8px; padding: 12px 16px; margin: 0 0 18px;
-    font-size: 15.5px;
-  }
-  .banner .dot { margin-top: 7px; }
-
-  .run-log {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
-    padding: 10px 16px 11px; margin-bottom: 14px;
-  }
-  .run-log .row-label {
-    font-family: var(--display); font-size: 12px; text-transform: uppercase;
-    letter-spacing: 0.08em; color: var(--muted); font-weight: 600; margin-bottom: 5px;
-  }
-  .log-line { font-size: 13px; color: var(--ink-2); padding: 2px 0; }
-  .log-line .log-date { font-weight: 600; display: inline-block; min-width: 58px; }
-  .log-line .log-hit { color: var(--critical); font-weight: 600; }
-
-  details.howto {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
-    padding: 10px 16px; margin-bottom: 26px; color: var(--ink-2); max-width: 100%;
-  }
-  details.howto summary {
-    cursor: pointer; font-weight: 600; color: var(--accent); font-size: 14.5px;
-    font-family: var(--display); letter-spacing: 0.01em;
-  }
-  details.howto ol { margin: 10px 0 4px; padding-left: 22px; }
-  details.howto li { margin-bottom: 7px; max-width: 88ch; }
-
-  .section-label {
-    font-family: var(--display);
-    font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em;
-    color: var(--accent); font-weight: 600; margin: 30px 0 12px;
-    display: flex; align-items: center; gap: 10px;
-  }
-  .section-label::after { content: ""; flex: 1; border-top: 1px solid var(--grid); }
-
-  /* ---- trigger cards ---- */
-  .legs { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
-  .leg {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
-    padding: 14px 16px; display: flex; flex-direction: column; gap: 7px;
-  }
-  .leg .name { font-family: var(--display); font-size: 17px; font-weight: 650; }
-  .leg .rule { font-size: 14px; color: var(--ink-2); }
-  .leg .state { display: flex; align-items: center; gap: 7px; font-weight: 600; font-size: 14.5px; }
-
-  /* ---- tiles ---- */
-  .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
-  .tile {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
-    padding: 10px 13px; display: flex; flex-direction: column; gap: 3px;
-    cursor: pointer; transition: border-color 0.15s;
-  }
-  .tile:hover { border-color: var(--accent); }
-  .tile .name { font-family: var(--display); font-size: 14px; font-weight: 600; }
-  .tile .zone { font-size: 12px; color: var(--muted); }
-  .tile .status-row { display: flex; align-items: center; gap: 6px; font-size: 13px; margin-top: 3px; color: var(--ink-2); }
-  .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
-  .river-tag { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 700; font-family: var(--display); }
-
-  /* ---- map ---- */
-  .map-card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
-    padding: 14px 16px;
-  }
-  .map-zone { fill: #fbfdfd; stroke: var(--grid); stroke-width: 1; }
-  .map-zone.validation { fill: rgba(21, 94, 117, 0.06); stroke: var(--baseline); }
-  .map-station { cursor: pointer; }
-  .map-station:hover circle { stroke-width: 3.5; }
-
-  /* ---- station cards ---- */
-  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(520px, 1fr)); gap: 14px; }
-  @media (max-width: 620px) { .cards { grid-template-columns: 1fr; } }
-  .card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
-    padding: 16px 18px 14px;
-  }
-  .card h3 {
-    margin: 0; font-family: var(--display); font-size: 17px; font-weight: 650;
-    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-  }
-  .card .meta { font-size: 13px; color: var(--muted); margin: 4px 0 10px; line-height: 1.55; }
-  .status-pill {
-    font-size: 12px; font-weight: 600; border-radius: 999px; padding: 2px 10px;
-    display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border);
-    color: var(--ink-2); font-family: var(--body);
-  }
-  .chart-box { position: relative; }
-  svg { display: block; width: 100%; height: auto; }
-  .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12.5px; color: var(--ink-2); margin-top: 6px; }
-  .legend .swatch { display: inline-block; width: 14px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: baseline; }
-  .legend .line-swatch { display: inline-block; width: 16px; height: 0; border-top: 2.5px solid; margin-right: 5px; vertical-align: middle; }
-
-  .prob-row { margin-top: 12px; }
-  .prob-row .row-label { font-size: 13px; color: var(--ink-2); margin-bottom: 2px; }
-  .skill-note { font-size: 13px; color: var(--muted); margin-top: 10px; border-top: 1px solid var(--grid); padding-top: 9px; line-height: 1.55; }
-  .skill-note strong { font-weight: 600; color: var(--ink-2); }
-
-  .tooltip {
-    position: absolute; pointer-events: none; z-index: 10;
-    background: var(--tooltip-bg); color: var(--tooltip-ink);
-    font-size: 12px; border-radius: 6px; padding: 8px 11px;
-    display: none; white-space: nowrap; line-height: 1.55;
-    font-variant-numeric: tabular-nums;
-  }
-  .tooltip .tt-title { font-weight: 600; }
-
-  footer { margin-top: 40px; font-size: 13px; color: var(--muted); max-width: 95ch; border-top: 1px solid var(--grid); padding-top: 14px; }
-  footer p { margin: 5px 0; }
-  a { color: var(--accent); }
+:root {
+  --b5:#269777; --b6:#1e795f; --b7:#18614c; --b05:#e9f5f1; --b1:#d4eae4;
+  --n9:#1f2324; --n8:#3f4748; --n7:#5e6a6b; --n05:#f5f7f7;
+}
+* { box-sizing:border-box; }
+body { margin:0; background:var(--n05); color:var(--n9);
+  font-family:'Roboto',system-ui,-apple-system,'Segoe UI','Helvetica Neue',Arial,sans-serif; line-height:1.5; }
+.wrap { max-width:1080px; margin:0 auto; background:#fff; min-height:100vh; box-shadow:0 0 40px rgba(31,35,36,.06); }
+.hero { background:var(--b6); padding:40px 44px 34px; }
+.eyebrow { font-size:11px; letter-spacing:.15em; text-transform:uppercase; font-weight:700; color:rgba(255,255,255,.88); margin:0 0 12px; }
+.hero h1 { font-family:'Merriweather',Georgia,serif; font-weight:700; font-size:28px; line-height:1.2; color:#fff; margin:0 0 14px; }
+.hero p { margin:0; font-size:15px; line-height:1.6; color:#fff; max-width:64ch; }
+article { padding:8px 44px 24px; max-width:1000px; }
+article h2 { font-family:'Merriweather',Georgia,serif; font-size:20px; color:var(--n9); margin:34px 0 10px; line-height:1.25; }
+article p, article li { font-size:14.5px; color:var(--n8); line-height:1.65; }
+article a { color:var(--b6); }
+.banner { display:flex; flex-wrap:wrap; align-items:center; gap:14px 22px; margin:22px 0 6px; padding:16px 20px; border-radius:6px; border:1px solid #e2e7e7; border-left:8px solid var(--b5); background:#fff; }
+.banner .status { font-family:'Merriweather',Georgia,serif; font-size:22px; font-weight:700; color:var(--b6); }
+.banner.error { border-left-color:#B34036; } .banner.error .status { color:#B34036; }
+.banner .meta { font-size:12.5px; color:var(--n7); line-height:1.6; }
+.runlog { margin:14px 0 4px; padding:12px 20px; border:1px solid #e2e7e7; border-radius:6px; background:#fff; }
+.runlog h3 { margin:0 0 6px; font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--n7); font-weight:700; }
+.runlog .line { font-size:13px; color:var(--n8); padding:2px 0; }
+.runlog .line b { display:inline-block; min-width:58px; font-weight:500; color:var(--n9); }
+.runlog .hit { color:#B34036; font-weight:600; }
+.maprow { display:grid; grid-template-columns:minmax(0,1fr) 210px; gap:18px; align-items:start; margin:14px 0 4px; }
+@media (max-width:760px){ .maprow { grid-template-columns:1fr } }
+.map { border:1px solid #e2e7e7; border-radius:6px; background:#f6f8f8; overflow:hidden; }
+.map svg { display:block; width:100%; height:auto; }
+.zone { fill:#fff; stroke:#c9d2d3; stroke-width:.7; }
+.rivcell { fill:#4a90c2; opacity:.6; }
+.pt { stroke:#1f2324; stroke-width:1.2; fill:#fff; }
+.pt.over { fill:#B34036; stroke:#7A241C; }
+.lbl { font:11px Roboto,sans-serif; fill:#1f2324; paint-order:stroke; stroke:#fff; stroke-width:3px; stroke-linejoin:round; }
+.zlbl { font:10px Roboto,sans-serif; fill:#5e6a6b; paint-order:stroke; stroke:#fff; stroke-width:2.5px; }
+.legend { font-size:13px; color:var(--n8); }
+.legend h3 { font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--n7); font-weight:700; margin:0 0 8px; }
+.legend .row { display:flex; align-items:center; gap:9px; margin:6px 0; }
+.legend .dot { width:12px; height:12px; border-radius:50%; border:1.5px solid #1f2324; flex:none; background:#fff; }
+.legend .sw { width:14px; height:6px; border-radius:3px; flex:none; }
+figure { margin:20px 0 8px; }
+figure svg { display:block; width:100%; height:auto; border:1px solid #e2e7e7; border-radius:4px; background:#fff; }
+figcaption { font-size:12px; color:var(--n7); margin-top:7px; line-height:1.5; }
+table.data { border-collapse:collapse; width:100%; margin:12px 0 4px; font-size:13px; }
+table.data th { text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--n7); font-weight:700; border-bottom:2px solid var(--b1); padding:7px 9px 6px; }
+table.data td { border-bottom:1px solid #eef1f1; padding:6px 9px; color:var(--n8); white-space:nowrap; }
+table.data td.n, table.data th.n { text-align:right; font-variant-numeric:tabular-nums; }
+table.data td.over { color:#B34036; font-weight:600; }
+.bar { display:inline-block; height:9px; background:var(--b1); border-radius:2px; vertical-align:middle; margin-right:6px; }
+.bar.over { background:#B34036; }
+.tablewrap { overflow-x:auto; }
+footer { margin:34px 44px 0; padding:14px 0 40px; border-top:1px solid #eef1f1; font-size:12.5px; color:var(--n7); max-width:95ch; }
+footer p { margin:5px 0; line-height:1.6; }
+@media (max-width:640px){ article { padding:4px 22px 16px; } .hero { padding:32px 22px 28px; } footer { margin:34px 22px 0; } }
 </style>
-
+</head>
+<body>
 <div class="wrap">
-  <header>
-    <div class="masthead-row">
-      <h1><span class="wave">≋</span>Shabelle &amp; Genale Flood Watch</h1>
-      <span class="issue-chip" id="issue-chip"></span>
+  <header class="hero">
+    <div class="inner">
+      <p class="eyebrow">Ethiopia · Somali region</p>
+      <h1>Shabelle &amp; Genale Flood Watch</h1>
+      <p>Daily monitoring of GloFAS river forecasts at eight stations on the Shabelle,
+         Genale/Juba and Webe Gestro. The latest 10-day forecast at each station is compared
+         with that station's seasonal 1-in-3 year level. Station information only: no trigger
+         is defined.</p>
     </div>
-    <p class="subtitle">
-      Daily monitoring of GloFAS river forecasts for the Shabelle, Genale/Juba and Webe
-      Gestro in Ethiopia's Somali region, ahead of the Deyr season (October to December
-      2026). Each day's forecast is compared against seasonal flood levels.
-    </p>
   </header>
 
-  <div class="banner" id="banner"></div>
-  <div id="run-log"></div>
+  <article>
+    <div id="banner" class="banner"><span class="status">Loading</span></div>
+    <div id="runlog" class="runlog"></div>
 
-  <details class="howto">
-    <summary>How to read this page</summary>
-    <ol>
-      <li>GloFAS runs the same 10-day river forecast 51 times with slightly different starting
-        weather. In each station panel, the shaded band is the range those runs cover (dark:
-        the middle half | light: the widest 80%) and the solid line is the middle run.</li>
-      <li>The dashed lines are the river's return-period levels for the season, estimated from
-        46 years of model history: <span style="color:var(--warning); font-weight:600">RP2</span> is
-        reached about once every 2 years, <span style="color:var(--serious); font-weight:600">RP3</span>
-        about once every 3, <span style="color:var(--critical); font-weight:600">RP5</span> about once
-        every 5. Levels are seasonal because these rivers run much higher in July to September, fed
-        by rain in the Ethiopian highlands upstream (the Somali region itself is largely dry then),
-        than during the local Gu or Deyr rains.</li>
-      <li>The bars under each panel show the share of the 51 runs above that day's RP3 level.
-        This share sets the station's colour.</li>
-      <li>The monitored conditions in the overview target Deyr flooding, and their backtest record
-        is Deyr-specific. Before the forecast horizon reaches October they are evaluated against
-        the current season's levels, marked accordingly; from October they run on Deyr levels.</li>
-    </ol>
-  </details>
+    <h2>Where the stations stand</h2>
+    <div class="maprow">
+      <div class="map"><svg id="map" role="img" aria-label="Map of the Somali region zones and rivers with the eight monitored stations, red when the forecast reaches the 1-in-3 year level"></svg></div>
+      <div class="legend" id="maplegend"></div>
+    </div>
 
-  <div id="legs-panel"></div>
-  <div id="map-panel"></div>
-  <div id="tiles-panel"></div>
-  <div id="sections"></div>
+    <h2>Forecast against the 1-in-3 year level</h2>
+    <figure>
+      <svg id="chart"></svg>
+      <figcaption id="chartcap"></figcaption>
+    </figure>
+
+    <h2>Forecast peak at each station</h2>
+    <p>The highest ensemble-median value of the next 10 days at each station, against that
+       day's 1-in-3 year level. A ratio of 1.00&times; or more means the level is reached.</p>
+    <div class="tablewrap" id="tablebox"></div>
+
+    <h2>How to read this page</h2>
+    <ul>
+      <li>GloFAS runs the same 10-day forecast 51 times with slightly different starting
+        weather; this page uses the ensemble median for each day.</li>
+      <li>The 1-in-3 year level is seasonal, fitted per station on 2003 to 2025 GloFAS
+        reanalysis (Gu March to June, July to September highland flows, Deyr October to
+        December). Each forecast day is compared with its own season's level, because these
+        rivers naturally run much higher in July to September, fed by rain in the Ethiopian
+        highlands upstream, than during the local Gu or Deyr rains.</li>
+      <li>A station is marked reached when the median is at or above the level on any of the
+        10 days. The map, the chart, the table and the log all show this one check.</li>
+    </ul>
+  </article>
 
   <footer id="footer"></footer>
 </div>
@@ -229,477 +119,158 @@
 <script>
 const DATA = __DASHBOARD_DATA__;
 
-const STATUS_META = {
-  preseason:{ color: "var(--waiting)",  label: "Waiting for Deyr", tile: "monitoring starts when forecasts reach October" },
-  good:     { color: "var(--good)",     label: "No flood signal",  tile: "no runs near the RP levels" },
-  warning:  { color: "var(--warning)",  label: "RP2 possible",     tile: "at least 30% of runs cross the RP2 (1-in-2-yr) level" },
-  serious:  { color: "var(--serious)",  label: "RP3 possible",     tile: "at least 30% of runs cross the RP3 (1-in-3-yr) level" },
-  critical: { color: "var(--critical)", label: "RP5 possible",     tile: "at least 30% of runs cross the RP5 (1-in-5-yr) level" },
-};
-const RP_COLORS = { rp2: "var(--warning)", rp3: "var(--serious)", rp5: "var(--critical)" };
-const RIVER = {
-  Shabelle: { color: "var(--shabelle)", band: "var(--shabelle-band)", band2: "var(--shabelle-band2)", title: "Shabelle river" },
-  Genale:   { color: "var(--genale)",   band: "var(--genale-band)",   band2: "var(--genale-band2)",   title: "Genale / Juba river" },
-  Gestro:   { color: "var(--gestro)",   band: "var(--gestro-band)",   band2: "var(--gestro-band2)",   title: "Webe Gestro" },
-};
-const SEASON_LABEL = { gu: "Gu (Mar-Jun)", kiremt: "Jul-Sep (highland rains)", deyr: "Deyr (Oct-Dec)", jilaal: "Jilaal (Jan-Feb)" };
-const LEVEL_NAMES = { rp2: "RP2", rp3: "RP3", rp5: "RP5" };
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const fmt = (v) => v == null ? "-" : Math.round(v).toLocaleString();
-const pct = (v) => v == null ? "-" : Math.round(v * 100) + "%";
-const fmtDate = (iso) => { const [y, m, d] = iso.split("-").map(Number); return d + " " + MONTHS[m - 1]; };
+const RIVER_COLOR = { Shabelle:"#2a78d6", Genale:"#1baf7a", Gestro:"#eb6834" };
+const RIVER_TITLE = { Shabelle:"Shabelle", Genale:"Genale/Juba", Gestro:"Webe Gestro" };
+const SEASON_LABEL = { gu:"Gu", kiremt:"Jul-Sep highland flows", deyr:"Deyr", jilaal:"Jilaal" };
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const fmtDate = iso => { const [y,m,d] = iso.split("-").map(Number); return d + " " + MONTHS[m-1] + " " + y; };
+const fmtDay = iso => { const [y,m,d] = iso.split("-").map(Number); return d + " " + MONTHS[m-1]; };
+const n0 = x => x == null ? "" : Math.round(x).toLocaleString("en-GB");
+const shortName = s => s.replace(/ \(.*\)$/, "");
 
-document.getElementById("issue-chip").textContent =
-  "Forecast of " + fmtDate(DATA.issued) + " " + DATA.issued.slice(0, 4) + " · updated daily";
-
-/* ---- status banner ---- */
+/* banner */
 {
-  const order = ["critical", "serious", "warning", "good", "preseason"];
-  const worst = order.find((s) => DATA.stations.some((st) => st.status === s)) || "good";
-  const banner = document.getElementById("banner");
-  banner.style.borderLeftColor = STATUS_META[worst].color;
-  const deyrWaiting = DATA.season_focus && DATA.legs && DATA.legs.length && DATA.legs.every((l) => !l.in_window);
-  const deyrNote = deyrWaiting
-    ? " The monitored conditions switch to Deyr levels once forecasts reach October, around 21 September; " +
-      "until then they are checked against the current season's levels."
-    : "";
-  let msg;
-  if (worst === "good" || worst === "preseason") {
-    msg = "<div><strong>No flood signal.</strong> All 51 forecast runs are below this season's flood levels " +
-      "at every station." + deyrNote + "</div>";
-  } else {
-    const hot = DATA.stations.filter((st) => st.status === worst).map((st) => st.label).join(", ");
-    msg = "<div><strong>" + STATUS_META[worst].label + ":</strong> " + hot +
-      ". See the station panels below." + deyrNote + "</div>";
-  }
-  banner.innerHTML = '<span class="dot" style="background:' + STATUS_META[worst].color + '"></span>' + msg;
+  const hit = DATA.stations.filter(s => s.reached);
+  const b = document.getElementById("banner");
+  b.className = "banner" + (hit.length ? " error" : "");
+  const status = hit.length ? "1-in-3 level reached" : "1-in-3 level not reached";
+  const who = hit.length ? hit.map(s => shortName(s.label)).join(", ") + " · " : "";
+  b.innerHTML = `<span class="status">${status}</span>
+    <span class="meta">${who}Forecast issued <b>${fmtDate(DATA.issued)}</b> (GloFAS ensemble median) ·
+    monitoring <b>${SEASON_LABEL[DATA.season_now]}</b><br>
+    GloFAS version ${DATA.threshold_version.replace("v","").replace("_0","")} thresholds ·
+    ${DATA.stations.length} stations · page generated ${DATA.generated}</span>`;
 }
 
-/* ---- update log ---- */
-if (DATA.run_log && DATA.run_log.length) {
-  const box = document.getElementById("run-log");
-  box.className = "run-log";
-  const lines = DATA.run_log.map((e) => {
+/* run log */
+{
+  const box = document.getElementById("runlog");
+  const lines = DATA.run_log.map(e => {
     const what = e.reached && e.reached.length
-      ? e.reached.map((r) => '<span class="log-hit">' + r.level + " reached</span> at " + r.station).join(" | ")
-      : "no RP level reached";
-    return '<div class="log-line"><span class="log-date">' + fmtDate(e.date) + "</span>" +
-      "issue " + fmtDate(e.issue) + ", checked " + e.checked_at + " | " + what + "</div>";
+      ? e.reached.map(r => `<span class="hit">${r.level} reached</span> at ${shortName(r.station)}`).join(" | ")
+      : "no station at the 1-in-3 level";
+    return `<div class="line"><b>${fmtDay(e.date)}</b> issue ${fmtDay(e.issue)}, checked ${e.checked_at} | ${what}</div>`;
   });
-  box.innerHTML = '<div class="row-label">Update log · one line per daily run</div>' + lines.join("");
+  box.innerHTML = "<h3>Update log · one line per daily run</h3>" + lines.join("");
 }
 
-/* ---- proposed triggers ---- */
-if (DATA.legs && DATA.legs.length) {
-  const panel = document.getElementById("legs-panel");
-  const label = document.createElement("div");
-  label.className = "section-label";
-  label.textContent = "Overview of monitoring · " + (DATA.season_label || "");
-  panel.appendChild(label);
-  const grid = document.createElement("div");
-  grid.className = "legs";
-  panel.appendChild(grid);
-  for (const leg of DATA.legs) {
-    const stateColor = leg.reached ? "var(--critical)" : "var(--good)";
-    const seasonNote = leg.in_window ? "" : " at " + SEASON_LABEL[leg.eval_season] + " levels";
-    const stateLabel = (leg.reached ? "REACHED" : "Not reached") + seasonNote;
-    const probTxt = leg.current_prob == null
-      ? "" : " · " + pct(leg.current_prob) + " of runs above the level";
-    const t = document.createElement("div");
-    t.className = "leg";
-    t.innerHTML =
-      '<span class="name">' + leg.name + "</span>" +
-      '<span class="rule">' + leg.rule + "</span>" +
-      '<span class="state"><span class="dot" style="background:' + stateColor + '"></span>' + stateLabel + probTxt + "</span>";
-    grid.appendChild(t);
-  }
-}
-
-/* ---- station map ---- */
-if (DATA.map && DATA.map.length) {
-  const panel = document.getElementById("map-panel");
-  const label = document.createElement("div");
-  label.className = "section-label";
-  label.textContent = "Station map";
-  panel.appendChild(label);
-  const card = document.createElement("div");
-  card.className = "map-card";
-  panel.appendChild(card);
-
-  const allPts = DATA.map.flatMap((z) => z.rings.flat());
-  const lons = allPts.map((p) => p[0]).concat(DATA.stations.map((s) => s.lon));
-  const lats = allPts.map((p) => p[1]).concat(DATA.stations.map((s) => s.lat));
-  const pad = 0.25;
-  const minLon = Math.min(...lons) - pad, maxLon = Math.max(...lons) + pad;
-  const minLat = Math.min(...lats) - pad, maxLat = Math.max(...lats) + pad;
-  const W = 760;
-  const H = Math.round(W * (maxLat - minLat) / (maxLon - minLon) * 0.995);
-  const px = (lon) => ((lon - minLon) / (maxLon - minLon)) * W;
-  const py = (lat) => H - ((lat - minLat) / (maxLat - minLat)) * H;
-
-  const ns = "http://www.w3.org/2000/svg";
-  const svg = document.createElementNS(ns, "svg");
-  svg.setAttribute("viewBox", "0 0 " + W + " " + H);
-
-  for (const z of DATA.map) {
-    for (const ring of z.rings) {
-      const path = document.createElementNS(ns, "path");
-      path.setAttribute("d", ring.map((p, i) => (i ? "L" : "M") + px(p[0]).toFixed(1) + " " + py(p[1]).toFixed(1)).join("") + "Z");
-      path.setAttribute("class", "map-zone" + (z.validation ? " validation" : ""));
-      svg.appendChild(path);
-    }
-    const c = z.rings[0];
-    const cx = c.reduce((a, p) => a + px(p[0]), 0) / c.length;
-    const cy = c.reduce((a, p) => a + py(p[1]), 0) / c.length;
-    const lbl = document.createElementNS(ns, "text");
-    lbl.setAttribute("x", cx);
-    lbl.setAttribute("y", cy);
-    lbl.setAttribute("text-anchor", "middle");
-    lbl.setAttribute("font-size", 11);
-    lbl.setAttribute("fill", "var(--muted)");
-    lbl.setAttribute("opacity", z.validation ? 0.95 : 0.55);
-    lbl.textContent = z.name;
-    svg.appendChild(lbl);
-  }
-
-  if (DATA.rivers && DATA.rivers.length) {
-    for (const c of DATA.rivers) {
-      const dot = document.createElementNS(ns, "circle");
-      dot.setAttribute("cx", px(c[0]));
-      dot.setAttribute("cy", py(c[1]));
-      dot.setAttribute("r", c[2] >= 100 ? 2.6 : 1.9);
-      dot.setAttribute("fill", "#84aecf");
-      dot.setAttribute("opacity", 0.65);
-      svg.appendChild(dot);
-    }
-  }
-
-  for (const st of DATA.stations) {
-    const g = document.createElementNS(ns, "g");
-    g.setAttribute("class", "map-station");
-    const dot = document.createElementNS(ns, "circle");
-    dot.setAttribute("cx", px(st.lon));
-    dot.setAttribute("cy", py(st.lat));
-    dot.setAttribute("r", 6);
-    dot.setAttribute("fill", STATUS_META[st.status].color);
-    dot.setAttribute("stroke", "var(--surface)");
-    dot.setAttribute("stroke-width", 2);
-    g.appendChild(dot);
-    const title = document.createElementNS(ns, "title");
-    title.textContent = st.label + " · " + st.zone + " zone · " + STATUS_META[st.status].label;
-    g.appendChild(title);
-    g.addEventListener("click", () => {
-      document.getElementById("card-" + st.id).scrollIntoView({ behavior: "smooth", block: "center" });
-    });
-    svg.appendChild(g);
-  }
-  card.appendChild(svg);
-
-  const legend = document.createElement("div");
-  legend.className = "legend";
-  legend.innerHTML =
-    '<span><span class="swatch" style="background:rgba(21,94,117,0.06); border:1px solid var(--baseline)"></span>zones checked against satellite flood data</span>' +
-    '<span><span class="swatch" style="background:#84aecf; height:8px; width:8px; border-radius:50%"></span>river channels (GloFAS; southern box only)</span>' +
-    "<span>dot colour: current status | click a station to open its panel</span>";
-  card.appendChild(legend);
-}
-
-/* ---- summary tiles ---- */
+/* map */
 {
-  const panel = document.getElementById("tiles-panel");
-  const label = document.createElement("div");
-  label.className = "section-label";
-  label.textContent = "Stations";
-  panel.appendChild(label);
-  const tiles = document.createElement("div");
-  tiles.className = "tiles";
-  panel.appendChild(tiles);
+  const allPts = DATA.map.flatMap(z => z.rings.flat());
+  const lons = allPts.map(p => p[0]).concat(DATA.stations.map(s => s.lon));
+  const lats = allPts.map(p => p[1]).concat(DATA.stations.map(s => s.lat));
+  const pad = 0.25;
+  const LON0 = Math.min(...lons) - pad, LON1 = Math.max(...lons) + pad;
+  const LAT0 = Math.min(...lats) - pad, LAT1 = Math.max(...lats) + pad;
+  const W = 760, H = Math.round(W * (LAT1 - LAT0) / (LON1 - LON0));
+  const X = lon => (lon - LON0) / (LON1 - LON0) * W;
+  const Y = lat => H - (lat - LAT0) / (LAT1 - LAT0) * H;
+  const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  let g = "";
+  for (const z of DATA.map)
+    for (const ring of z.rings)
+      g += '<path class="zone" d="' + ring.map((p,i) => (i?"L":"M") + X(p[0]).toFixed(1) + " " + Y(p[1]).toFixed(1)).join("") + 'Z"><title>' + esc(z.name) + "</title></path>";
+  for (const c of (DATA.rivers || []))
+    g += '<circle class="rivcell" cx="' + X(c[0]).toFixed(1) + '" cy="' + Y(c[1]).toFixed(1) + '" r="' + (c[2] >= 100 ? 2.4 : 1.7) + '"></circle>';
+  for (const z of DATA.map) {
+    const ring = z.rings[0];
+    const cx = ring.reduce((a,p) => a + X(p[0]), 0) / ring.length;
+    const cy = ring.reduce((a,p) => a + Y(p[1]), 0) / ring.length;
+    g += '<text class="zlbl" x="' + cx.toFixed(1) + '" y="' + cy.toFixed(1) + '" text-anchor="middle">' + esc(z.name) + "</text>";
+  }
+  const SIDE = { G1904:[-10,13,"end"], station_4:[10,-6,"start"], station_2:[10,-6,"start"] };
   for (const st of DATA.stations) {
-    const s = STATUS_META[st.status];
-    const t = document.createElement("div");
-    t.className = "tile";
-    t.innerHTML =
-      '<span class="river-tag" style="color:' + RIVER[st.river].color + '">' + RIVER[st.river].title + "</span>" +
-      '<span class="name">' + st.label.replace(/ \(.*\)$/, "") + "</span>" +
-      '<span class="zone">' + st.zone + " zone</span>" +
-      '<span class="status-row"><span class="dot" style="background:' + s.color + '"></span>' +
-      s.label + "</span>";
-    t.title = s.tile;
-    t.addEventListener("click", () => {
-      document.getElementById("card-" + st.id).scrollIntoView({ behavior: "smooth", block: "center" });
-    });
-    tiles.appendChild(t);
+    const [dx,dy,anchor] = SIDE[st.id] || [10,4,"start"];
+    const x = X(st.lon), y = Y(st.lat);
+    const title = st.label + ": " + (st.peak_ratio == null ? "no forecast" : st.peak_ratio.toFixed(2) + "x its 1-in-3 level");
+    g += '<circle class="pt' + (st.reached ? " over" : "") + '" cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="6.5"><title>' + esc(title) + "</title></circle>";
+    g += '<text class="lbl" x="' + (x + dx).toFixed(1) + '" y="' + (y + dy).toFixed(1) + '" text-anchor="' + anchor + '">' + esc(shortName(st.label)) + "</text>";
   }
-}
-
-/* ---- station panels grouped by river ---- */
-const sections = document.getElementById("sections");
-for (const river of ["Shabelle", "Genale", "Gestro"]) {
-  const group = DATA.stations.filter((s) => s.river === river);
-  if (!group.length) continue;
-  const label = document.createElement("div");
-  label.className = "section-label";
-  label.textContent = RIVER[river].title;
-  sections.appendChild(label);
-  const grid = document.createElement("div");
-  grid.className = "cards";
-  sections.appendChild(grid);
-  for (const st of group) grid.appendChild(buildCard(st));
-}
-
-function buildCard(st) {
-  const card = document.createElement("div");
-  card.className = "card";
-  card.id = "card-" + st.id;
-  const s = STATUS_META[st.status];
-  const wl = st.window_levels;
-  const thrTxt = wl
-    ? SEASON_LABEL[wl.season] + " levels here: RP2 " + fmt(wl.rp2) +
-      " | RP3 " + fmt(wl.rp3) + " | RP5 " + fmt(wl.rp5) + " m³/s."
-    : "";
-  const evYears = (st.deyr_event_years && st.deyr_event_years.rp3) || [];
-  const evTxt = evYears.length
-    ? "Major Deyr flooding recorded by satellite in " + st.zone + " zone: " + evYears.join(", ") + "."
-    : "No major Deyr flooding recorded by satellite in " + st.zone + " zone since 2003.";
-  card.innerHTML =
-    "<h3>" + st.label +
-    '<span class="status-pill"><span class="dot" style="background:' + s.color + '"></span>' + s.label + "</span></h3>" +
-    '<div class="meta">' + st.zone + " zone · " + st.lat + "°N " + st.lon + "°E<br>" +
-    thrTxt + " " + evTxt + "</div>";
-
-  const box = document.createElement("div");
-  box.className = "chart-box";
-  card.appendChild(box);
-  drawFanChart(box, st);
-
-  const legend = document.createElement("div");
-  legend.className = "legend";
-  const rc = RIVER[st.river];
-  legend.innerHTML =
-    '<span><span class="swatch" style="background:' + rc.band + '"></span>widest 80% of the 51 runs</span>' +
-    '<span><span class="swatch" style="background:' + rc.band2 + '"></span>middle half</span>' +
-    '<span><span class="line-swatch" style="border-color:' + rc.color + '"></span>middle run</span>' +
-    '<span><span class="line-swatch" style="border-color:var(--warning); border-top-style:dashed"></span>RP2</span>' +
-    '<span><span class="line-swatch" style="border-color:var(--serious); border-top-style:dashed"></span>RP3</span>' +
-    '<span><span class="line-swatch" style="border-color:var(--critical); border-top-style:dashed"></span>RP5</span>';
-  card.appendChild(legend);
-
-  const probRow = document.createElement("div");
-  probRow.className = "prob-row";
-  probRow.innerHTML = '<div class="row-label">Share of the 51 runs above that day’s RP3 level</div>';
-  drawProbStrip(probRow, st);
-  card.appendChild(probRow);
-
-  if (st.skill && st.skill.length) {
-    const bits = st.skill
-      .filter((k) => [3, 5].includes(k.rp))
-      .map((k) => LEVEL_NAMES["rp" + k.rp] + " level: caught " + pct(k.pod) + " of past Deyr floods, " + pct(k.far) + " of alerts false");
-    if (bits.length) {
-      const note = document.createElement("div");
-      note.className = "skill-note";
-      note.innerHTML = "<strong>Backtest 2003-2023</strong> (" +
-        (st.skill[0].kind === "ensemble p50" ? "full ensemble" : "single run only") + "): " + bits.join(" | ") + ".";
-      card.appendChild(note);
-    }
-  }
-  return card;
-}
-
-/* ---- fan chart ---- */
-function drawFanChart(box, st) {
-  const W = 560, H = 250, m = { t: 16, r: 60, b: 30, l: 52 };
-  const iw = W - m.l - m.r, ih = H - m.t - m.b;
-  const L = st.leads;
-  const rc = RIVER[st.river];
-
-  const thrVals = L.flatMap((l) => Object.values(l.thresholds).filter((v) => v != null));
-  const yMaxData = Math.max(...L.map((l) => l.p90), ...L.map((l) => l.control ?? 0));
-  const yMax = Math.max(yMaxData, ...thrVals) * 1.12 || 1;
-  const x = (i) => m.l + (i / (L.length - 1)) * iw;
-  const y = (v) => m.t + ih - (Math.max(v, 0) / yMax) * ih;
-
-  const ns = "http://www.w3.org/2000/svg";
-  const svg = document.createElementNS(ns, "svg");
+  const svg = document.getElementById("map");
   svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+  svg.innerHTML = g;
+  document.getElementById("maplegend").innerHTML = "<h3>Monitored stations</h3>" +
+    '<div class="row"><span class="dot" style="background:#B34036;border-color:#7A241C"></span>Forecast at or over its 1-in-3 year level</div>' +
+    '<div class="row"><span class="dot"></span>Below its 1-in-3 year level</div>' +
+    '<h3 style="margin-top:16px">Map</h3>' +
+    '<div class="row"><span class="sw" style="background:#4a90c2;opacity:.6"></span>River channels (GloFAS)</div>' +
+    '<div class="row"><span class="sw" style="background:#fff;border:1px solid #c9d2d3"></span>Somali region zones</div>' +
+    '<div class="row">Click a dot for the station’s ratio</div>';
+}
 
-  const add = (name, attrs, parent) => {
-    const el = document.createElementNS(ns, name);
-    for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
-    (parent || svg).appendChild(el);
-    return el;
-  };
-
-  const ticks = 4;
-  for (let i = 0; i <= ticks; i++) {
-    const v = (yMax / ticks) * i;
-    add("line", { x1: m.l, x2: W - m.r, y1: y(v), y2: y(v), stroke: "var(--grid)", "stroke-width": 1 });
-    add("text", {
-      x: m.l - 6, y: y(v) + 3.5, "text-anchor": "end", "font-size": 10,
-      fill: "var(--muted)", style: "font-variant-numeric: tabular-nums",
-    }).textContent = Math.round(v).toLocaleString();
+/* chart: each station as a share of its own daily 1-in-3 level */
+{
+  const W = 920, H = 300, m = { t:16, r:120, b:34, l:52 };
+  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const L0 = DATA.stations[0].leads;
+  const maxRatio = Math.max(1.2, ...DATA.stations.flatMap(s => s.leads.map(l => l.ratio || 0)) ) * 1.08;
+  const x = i => m.l + i / (L0.length - 1) * iw;
+  const y = r => m.t + ih - r / maxRatio * ih;
+  let g = "";
+  for (let v = 0; v <= maxRatio; v += 0.25) {
+    g += '<line x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + y(v).toFixed(1) + '" y2="' + y(v).toFixed(1) + '" stroke="#eef1f1"></line>';
+    g += '<text x="' + (m.l - 6) + '" y="' + (y(v) + 3.5).toFixed(1) + '" text-anchor="end" font-size="10" fill="#5e6a6b">' + Math.round(v * 100) + "%</text>";
   }
-
-  // flood-level lines with plain-language labels on the right
-  const lastThr = L[L.length - 1].thresholds;
-  for (const rp of ["rp2", "rp3", "rp5"]) {
-    const segs = [];
-    let cur = null;
-    L.forEach((l, i) => {
-      const v = l.thresholds[rp];
-      if (v == null) { cur = null; return; }
-      if (!cur || Math.abs(cur.v - v) > 1e-9) { cur = { v: v, from: i, to: i }; segs.push(cur); }
-      else cur.to = i;
-    });
-    for (const sgm of segs) {
-      add("line", {
-        x1: x(sgm.from), x2: x(sgm.to), y1: y(sgm.v), y2: y(sgm.v),
-        stroke: RP_COLORS[rp], "stroke-width": 1.5, "stroke-dasharray": "5 3", opacity: 0.85,
-      });
-    }
-    if (lastThr[rp] != null) {
-      add("text", {
-        x: W - m.r + 5, y: y(lastThr[rp]) + 3.5, "text-anchor": "start", "font-size": 10.5,
-        fill: RP_COLORS[rp], "font-weight": 600,
-      }).textContent = LEVEL_NAMES[rp];
-    }
-  }
-
-  const area = (loKey, hiKey, fill) => {
-    let d = "M" + x(0) + " " + y(L[0][hiKey]);
-    L.forEach((l, i) => { d += " L" + x(i) + " " + y(l[hiKey]); });
-    for (let i = L.length - 1; i >= 0; i--) d += " L" + x(i) + " " + y(L[i][loKey]);
-    d += " Z";
-    add("path", { d: d, fill: fill, stroke: "none" });
-  };
-  area("p10", "p90", rc.band);
-  area("p25", "p75", rc.band2);
-
-  const line = (key, stroke, dash) => {
-    const pts = L.map((l, i) => (l[key] == null ? null : [x(i), y(l[key])]));
+  g += '<line x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + y(1).toFixed(1) + '" y2="' + y(1).toFixed(1) + '" stroke="#B34036" stroke-width="1.5" stroke-dasharray="6 4"></line>';
+  g += '<text x="' + (W - m.r + 6) + '" y="' + (y(1) + 3.5).toFixed(1) + '" font-size="11" fill="#B34036" font-weight="600">1-in-3 level</text>';
+  L0.forEach((l, i) => {
+    if (i % 2 === 0)
+      g += '<text x="' + x(i).toFixed(1) + '" y="' + (H - 12) + '" text-anchor="middle" font-size="10" fill="#5e6a6b">' + fmtDay(l.valid) + "</text>";
+  });
+  const seen = new Set();
+  for (const st of DATA.stations) {
+    const pts = st.leads.map((l, i) => l.ratio == null ? null : [x(i), y(l.ratio)]);
     let d = "", pen = false;
-    pts.forEach((p) => {
-      if (!p) { pen = false; return; }
-      d += (pen ? " L" : " M") + p[0] + " " + p[1];
-      pen = true;
-    });
-    if (d) add("path", { d: d, fill: "none", stroke: stroke, "stroke-width": 2.2, "stroke-dasharray": dash || "none", "stroke-linecap": "round" });
-  };
-  line("median", rc.color);
-
-  // x labels: dates every other day
-  L.forEach((l, i) => {
-    if (i % 2 === 0) {
-      add("text", { x: x(i), y: H - 12, "text-anchor": "middle", "font-size": 10, fill: "var(--muted)" })
-        .textContent = fmtDate(l.valid);
+    for (const p of pts) { if (!p) { pen = false; continue; } d += (pen ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1); pen = true; }
+    if (!d) continue;
+    g += '<path d="' + d + '" fill="none" stroke="' + RIVER_COLOR[st.river] + '" stroke-width="1.8" opacity=".85"><title>' + shortName(st.label) + "</title></path>";
+    const last = pts[pts.length - 1];
+    if (last && !seen.has(st.river)) {
+      seen.add(st.river);
+      g += '<text x="' + (W - m.r + 6) + '" y="' + (last[1] + 3.5).toFixed(1) + '" font-size="11" fill="' + RIVER_COLOR[st.river] + '" font-weight="600">' + RIVER_TITLE[st.river] + "</text>";
     }
-  });
-  add("text", { x: m.l + iw / 2, y: H - 0.5, "text-anchor": "middle", "font-size": 10, fill: "var(--muted)" })
-    .textContent = "next 10 days";
-  add("text", {
-    x: 12, y: m.t + ih / 2, "font-size": 10, fill: "var(--muted)",
-    transform: "rotate(-90 12 " + (m.t + ih / 2) + ")", "text-anchor": "middle",
-  }).textContent = "river flow (m³/s)";
-
-  const tip = document.createElement("div");
-  tip.className = "tooltip";
-  box.appendChild(tip);
-  const cross = add("line", { y1: m.t, y2: m.t + ih, stroke: "var(--muted)", "stroke-width": 1, opacity: 0 });
-  L.forEach((l, i) => {
-    const x0 = i === 0 ? m.l : (x(i - 1) + x(i)) / 2;
-    const x1 = i === L.length - 1 ? W - m.r : (x(i) + x(i + 1)) / 2;
-    const hit = add("rect", { x: x0, y: m.t, width: x1 - x0, height: ih, fill: "transparent" });
-    hit.addEventListener("mousemove", (ev) => {
-      cross.setAttribute("x1", x(i));
-      cross.setAttribute("x2", x(i));
-      cross.setAttribute("opacity", 0.6);
-      tip.style.display = "block";
-      tip.innerHTML =
-        '<div class="tt-title">' + fmtDate(l.valid) + " · " + SEASON_LABEL[l.season] + " levels" +
-        (DATA.season_focus && !l.in_season ? " (Deyr conditions don’t count this day)" : "") + "</div>" +
-        "middle run " + fmt(l.median) + " m³/s | runs span " + fmt(l.p10) + "-" + fmt(l.p90) + "<br>" +
-        "runs above RP2 " + pct(l.prob.rp2) + " | RP3 " + pct(l.prob.rp3) + " | RP5 " + pct(l.prob.rp5);
-      const r = box.getBoundingClientRect();
-      const pxc = ev.clientX - r.left, pyc = ev.clientY - r.top;
-      tip.style.left = Math.min(pxc + 14, r.width - tip.offsetWidth - 4) + "px";
-      tip.style.top = Math.max(pyc - tip.offsetHeight - 10, 2) + "px";
-    });
-    hit.addEventListener("mouseleave", () => {
-      cross.setAttribute("opacity", 0);
-      tip.style.display = "none";
-    });
-  });
-
-  box.appendChild(svg);
-}
-
-/* ---- probability strip ---- */
-function drawProbStrip(parent, st) {
-  const L = st.leads;
-  const W = 560, H = 58, m = { l: 52, r: 60, t: 6, b: 16 };
-  const iw = W - m.l - m.r, ih = H - m.t - m.b;
-  const bw = Math.min(26, (iw / L.length) * 0.62);
-  const ns = "http://www.w3.org/2000/svg";
-  const svg = document.createElementNS(ns, "svg");
+  }
+  g += '<text x="12" y="' + (m.t + ih / 2).toFixed(1) + '" font-size="10" fill="#5e6a6b" text-anchor="middle" transform="rotate(-90 12 ' + (m.t + ih / 2).toFixed(1) + ')">share of the 1-in-3 level</text>';
+  const svg = document.getElementById("chart");
   svg.setAttribute("viewBox", "0 0 " + W + " " + H);
-  const rc = RIVER[st.river];
-  const x = (i) => m.l + (i + 0.5) * (iw / L.length);
-
-  const base = document.createElementNS(ns, "line");
-  base.setAttribute("x1", m.l); base.setAttribute("x2", W - m.r);
-  base.setAttribute("y1", m.t + ih); base.setAttribute("y2", m.t + ih);
-  base.setAttribute("stroke", "var(--baseline)");
-  svg.appendChild(base);
-
-  L.forEach((l, i) => {
-    const counts = true;
-    const p = l.prob.rp3 ?? 0;
-    const h = Math.max(p * ih, p > 0 ? 2 : 0);
-    const r = document.createElementNS(ns, "rect");
-    r.setAttribute("x", x(i) - bw / 2);
-    r.setAttribute("y", m.t + ih - h);
-    r.setAttribute("width", bw);
-    r.setAttribute("height", h);
-    r.setAttribute("rx", 2);
-    r.setAttribute("fill", counts ? rc.color : "var(--grid)");
-    svg.appendChild(r);
-    if (p >= 0.005) {
-      const t = document.createElementNS(ns, "text");
-      t.setAttribute("x", x(i));
-      t.setAttribute("y", m.t + ih - h - 3);
-      t.setAttribute("text-anchor", "middle");
-      t.setAttribute("font-size", 9.5);
-      t.setAttribute("fill", counts ? "var(--ink-2)" : "var(--muted)");
-      t.textContent = Math.round(p * 100) + "%";
-      svg.appendChild(t);
-    }
-    if (i % 2 === 0) {
-      const lbl = document.createElementNS(ns, "text");
-      lbl.setAttribute("x", x(i));
-      lbl.setAttribute("y", H - 3);
-      lbl.setAttribute("text-anchor", "middle");
-      lbl.setAttribute("font-size", 9.5);
-      lbl.setAttribute("fill", counts ? "var(--ink-2)" : "var(--muted)");
-      lbl.textContent = fmtDate(l.valid);
-      svg.appendChild(lbl);
-    }
-  });
-  parent.appendChild(svg);
+  svg.innerHTML = g;
+  document.getElementById("chartcap").textContent =
+    "Each line is one station's ensemble median, day by day, as a share of its own 1-in-3 year level for that day's season. " +
+    "The dashed line marks the level. Lines are coloured by river: Shabelle blue, Genale/Juba green, Webe Gestro orange. " +
+    "Point at a line for the station name.";
 }
 
-/* ---- footer ---- */
+/* table */
+{
+  const order = ["Shabelle", "Genale", "Gestro"];
+  const rows = [...DATA.stations]
+    .sort((a, b) => order.indexOf(a.river) - order.indexOf(b.river))
+    .map(st => {
+      if (st.peak_ratio == null)
+        return `<tr><td>${shortName(st.label)}</td><td>${RIVER_TITLE[st.river]}</td><td colspan="4">no forecast</td></tr>`;
+      const w = Math.max(2, Math.min(st.peak_ratio, 2.5) * 60);
+      return `<tr><td>${shortName(st.label)}</td><td>${RIVER_TITLE[st.river]}</td>
+        <td class="n ${st.reached ? "over" : ""}">${n0(st.peak)}</td>
+        <td>${fmtDay(st.peak_date)}</td>
+        <td><span class="bar ${st.reached ? "over" : ""}" style="width:${w.toFixed(0)}px"></span>${st.peak_ratio.toFixed(2)}&times;</td>
+        <td class="n">${n0(st.peak_level)}</td></tr>`;
+    }).join("");
+  document.getElementById("tablebox").innerHTML =
+    `<table class="data"><thead><tr><th>Station</th><th>River</th><th class="n">Forecast peak (m³/s)</th>
+     <th>Day of peak</th><th>Peak / 1-in-3 level</th><th class="n">1-in-3 level (m³/s)</th></tr></thead>
+     <tbody>${rows}</tbody></table>`;
+}
+
+/* footer */
 document.getElementById("footer").innerHTML =
-  "<p><strong>Method.</strong> RP2 / RP3 / RP5 are return-period thresholds, Gumbel-fitted on 2003-2025 " +
-  "seasonal maxima of GloFAS " + DATA.threshold_version.replace("_", ".") +
-  " reanalysis at channel-snapped cells (Gu = Mar-Jun, Kiremt = Jul-Sep, Deyr = Oct-Dec). " +
-  "Forecast: operational GloFAS ensemble (51 members, leads 1-10 days); each forecast day is compared " +
-  "against its own season's levels. Station status: max share of members over a level on any day " +
-  "(≥30% over RP5 / RP3 / RP2). The monitored conditions switch to Deyr levels for October-December days. " +
-  "Note: these seasonal levels are deliberately lower than the annual return-period thresholds shown in the " +
-  "GloFAS map viewer. Annual thresholds are set by the July-September peak flows and would miss most Gu and " +
-  "Deyr floods here; a comparison table is in notebook 01.</p>" +
-  "<p><strong>Caveats.</strong> Flows are model quantities, not gauge readings. Track records are scored " +
-  "against satellite-detected (FloodScan) flood events, 6-8 events per zone, so all skill numbers carry wide " +
-  "uncertainty; the forecast backtest uses the older GloFAS v4 system. Analysis: notebooks 01-03 in " +
-  "<code>ds-aa-eth-flooding/analysis</code>.</p>" +
-  "<p>Generated " + DATA.generated + " · forecast issued " + DATA.issued + ".</p>";
+  "<p><strong>Method.</strong> The 1-in-3 year level is a return-period threshold, Gumbel-fitted per season on " +
+  "2003 to 2025 GloFAS " + DATA.threshold_version.replace("_", ".") + " reanalysis at channel-snapped cells. " +
+  "Forecast: operational GloFAS ensemble, 51 members, leads 1 to 10 days, read as the ensemble median. " +
+  "Thresholds are pinned to the GloFAS version the operational forecast runs (a climatology check flags a future upgrade).</p>" +
+  "<p><strong>Caveats.</strong> Values are model quantities, not gauge readings. The page rebuilds daily from a " +
+  "GitHub Action at 11:15 UTC, with a catch-up run at 14:15 UTC; the update log above shows every run. " +
+  "Analysis: notebooks 01 to 03 in <code>ds-aa-eth-flooding/analysis</code>.</p>" +
+  "<p>Forecast issued " + DATA.issued + " · page generated " + DATA.generated + ".</p>";
 </script>
+</body>
+</html>
