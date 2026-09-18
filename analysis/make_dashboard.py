@@ -244,9 +244,9 @@ def main() -> None:
         "season_now": month_season(datetime.now(timezone.utc).month),
         "map": build_map_payload(),
         "rivers": load_river_cells(),
-        "run_log": update_run_log(issue, stations_payload)[:7],
         "stations": stations_payload,
     }
+    update_run_log(issue, stations_payload)  # kept on blob as the run record
 
     data_json = json.dumps(payload, allow_nan=False)
     stratus.upload_blob_data(

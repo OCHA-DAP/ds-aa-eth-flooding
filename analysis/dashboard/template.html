@@ -29,11 +29,6 @@ article a { color:var(--b6); }
 .banner .status { font-family:'Merriweather',Georgia,serif; font-size:22px; font-weight:700; color:var(--b6); }
 .banner.error { border-left-color:#B34036; } .banner.error .status { color:#B34036; }
 .banner .meta { font-size:12.5px; color:var(--n7); line-height:1.6; }
-.runlog { margin:14px 0 4px; padding:12px 20px; border:1px solid #e2e7e7; border-radius:6px; background:#fff; }
-.runlog h3 { margin:0 0 6px; font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--n7); font-weight:700; }
-.runlog .line { font-size:13px; color:var(--n8); padding:2px 0; }
-.runlog .line b { display:inline-block; min-width:58px; font-weight:500; color:var(--n9); }
-.runlog .hit { color:#B34036; font-weight:600; }
 .maprow { display:grid; grid-template-columns:minmax(0,1fr) 210px; gap:18px; align-items:start; margin:14px 0 4px; }
 @media (max-width:760px){ .maprow { grid-template-columns:1fr } }
 .map { border:1px solid #e2e7e7; border-radius:6px; background:#f6f8f8; overflow:hidden; }
@@ -80,7 +75,6 @@ footer p { margin:5px 0; line-height:1.6; }
 
   <article>
     <div id="banner" class="banner"><span class="status">Loading</span></div>
-    <div id="runlog" class="runlog"></div>
 
     <h2>Where the stations stand</h2>
     <div class="maprow">
@@ -140,18 +134,6 @@ const shortName = s => s.replace(/ \(.*\)$/, "");
     monitoring <b>${SEASON_LABEL[DATA.season_now]}</b><br>
     GloFAS version ${DATA.threshold_version.replace("v","").replace("_0","")} thresholds ·
     ${DATA.stations.length} stations · page generated ${DATA.generated}</span>`;
-}
-
-/* run log */
-{
-  const box = document.getElementById("runlog");
-  const lines = DATA.run_log.map(e => {
-    const what = e.reached && e.reached.length
-      ? e.reached.map(r => `<span class="hit">${r.level} reached</span> at ${shortName(r.station)}`).join(" | ")
-      : "no station at the 1-in-3 level";
-    return `<div class="line"><b>${fmtDay(e.date)}</b> issue ${fmtDay(e.issue)}, checked ${e.checked_at} | ${what}</div>`;
-  });
-  box.innerHTML = "<h3>Update log · one line per daily run</h3>" + lines.join("");
 }
 
 /* map */
