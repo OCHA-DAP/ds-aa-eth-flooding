@@ -118,17 +118,9 @@ def extract(nc_path: Path, cells: pd.DataFrame, product: str) -> pd.DataFrame:
     return out[keep]
 
 
-def main() -> None:
-    cfg = yaml.safe_load(open(os.path.expanduser("~/.cdsapirc")))
-    client = cdsapi.Client(url="https://ewds.climate.copernicus.eu/api", key=cfg["key"])
-
-    issue = latest_issue_date()
-    log.info(f"latest operational issue on EWDS: {issue:%Y-%m-%d}")
-    cells = load_cells()
-
-    existing = set(
-        stratus.list_container_blobs(name_starts_with=f"{RAW_PREFIX}/", stage=STAGE, container_name=CONTAINER)
-    )
+def fetch_issue(client, issue, cells, existing) -> list:
+    """Fetch and extract both products for one issue date. Raises on any
+    failure, so the caller can fall back to an earlier issue."""
     frames = []
     for product in PRODUCTS:
         stem = f"fc_{issue:%Y%m%d}_{product}"
@@ -160,10 +152,39 @@ def main() -> None:
                     )
                 log.info(f"{stem}: downloaded + uploaded")
         frames.append(extract(local, cells, product))
+    return frames
+
+
+def main() -> None:
+    cfg = yaml.safe_load(open(os.path.expanduser("~/.cdsapirc")))
+    client = cdsapi.Client(url="https://ewds.climate.copernicus.eu/api", key=cfg["key"])
+
+    latest = latest_issue_date()
+    log.info(f"latest operational issue on EWDS: {latest:%Y-%m-%d}")
+    cells = load_cells()
+
+    existing = set(
+        stratus.list_container_blobs(name_starts_with=f"{RAW_PREFIX}/", stage=STAGE, container_name=CONTAINER)
+    )
+    # The constraints can list a new issue date before every product of that
+    # issue is actually retrievable (seen 2026-09-20: the day was listed but
+    # the ensemble request returned 400 "invalid combination"). Fall back one
+    # issue at a time so a publication race never fails the run.
+    frames, used = None, None
+    for back in range(4):
+        issue = latest - pd.Timedelta(days=back)
+        try:
+            frames = fetch_issue(client, issue, cells, existing)
+            used = issue
+            break
+        except Exception as e:
+            log.warning(f"issue {issue:%Y-%m-%d} not retrievable ({e}); trying the previous one")
+    if frames is None:
+        raise RuntimeError("no retrievable issue in the last 4 days")
 
     combined = pd.concat(frames, ignore_index=True)
     stratus.upload_parquet_to_blob(combined, OUT_PARQUET, stage=STAGE)
-    log.info(f"{len(combined)} rows ({issue:%Y-%m-%d} issue) -> {OUT_PARQUET}")
+    log.info(f"{len(combined)} rows ({used:%Y-%m-%d} issue) -> {OUT_PARQUET}")
 
 
 if __name__ == "__main__":
