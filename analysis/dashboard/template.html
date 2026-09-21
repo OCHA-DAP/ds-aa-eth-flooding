@@ -9,14 +9,21 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
+/* OCHA blue, as on the Somalia monitoring page: the UN-OCHA common_design
+   brand values mapped onto the team's site tokens. */
 :root {
-  --b5:#269777; --b6:#1e795f; --b7:#18614c; --b05:#e9f5f1; --b1:#d4eae4;
+  --b5:#1f69b3; --b6:#1f69b3; --b7:#144372; --b05:#ebf0f4; --b1:#d4e5f7;
   --n9:#1f2324; --n8:#3f4748; --n7:#5e6a6b; --n05:#f5f7f7;
 }
 * { box-sizing:border-box; }
 body { margin:0; background:var(--n05); color:var(--n9);
   font-family:'Roboto',system-ui,-apple-system,'Segoe UI','Helvetica Neue',Arial,sans-serif; line-height:1.5; }
 .wrap { max-width:1080px; margin:0 auto; background:#fff; min-height:100vh; box-shadow:0 0 40px rgba(31,35,36,.06); }
+.brand { display:flex; justify-content:space-between; align-items:center; gap:20px; padding:14px 44px; background:#fff; border-bottom:1px solid #e2e7e7; }
+.brand a { display:block; line-height:0; }
+.brand img { height:44px; width:auto; display:block; }
+.contact { margin:12px 0 8px; padding:16px 20px; border-radius:6px; background:var(--b05); border-left:5px solid var(--b6); }
+.contact p { margin:0; }
 .hero { background:var(--b6); padding:40px 44px 34px; }
 .eyebrow { font-size:11px; letter-spacing:.15em; text-transform:uppercase; font-weight:700; color:rgba(255,255,255,.88); margin:0 0 12px; }
 .hero h1 { font-family:'Merriweather',Georgia,serif; font-weight:700; font-size:28px; line-height:1.2; color:#fff; margin:0 0 14px; }
@@ -25,8 +32,8 @@ article { padding:8px 44px 24px; max-width:1000px; }
 article h2 { font-family:'Merriweather',Georgia,serif; font-size:20px; color:var(--n9); margin:34px 0 10px; line-height:1.25; }
 article p, article li { font-size:14.5px; color:var(--n8); line-height:1.65; }
 article a { color:var(--b6); }
-.banner { display:flex; flex-wrap:wrap; align-items:center; gap:14px 22px; margin:22px 0 6px; padding:16px 20px; border-radius:6px; border:1px solid #e2e7e7; border-left:8px solid var(--b5); background:#fff; }
-.banner .status { font-family:'Merriweather',Georgia,serif; font-size:22px; font-weight:700; color:var(--b6); }
+.banner { display:flex; flex-wrap:wrap; align-items:center; gap:14px 22px; margin:22px 0 6px; padding:16px 20px; border-radius:6px; border:1px solid #e2e7e7; border-left:8px solid #9aa4a6; background:#fff; }
+.banner .status { font-family:'Merriweather',Georgia,serif; font-size:22px; font-weight:700; color:#5e6a6b; }
 .banner.error { border-left-color:#B34036; } .banner.error .status { color:#B34036; }
 .banner .meta { font-size:12.5px; color:var(--n7); line-height:1.6; }
 .maprow { display:grid; grid-template-columns:minmax(0,1fr) 210px; gap:18px; align-items:start; margin:14px 0 4px; }
@@ -62,6 +69,10 @@ footer p { margin:5px 0; line-height:1.6; }
 </head>
 <body>
 <div class="wrap">
+  <div class="brand">
+    <a href="https://www.unocha.org/"><img src="assets/ocha_logo.png" alt="OCHA"></a>
+    <a href="https://centre.humdata.org/"><img src="assets/centre_for_humdata.png" alt="Centre for Humanitarian Data"></a>
+  </div>
   <header class="hero">
     <div class="inner">
       <p class="eyebrow">Ethiopia · Somali region</p>
@@ -103,8 +114,13 @@ footer p { margin:5px 0; line-height:1.6; }
         rivers naturally run much higher in July to September, fed by rain in the Ethiopian
         highlands upstream, than during the local Gu or Deyr rains.</li>
       <li>A station is marked reached when the median is at or above the level on any of the
-        10 days. The map, the chart, the table and the log all show this one check.</li>
+        10 days. The map, the chart and the table all show this one check.</li>
     </ul>
+
+    <h2 id="contact">Contact</h2>
+    <div class="contact">
+      <p>Reach out to OCHA Data Science at <a href="mailto:ocha-datascience@un.org">ocha-datascience@un.org</a> with any questions.</p>
+    </div>
   </article>
 
   <footer id="footer"></footer>
