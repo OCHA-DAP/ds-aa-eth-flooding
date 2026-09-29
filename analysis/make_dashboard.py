@@ -7,11 +7,12 @@ Reads from blob:
 - processed/glofas/station_zone_mapping_all.csv
 - processed/dashboard/river_cells.json (map river layer, precomputed)
 
-For each station: the GloFAS ensemble-median forecast over the next 10 days
-against the station's seasonal 1-in-3 year level (Gu = Mar-Jun, Jul-Sep
-highland flows, Deyr = Oct-Dec; each day uses its own season's level). A
-station is "reached" when the median is at or above the level on any day.
-No trigger logic: station-level information only.
+The trigger (notebook 04, working group 29 Sep 2026): reached when any of the
+three river systems has a station at or over its OND 1-in-5 level (Gumbel on
+v4 reanalysis OND maxima 2003-2025) on a forecast day in October to December.
+The page checks the GloFAS ensemble median at leads 1 to 10 days; days
+outside October to December do not count. Overall activation frequency on
+the 2003-2025 record: 9 activations, 1-in-2.7 years.
 
 Thresholds are PINNED to the GloFAS version the operational forecast runs
 (THRESHOLD_VERSION_PIN, currently v4) and a climatology-coherence check
@@ -36,8 +37,8 @@ import pandas as pd
 
 STAGE = "dev"
 PROJECT_PREFIX = "ds-aa-eth-flooding"
-SEASON_MONTHS = {"gu": [3, 4, 5, 6], "kiremt": [7, 8, 9], "deyr": [10, 11, 12]}
-RP = 3
+OND = [10, 11, 12]
+RP = 5
 HERE = Path(__file__).resolve().parent
 OUT_DIR = HERE / "dashboard"
 OUT_DIR.mkdir(exist_ok=True)
@@ -51,11 +52,7 @@ RUN_LOG_BLOB = f"{PROJECT_PREFIX}/processed/dashboard/run_log.json"
 THRESHOLD_VERSION_PIN = "v4_0"
 
 
-def month_season(m: int) -> str:
-    for season, months in SEASON_MONTHS.items():
-        if m in months:
-            return season
-    return "jilaal"
+RIVER_OF_ZONE = {"ET0506": "Shabelle", "ET0508": "Gestro", "ET0509": "Genale"}
 
 
 def build_map_payload() -> list:
@@ -101,7 +98,7 @@ def update_run_log(issue: pd.Timestamp, stations_payload: list) -> list:
     except Exception:
         log = []
     reached = [
-        {"station": st["label"], "level": f"RP{RP}"}
+        {"station": st["label"], "level": f"OND 1-in-{RP}"}
         for st in stations_payload if st["reached"]
     ]
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
@@ -201,26 +198,24 @@ def main() -> None:
             continue
         ens = sub[sub["product_type"] != "control_forecast"]
 
+        key = (sid, "deyr", RP)
+        level = float(thr.loc[key]) if key in thr.index else None
         leads = []
         for lead, g in ens.groupby("leadtime_days"):
             valid = g["valid_time"].iloc[0]
-            season = month_season(valid.month)
-            thr_season = season if season != "jilaal" else "annual"
-            key = (sid, thr_season, RP)
-            level = float(thr.loc[key]) if key in thr.index else None
             median = float(g["discharge"].median())
             leads.append({
                 "lead": int(lead),
                 "valid": valid.strftime("%Y-%m-%d"),
-                "season": season,
+                "in_ond": valid.month in OND,
                 "median": round(median, 1),
                 "level": round(level, 1) if level is not None else None,
                 "ratio": round(median / level, 3) if level else None,
             })
         leads.sort(key=lambda x: x["lead"])
 
-        with_ratio = [l for l in leads if l["ratio"] is not None]
-        peak = max(with_ratio, key=lambda l: l["ratio"]) if with_ratio else None
+        counting = [l for l in leads if l["in_ond"] and l["ratio"] is not None]
+        peak = max(counting, key=lambda l: l["ratio"]) if counting else None
         stations_payload.append({
             "id": sid,
             "label": meta["label"],
@@ -236,12 +231,24 @@ def main() -> None:
             "reached": bool(peak and peak["ratio"] >= 1),
         })
 
+    rivers_status = {}
+    for river in ["Shabelle", "Genale", "Gestro"]:
+        sts = [s_ for s_ in stations_payload if s_["river"] == river]
+        rivers_status[river] = {
+            "reached": any(s_["reached"] for s_ in sts),
+            "in_window": any(l["in_ond"] for s_ in sts for l in s_["leads"]),
+            "stations_over": [s_["id"] for s_ in sts if s_["reached"]],
+        }
+    trigger_reached = any(r["reached"] for r in rivers_status.values())
+
     payload = {
         "issued": issue.strftime("%Y-%m-%d"),
         "generated": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
         "threshold_version": version,
         "rp": RP,
-        "season_now": month_season(datetime.now(timezone.utc).month),
+        "trigger_reached": trigger_reached,
+        "rivers_status": rivers_status,
+        "zone_river": RIVER_OF_ZONE,
         "map": build_map_payload(),
         "rivers": load_river_cells(),
         "stations": stations_payload,
