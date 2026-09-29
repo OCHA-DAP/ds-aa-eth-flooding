@@ -44,7 +44,19 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 log = logging.getLogger("fetch_forecast_live")
 logging.getLogger("azure").setLevel(logging.WARNING)
 
-AREA = [6.575, 39.95, 3.65, 45.325]  # N, W, S, E: all 8 stations + 0.5deg
+# N, W, S, E boxes covering the seven monitored river systems. The Somali box
+# keeps its legacy blob-name stem (no box suffix) so existing raw files reuse.
+BOXES = {
+    "": [6.575, 39.95, 3.65, 45.325],          # Somali region rivers + Dawa
+    "gambella": [8.7, 32.9, 6.2, 35.6],        # Baro + Akobo
+    "omo_rift": [7.4, 35.6, 4.3, 38.4],        # lower Omo + Bilate + lakes
+}
+
+
+def box_of(lon: float) -> str:
+    if lon >= 39.9:
+        return ""
+    return "gambella" if lon < 35.65 else "omo_rift"
 LEADTIME_HOURS = [str(h) for h in range(24, 24 * 10 + 1, 24)]  # 1-10 days
 PRODUCTS = ["control_forecast", "ensemble_perturbed_forecasts"]
 CONSTRAINTS_URL = (
@@ -119,39 +131,43 @@ def extract(nc_path: Path, cells: pd.DataFrame, product: str) -> pd.DataFrame:
 
 
 def fetch_issue(client, issue, cells, existing) -> list:
-    """Fetch and extract both products for one issue date. Raises on any
-    failure, so the caller can fall back to an earlier issue."""
+    """Fetch and extract both products for every box for one issue date.
+    Raises on any failure, so the caller can fall back to an earlier issue."""
     frames = []
-    for product in PRODUCTS:
-        stem = f"fc_{issue:%Y%m%d}_{product}"
-        local = SCRATCH_DIR / f"{stem}.nc"
-        blob_name = f"{RAW_PREFIX}/{stem}.nc"
-        if not local.exists():
-            if blob_name in existing:
-                local.write_bytes(
-                    stratus.load_blob_data(blob_name, stage=STAGE, container_name=CONTAINER)
-                )
-                log.info(f"{stem}: pulled raw from blob")
-            else:
-                client.retrieve("cems-glofas-forecast", {
-                    "system_version": "operational",
-                    "hydrological_model": "lisflood",
-                    "product_type": product,
-                    "variable": "river_discharge_in_the_last_24_hours",
-                    "year": str(issue.year),
-                    "month": f"{issue.month:02d}",
-                    "day": f"{issue.day:02d}",
-                    "leadtime_hour": LEADTIME_HOURS,
-                    "data_format": "netcdf",
-                    "area": AREA,
-                }, str(local))
-                with open(local, "rb") as f:
-                    stratus.upload_blob_data(
-                        f.read(), blob_name, stage=STAGE, container_name=CONTAINER,
-                        content_type="application/x-netcdf",
+    for box, area in BOXES.items():
+        box_cells = cells[cells["cell_lon"].apply(box_of) == box]
+        if len(box_cells) == 0:
+            continue
+        for product in PRODUCTS:
+            stem = f"fc_{issue:%Y%m%d}_{box + '_' if box else ''}{product}"
+            local = SCRATCH_DIR / f"{stem}.nc"
+            blob_name = f"{RAW_PREFIX}/{stem}.nc"
+            if not local.exists():
+                if blob_name in existing:
+                    local.write_bytes(
+                        stratus.load_blob_data(blob_name, stage=STAGE, container_name=CONTAINER)
                     )
-                log.info(f"{stem}: downloaded + uploaded")
-        frames.append(extract(local, cells, product))
+                    log.info(f"{stem}: pulled raw from blob")
+                else:
+                    client.retrieve("cems-glofas-forecast", {
+                        "system_version": "operational",
+                        "hydrological_model": "lisflood",
+                        "product_type": product,
+                        "variable": "river_discharge_in_the_last_24_hours",
+                        "year": str(issue.year),
+                        "month": f"{issue.month:02d}",
+                        "day": f"{issue.day:02d}",
+                        "leadtime_hour": LEADTIME_HOURS,
+                        "data_format": "netcdf",
+                        "area": area,
+                    }, str(local))
+                    with open(local, "rb") as f:
+                        stratus.upload_blob_data(
+                            f.read(), blob_name, stage=STAGE, container_name=CONTAINER,
+                            content_type="application/x-netcdf",
+                        )
+                    log.info(f"{stem}: downloaded + uploaded")
+            frames.append(extract(local, box_cells, product))
     return frames
 
 

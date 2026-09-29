@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Shabelle &amp; Genale Flood Watch</title>
-<meta name="description" content="Daily monitoring of GloFAS river forecasts at eight stations on the Shabelle, Genale/Juba and Webe Gestro in Ethiopia's Somali region, against each station's seasonal 1-in-3 year level.">
+<title>Ethiopia Riverine Flood Watch</title>
+<meta name="description" content="Daily monitoring of GloFAS river forecasts at fourteen stations on the seven river systems the EDRMC lists as riverine flood risks, against the OND trigger levels.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
@@ -40,14 +40,13 @@ article a { color:var(--b6); }
 @media (max-width:760px){ .maprow { grid-template-columns:1fr } }
 .map { border:1px solid #e2e7e7; border-radius:6px; background:#f6f8f8; overflow:hidden; }
 .map svg { display:block; width:100%; height:auto; }
-.zone { fill:#fff; stroke:#c9d2d3; stroke-width:.7; }
-.zone.riverine { fill:#e9eeee; stroke:#9aa4a6; }
-.zone.riverine.reached { fill:rgba(179,64,54,.28); stroke:#B34036; }
-.zone.riverine.clear { fill:rgba(46,139,110,.16); stroke:#2E8B6E; }
-.rivcell { fill:#4a90c2; opacity:.6; }
-.pt { stroke:#1f2324; stroke-width:1.2; fill:#fff; }
+.region { fill:#fff; stroke:#c9d2d3; stroke-width:.8; }
+.zone { fill:#e9eeee; stroke:#9aa4a6; stroke-width:.8; }
+.zone.reached { fill:rgba(179,64,54,.28); stroke:#B34036; }
+.zone.clear { fill:rgba(46,139,110,.16); stroke:#2E8B6E; }
+.rivcell { fill:#4a90c2; opacity:.55; }
+.pt { stroke:#1f2324; stroke-width:1.1; fill:#fff; }
 .pt.over { fill:#B34036; stroke:#7A241C; }
-.lbl { font:11px Roboto,sans-serif; fill:#1f2324; paint-order:stroke; stroke:#fff; stroke-width:3px; stroke-linejoin:round; }
 .zlbl { font:10px Roboto,sans-serif; fill:#5e6a6b; paint-order:stroke; stroke:#fff; stroke-width:2.5px; }
 .legend { font-size:13px; color:var(--n8); }
 .legend h3 { font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--n7); font-weight:700; margin:0 0 8px; }
@@ -62,12 +61,13 @@ table.data th { text-align:left; font-size:11px; text-transform:uppercase; lette
 table.data td { border-bottom:1px solid #eef1f1; padding:6px 9px; color:var(--n8); white-space:nowrap; }
 table.data td.n, table.data th.n { text-align:right; font-variant-numeric:tabular-nums; }
 table.data td.over { color:#B34036; font-weight:600; }
+.rivdot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px; vertical-align:1px; }
 .bar { display:inline-block; height:9px; background:var(--b1); border-radius:2px; vertical-align:middle; margin-right:6px; }
 .bar.over { background:#B34036; }
 .tablewrap { overflow-x:auto; }
 footer { margin:34px 44px 0; padding:14px 0 40px; border-top:1px solid #eef1f1; font-size:12.5px; color:var(--n7); max-width:95ch; }
 footer p { margin:5px 0; line-height:1.6; }
-@media (max-width:640px){ article { padding:4px 22px 16px; } .hero { padding:32px 22px 28px; } footer { margin:34px 22px 0; } }
+@media (max-width:640px){ article { padding:4px 22px 16px; } .hero { padding:32px 22px 28px; } footer { margin:34px 22px 0; } .brand { padding:14px 22px; } }
 </style>
 </head>
 <body>
@@ -78,25 +78,25 @@ footer p { margin:5px 0; line-height:1.6; }
   </div>
   <header class="hero">
     <div class="inner">
-      <p class="eyebrow">Ethiopia · Somali region</p>
-      <h1>Shabelle &amp; Genale Flood Watch</h1>
-      <p>Daily monitoring of GloFAS river forecasts at eight stations on the Shabelle,
-         Genale/Juba and Webe Gestro for the OND season (October to December). The trigger is
-         reached when any river system has a station at or over its OND 1-in-5 year level on
-         a forecast day inside the window.</p>
+      <p class="eyebrow">Ethiopia · riverine flood areas</p>
+      <h1>Ethiopia Riverine Flood Watch</h1>
+      <p>Daily monitoring of GloFAS river forecasts on the seven river systems the EDRMC lists
+         as riverine flood risks: Wabi Shebelle, Genale Dawa, lower Omo, Bilate, the Abaya-Chamo
+         lakes, Baro and Akobo. The trigger is reached when any river system is forecast at or
+         over its OND trigger level on a day inside October to December.</p>
     </div>
   </header>
 
   <article>
     <div id="banner" class="banner"><span class="status">Loading</span></div>
 
-    <h2>Where the stations stand</h2>
+    <h2>Where the rivers stand</h2>
     <div class="maprow">
-      <div class="map"><svg id="map" role="img" aria-label="Map of the Somali region zones and rivers with the eight monitored stations, red when the forecast reaches the 1-in-3 year level"></svg></div>
+      <div class="map"><svg id="map" role="img" aria-label="Map of Ethiopia with the riverine zones shaded by their river system's trigger status and the fourteen monitored stations"></svg></div>
       <div class="legend" id="maplegend"></div>
     </div>
 
-    <h2>Forecast against the OND 1-in-5 level</h2>
+    <h2>Forecast against the trigger levels</h2>
     <figure>
       <svg id="chart"></svg>
       <figcaption id="chartcap"></figcaption>
@@ -104,7 +104,7 @@ footer p { margin:5px 0; line-height:1.6; }
 
     <h2>Forecast peak at each station</h2>
     <p>The highest ensemble-median value on forecast days inside October to December, against
-       the station's OND 1-in-5 level. A ratio of 1.00&times; or more means the station is over
+       the station's trigger level. A ratio of 1.00&times; or more means the station is over
        and its river system reaches the trigger.</p>
     <div class="tablewrap" id="tablebox"></div>
 
@@ -113,13 +113,13 @@ footer p { margin:5px 0; line-height:1.6; }
       <li>GloFAS runs the same 10-day forecast 51 times with slightly different starting
         weather; this page uses the ensemble median for each day. Only forecast days falling
         in October to December count.</li>
-      <li>Each station's 1-in-5 level is fitted on its own October to December record
-        (GloFAS reanalysis, 2003 to 2025), so it marks a flow that season reaches about once
-        in five years at that point.</li>
-      <li>The trigger is reached when any of the three river systems (Shabelle, Genale/Juba,
-        Webe Gestro) has at least one station at or over its level. On the 2003 to 2025
-        record this happens in 9 of 23 years: an overall activation frequency of 1-in-2.7.
-        The banner, the shaded zones, the chart and the table all show this one rule.</li>
+      <li>Each river's trigger level is the level of its 3rd-largest OND season on the 2003 to
+        2025 GloFAS record: crossing it is roughly a 1-in-8 year event for that river. The
+        depth was chosen so that the trigger as a whole (any river over its level) has an
+        overall activation frequency of 1-in-3 years: on the record it activates in 8 of 23
+        years (2008, 2011, 2013, 2017, 2019, 2023, 2024, 2025).</li>
+      <li>The banner, the shaded zones on the map, the chart and the table all show this one
+        rule. Zone shading follows the river system that puts the zone at risk.</li>
     </ul>
 
     <h2 id="contact">Contact</h2>
@@ -134,70 +134,69 @@ footer p { margin:5px 0; line-height:1.6; }
 <script>
 const DATA = __DASHBOARD_DATA__;
 
-const RIVER_COLOR = { Shabelle:"#2a78d6", Genale:"#1baf7a", Gestro:"#eb6834" };
-const RIVER_TITLE = { Shabelle:"Shabelle", Genale:"Genale/Juba", Gestro:"Webe Gestro" };
-const SEASON_LABEL = { gu:"Gu", kiremt:"Jul-Sep highland flows", deyr:"Deyr", jilaal:"Jilaal" };
+const RIVER_COLOR = {
+  "Wabi Shebelle": "#2a78d6", "Genale Dawa": "#1baf7a", "Omo": "#eb6834",
+  "Bilate": "#eda100", "Gamo lakes": "#e87ba4", "Baro": "#4a3aa7", "Akobo": "#008300",
+};
+const RIVERS = Object.keys(RIVER_COLOR);
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const fmtDate = iso => { const [y,m,d] = iso.split("-").map(Number); return d + " " + MONTHS[m-1] + " " + y; };
 const fmtDay = iso => { const [y,m,d] = iso.split("-").map(Number); return d + " " + MONTHS[m-1]; };
-const n0 = x => x == null ? "" : Math.round(x).toLocaleString("en-GB");
+const n0 = x => x == null ? "-" : Math.round(x).toLocaleString("en-GB");
 const shortName = s => s.replace(/ \(.*\)$/, "");
 
 /* banner */
 {
   const b = document.getElementById("banner");
   b.className = "banner" + (DATA.trigger_reached ? " error" : "");
-  const over = Object.entries(DATA.rivers_status).filter(([, r]) => r.reached).map(([k]) => RIVER_TITLE[k]);
+  const over = Object.entries(DATA.rivers_status).filter(([, r]) => r.reached).map(([k]) => k);
   const status = DATA.trigger_reached ? "Trigger reached: " + over.join(", ") : "Trigger not reached";
   b.innerHTML = `<span class="status">${status}</span>
-    <span class="meta">Rule: any river system with a station at or over its OND 1-in-5 level,
-    October to December · overall activation frequency 1-in-2.7 years (2003 to 2025)<br>
+    <span class="meta">Rule: any of the seven river systems at or over its OND trigger level
+    (each river's 3rd-largest season on 2003 to 2025, a 1-in-8 river event) ·
+    overall activation frequency 1-in-3.0 years<br>
     Forecast issued <b>${fmtDate(DATA.issued)}</b> (GloFAS ensemble median, leads 1 to 10 days) ·
     GloFAS version ${DATA.threshold_version.replace("v","").replace("_0","")} levels ·
-    ${DATA.stations.length} stations · page generated ${DATA.generated}</span>`;
+    ${DATA.stations.length} stations on 7 rivers · page generated ${DATA.generated}</span>`;
 }
 
 /* map */
 {
-  const allPts = DATA.map.flatMap(z => z.rings.flat());
-  const lons = allPts.map(p => p[0]).concat(DATA.stations.map(s => s.lon));
-  const lats = allPts.map(p => p[1]).concat(DATA.stations.map(s => s.lat));
-  const pad = 0.25;
+  const allPts = DATA.map.regions.flatMap(z => z.rings.flat());
+  const lons = allPts.map(p => p[0]), lats = allPts.map(p => p[1]);
+  const pad = 0.2;
   const LON0 = Math.min(...lons) - pad, LON1 = Math.max(...lons) + pad;
   const LAT0 = Math.min(...lats) - pad, LAT1 = Math.max(...lats) + pad;
-  const W = 760, H = Math.round(W * (LAT1 - LAT0) / (LON1 - LON0));
+  const W = 780, H = Math.round(W * (LAT1 - LAT0) / (LON1 - LON0));
   const X = lon => (lon - LON0) / (LON1 - LON0) * W;
   const Y = lat => H - (lat - LAT0) / (LAT1 - LAT0) * H;
   const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  const pathOf = rings => rings.map(ring =>
+    ring.map((p,i) => (i?"L":"M") + X(p[0]).toFixed(1) + " " + Y(p[1]).toFixed(1)).join("") + "Z").join("");
   let g = "";
-  const zoneState = pcode => {
-    const river = DATA.zone_river[pcode];
-    if (!river) return ["zone", ""];
-    const r = DATA.rivers_status[river];
-    const cls = "zone riverine" + (r.reached ? " reached" : r.in_window ? " clear" : "");
-    const txt = ", " + RIVER_TITLE[river] + ": " + (r.reached ? "trigger reached" : r.in_window ? "trigger not reached" : "no window day in the forecast yet");
-    return [cls, txt];
-  };
-  for (const z of DATA.map) {
-    const [cls, txt] = zoneState(z.pcode);
-    for (const ring of z.rings)
-      g += '<path class="' + cls + '" d="' + ring.map((p,i) => (i?"L":"M") + X(p[0]).toFixed(1) + " " + Y(p[1]).toFixed(1)).join("") + 'Z"><title>' + esc(z.name + txt) + "</title></path>";
+  for (const r of DATA.map.regions)
+    g += '<path class="region" d="' + pathOf(r.rings) + '"></path>';
+  for (const z of DATA.map.zones) {
+    const rs = z.rivers.map(r => DATA.rivers_status[r]).filter(Boolean);
+    const reached = rs.some(r => r.reached);
+    const inWindow = rs.some(r => r.in_window);
+    const cls = "zone" + (reached ? " reached" : inWindow ? " clear" : "");
+    const state = reached ? "trigger reached" : inWindow ? "trigger not reached" : "no window day in the forecast yet";
+    g += '<path class="' + cls + '" d="' + pathOf(z.rings) + '"><title>' +
+      esc(z.name + " (" + z.rivers.join(", ") + "): " + state) + "</title></path>";
   }
   for (const c of (DATA.rivers || []))
-    g += '<circle class="rivcell" cx="' + X(c[0]).toFixed(1) + '" cy="' + Y(c[1]).toFixed(1) + '" r="' + (c[2] >= 100 ? 2.4 : 1.7) + '"></circle>';
-  for (const z of DATA.map) {
+    g += '<circle class="rivcell" cx="' + X(c[0]).toFixed(1) + '" cy="' + Y(c[1]).toFixed(1) + '" r="' + (c[2] >= 100 ? 1.9 : 1.3) + '"></circle>';
+  for (const z of DATA.map.zones) {
     const ring = z.rings[0];
     const cx = ring.reduce((a,p) => a + X(p[0]), 0) / ring.length;
     const cy = ring.reduce((a,p) => a + Y(p[1]), 0) / ring.length;
     g += '<text class="zlbl" x="' + cx.toFixed(1) + '" y="' + cy.toFixed(1) + '" text-anchor="middle">' + esc(z.name) + "</text>";
   }
-  const SIDE = { G1904:[-10,13,"end"], station_4:[10,-6,"start"], station_2:[10,-6,"start"] };
   for (const st of DATA.stations) {
-    const [dx,dy,anchor] = SIDE[st.id] || [10,4,"start"];
     const x = X(st.lon), y = Y(st.lat);
-    const title = st.label + ": " + (st.peak_ratio == null ? "no forecast" : st.peak_ratio.toFixed(2) + "x its 1-in-3 level");
-    g += '<circle class="pt' + (st.reached ? " over" : "") + '" cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="6.5"><title>' + esc(title) + "</title></circle>";
-    g += '<text class="lbl" x="' + (x + dx).toFixed(1) + '" y="' + (y + dy).toFixed(1) + '" text-anchor="' + anchor + '">' + esc(shortName(st.label)) + "</text>";
+    const title = st.label + " (" + st.river + "): " + (st.peak_ratio == null ? "no window day yet" : st.peak_ratio.toFixed(2) + "x its trigger level");
+    g += '<circle class="pt' + (st.reached ? " over" : "") + '" cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="5.5"><title>' + esc(title) + "</title></circle>";
   }
   const svg = document.getElementById("map");
   svg.setAttribute("viewBox", "0 0 " + W + " " + H);
@@ -206,16 +205,17 @@ const shortName = s => s.replace(/ \(.*\)$/, "");
     '<div class="row"><span class="sw" style="background:rgba(179,64,54,.28);border:1px solid #B34036"></span>Trigger reached</div>' +
     '<div class="row"><span class="sw" style="background:rgba(46,139,110,.16);border:1px solid #2E8B6E"></span>Trigger not reached</div>' +
     '<div class="row"><span class="sw" style="background:#e9eeee;border:1px solid #9aa4a6"></span>No window day in the forecast yet</div>' +
-    '<h3 style="margin-top:16px">Stations</h3>' +
-    '<div class="row"><span class="dot" style="background:#B34036;border-color:#7A241C"></span>At or over its OND 1-in-5 level</div>' +
+    "<h3 style='margin-top:16px'>Stations</h3>" +
+    '<div class="row"><span class="dot" style="background:#B34036;border-color:#7A241C"></span>At or over its trigger level</div>' +
     '<div class="row"><span class="dot"></span>Below its level</div>' +
-    '<h3 style="margin-top:16px">Map</h3>' +
-    '<div class="row"><span class="sw" style="background:#4a90c2;opacity:.6"></span>River channels (GloFAS)</div>';
+    "<h3 style='margin-top:16px'>Map</h3>" +
+    '<div class="row"><span class="sw" style="background:#4a90c2;opacity:.55"></span>River channels (GloFAS)</div>' +
+    '<div class="row">Point at a zone or a dot for its status</div>';
 }
 
-/* chart: each station as a share of its own daily 1-in-3 level */
+/* chart: each station as a share of its trigger level */
 {
-  const W = 920, H = 300, m = { t:16, r:120, b:34, l:52 };
+  const W = 920, H = 300, m = { t:16, r:130, b:34, l:52 };
   const iw = W - m.l - m.r, ih = H - m.t - m.b;
   const L0 = DATA.stations[0].leads;
   const maxRatio = Math.max(1.2, ...DATA.stations.flatMap(s => s.leads.map(l => l.ratio || 0)) ) * 1.08;
@@ -227,12 +227,12 @@ const shortName = s => s.replace(/ \(.*\)$/, "");
     g += '<text x="' + (m.l - 6) + '" y="' + (y(v) + 3.5).toFixed(1) + '" text-anchor="end" font-size="10" fill="#5e6a6b">' + Math.round(v * 100) + "%</text>";
   }
   g += '<line x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + y(1).toFixed(1) + '" y2="' + y(1).toFixed(1) + '" stroke="#B34036" stroke-width="1.5" stroke-dasharray="6 4"></line>';
-  g += '<text x="' + (W - m.r + 6) + '" y="' + (y(1) + 3.5).toFixed(1) + '" font-size="11" fill="#B34036" font-weight="600">1-in-5 level</text>';
+  g += '<text x="' + (W - m.r + 6) + '" y="' + (y(1) + 3.5).toFixed(1) + '" font-size="11" fill="#B34036" font-weight="600">trigger level</text>';
   L0.forEach((l, i) => {
     if (i % 2 === 0)
       g += '<text x="' + x(i).toFixed(1) + '" y="' + (H - 12) + '" text-anchor="middle" font-size="10" fill="#5e6a6b">' + fmtDay(l.valid) + "</text>";
   });
-  const seen = new Set();
+  const labelled = new Set();
   for (const st of DATA.stations) {
     const pts = st.leads.map((l, i) => l.ratio == null ? null : [x(i), y(l.ratio)]);
     let d = "", pen = false;
@@ -240,53 +240,56 @@ const shortName = s => s.replace(/ \(.*\)$/, "");
     if (!d) continue;
     g += '<path d="' + d + '" fill="none" stroke="' + RIVER_COLOR[st.river] + '" stroke-width="1.8" opacity=".85"><title>' + shortName(st.label) + "</title></path>";
     const last = pts[pts.length - 1];
-    if (last && !seen.has(st.river)) {
-      seen.add(st.river);
-      g += '<text x="' + (W - m.r + 6) + '" y="' + (last[1] + 3.5).toFixed(1) + '" font-size="11" fill="' + RIVER_COLOR[st.river] + '" font-weight="600">' + RIVER_TITLE[st.river] + "</text>";
+    if (last && !labelled.has(st.river)) {
+      labelled.add(st.river);
+      g += '<text x="' + (W - m.r + 6) + '" y="' + (last[1] + 3.5).toFixed(1) + '" font-size="10.5" fill="' + RIVER_COLOR[st.river] + '" font-weight="600">' + st.river + "</text>";
     }
   }
-  g += '<text x="12" y="' + (m.t + ih / 2).toFixed(1) + '" font-size="10" fill="#5e6a6b" text-anchor="middle" transform="rotate(-90 12 ' + (m.t + ih / 2).toFixed(1) + ')">share of the 1-in-5 level</text>';
+  g += '<text x="12" y="' + (m.t + ih / 2).toFixed(1) + '" font-size="10" fill="#5e6a6b" text-anchor="middle" transform="rotate(-90 12 ' + (m.t + ih / 2).toFixed(1) + ')">share of the trigger level</text>';
   const svg = document.getElementById("chart");
   svg.setAttribute("viewBox", "0 0 " + W + " " + H);
   svg.innerHTML = g;
   document.getElementById("chartcap").textContent =
-    "Each line is one station's ensemble median, day by day, as a share of its own OND 1-in-5 level. " +
+    "Each line is one station's ensemble median, day by day, as a share of its trigger level. " +
     "The dashed line marks the level; days before 1 October do not count toward the trigger. " +
-    "Lines are coloured by river: Shabelle blue, Genale/Juba green, Webe Gestro orange. Point at a line for the station name.";
+    "One colour per river system, matching the table. Point at a line for the station name.";
 }
 
 /* table */
 {
-  const order = ["Shabelle", "Genale", "Gestro"];
   const rows = [...DATA.stations]
-    .sort((a, b) => order.indexOf(a.river) - order.indexOf(b.river))
+    .sort((a, b) => RIVERS.indexOf(a.river) - RIVERS.indexOf(b.river))
     .map(st => {
+      const dot = '<span class="rivdot" style="background:' + RIVER_COLOR[st.river] + '"></span>';
       if (st.peak_ratio == null)
-        return `<tr><td>${shortName(st.label)}</td><td>${RIVER_TITLE[st.river]}</td><td colspan="4">no forecast day inside the window yet</td></tr>`;
+        return `<tr><td>${shortName(st.label)}</td><td>${dot}${st.river}</td><td colspan="4">no forecast day inside the window yet</td></tr>`;
       const w = Math.max(2, Math.min(st.peak_ratio, 2.5) * 60);
-      return `<tr><td>${shortName(st.label)}</td><td>${RIVER_TITLE[st.river]}</td>
+      return `<tr><td>${shortName(st.label)}</td><td>${dot}${st.river}</td>
         <td class="n ${st.reached ? "over" : ""}">${n0(st.peak)}</td>
         <td>${fmtDay(st.peak_date)}</td>
         <td><span class="bar ${st.reached ? "over" : ""}" style="width:${w.toFixed(0)}px"></span>${st.peak_ratio.toFixed(2)}&times;</td>
         <td class="n">${n0(st.peak_level)}</td></tr>`;
     }).join("");
   document.getElementById("tablebox").innerHTML =
-    `<table class="data"><thead><tr><th>Station</th><th>River</th><th class="n">Forecast peak (m³/s)</th>
-     <th>Day of peak</th><th>Peak / 1-in-5 level</th><th class="n">1-in-5 OND level (m³/s)</th></tr></thead>
+    `<table class="data"><thead><tr><th>Station</th><th>River system</th><th class="n">Forecast peak (m³/s)</th>
+     <th>Day of peak</th><th>Peak / trigger level</th><th class="n">Trigger level (m³/s)</th></tr></thead>
      <tbody>${rows}</tbody></table>`;
 }
 
 /* footer */
 document.getElementById("footer").innerHTML =
-  "<p><strong>Method.</strong> The 1-in-5 level is a return-period threshold, Gumbel-fitted on each station's " +
-  "October to December maxima in 2003 to 2025 GloFAS " + DATA.threshold_version.replace("_", ".") +
-  " reanalysis at channel-snapped cells. Forecast: operational GloFAS ensemble, 51 members, leads 1 to 10 days, " +
-  "read as the ensemble median; only October to December days count. Trigger: any river system with a station at " +
-  "or over its level (design and backtest: notebook 04; 9 activations in 2003 to 2025, overall 1-in-2.7). " +
-  "Levels are pinned to the GloFAS version the operational forecast runs (a climatology check flags a future upgrade).</p>" +
-  "<p><strong>Caveats.</strong> Values are model quantities, not gauge readings. The page rebuilds daily from a " +
-  "GitHub Action at 11:15 UTC, with a catch-up run at 14:15 UTC; the update log above shows every run. " +
-  "Analysis: notebooks 01 to 03 in <code>ds-aa-eth-flooding/analysis</code>.</p>" +
+  "<p><strong>Method.</strong> Trigger levels are empirical: each river system's OND seasons 2003 to 2025 are " +
+  "ranked on the maximum over its stations of the normalised seasonal peak (station OND maximum / its median " +
+  "OND seasonal maximum), on GloFAS " + DATA.threshold_version.replace("_", ".") + " reanalysis at channel-snapped " +
+  "cells; the level of the 3rd-largest season is the threshold. Forecast: operational GloFAS ensemble, 51 members, " +
+  "leads 1 to 10 days, read as the ensemble median; only October to December days count. Design and backtest: " +
+  "notebook 04 (activation years 2008, 2011, 2013, 2017, 2019, 2023, 2024, 2025; overall 1-in-3.0; each river " +
+  "1-in-8). Levels are pinned to the GloFAS version the operational forecast runs (a climatology check flags " +
+  "a future upgrade).</p>" +
+  "<p><strong>Coverage notes.</strong> The Kulfo, Slena and Sego at Arba Minch are below GloFAS's grid; the Gamo " +
+  "station is the Abaya-Chamo lake system cell. The Dawa is monitored by a dedicated cell in Daawa zone. " +
+  "Values are model quantities, not gauge readings. The page rebuilds daily from a GitHub Action at 11:15 UTC " +
+  "with a catch-up at 14:15 UTC.</p>" +
   "<p>Forecast issued " + DATA.issued + " · page generated " + DATA.generated + ".</p>";
 </script>
 </body>

@@ -1,26 +1,26 @@
 """
-Build the Somali-region flood monitoring page: station-level only.
+Build the riverine flood monitoring page for the EDRMC OND zones.
+
+The trigger (notebook 04, working group 29 Sep 2026): reached when any of the
+seven river systems (Wabi Shebelle | Genale Dawa | Omo | Bilate | Gamo lakes |
+Baro | Akobo) has a station at or over its threshold on a forecast day in
+October to December. Thresholds are each river's 3rd-largest normalised OND
+seasonal peak on GloFAS v4 reanalysis 2003-2025 (a 1-in-8 event per river),
+chosen so the overall any-river frequency is 1-in-3.0 (8 activations in 23
+years: 2008, 2011, 2013, 2017, 2019, 2023, 2024, 2025).
 
 Reads from blob:
 - processed/glofas/glofas_forecast_latest.parquet   (fetch_glofas_forecast_live.py)
-- processed/glofas/glofas_return_periods.parquet    (notebook 01)
+- processed/glofas/ond_trigger_levels.csv           (notebook 04: station thresholds)
 - processed/glofas/station_zone_mapping_all.csv
-- processed/dashboard/river_cells.json (map river layer, precomputed)
+- processed/dashboard/river_cells.json
 
-The trigger (notebook 04, working group 29 Sep 2026): reached when any of the
-three river systems has a station at or over its OND 1-in-5 level (Gumbel on
-v4 reanalysis OND maxima 2003-2025) on a forecast day in October to December.
-The page checks the GloFAS ensemble median at leads 1 to 10 days; days
-outside October to December do not count. Overall activation frequency on
-the 2003-2025 record: 9 activations, 1-in-2.7 years.
+The page checks the GloFAS ensemble median at leads 1 to 10 days; days outside
+October to December do not count. The version pin below guards the v4 scale.
 
-Thresholds are PINNED to the GloFAS version the operational forecast runs
-(THRESHOLD_VERSION_PIN, currently v4) and a climatology-coherence check
-warns when that stops being true.
-
-Writes analysis/dashboard/eth_flood_dashboard.html (artifact copy) and
-docs/index.html (GitHub Pages copy) from template.html (placeholder
-__DASHBOARD_DATA__), and uploads the JSON payload + run log to blob.
+Writes analysis/dashboard/eth_flood_dashboard.html and docs/index.html from
+template.html (placeholder __DASHBOARD_DATA__), and uploads the JSON payload
+and run log to blob.
 """
 
 import json
@@ -38,47 +38,59 @@ import pandas as pd
 STAGE = "dev"
 PROJECT_PREFIX = "ds-aa-eth-flooding"
 OND = [10, 11, 12]
-RP = 5
 HERE = Path(__file__).resolve().parent
 OUT_DIR = HERE / "dashboard"
 OUT_DIR.mkdir(exist_ok=True)
 RUN_LOG_BLOB = f"{PROJECT_PREFIX}/processed/dashboard/run_log.json"
 
+RIVERS = ["Wabi Shebelle", "Genale Dawa", "Omo", "Bilate", "Gamo lakes", "Baro", "Akobo"]
+# EDRMC riverine zones (ADM2_EN) -> the river systems that put them at risk
+ZONE_RIVERS = {
+    "Shabelle": ["Wabi Shebelle"],
+    "Afder": ["Genale Dawa"], "Liban": ["Genale Dawa"], "Daawa": ["Genale Dawa"],
+    "South Omo": ["Omo"],
+    "Sidama": ["Bilate"], "West Guji": ["Bilate"],
+    "Gamo": ["Gamo lakes"],
+    "Itang Special woreda": ["Baro"], "Nuwer": ["Baro"],
+    "Agnewak": ["Baro", "Akobo"],
+}
+
 # The operational forecast and the GloFAS map viewer thresholds are v4-scale
-# (verified 2026-08-31: viewer shows RP1.5 ~ 200 m3/s at the Webe Gestro point,
-# matching v4 annual RP2 = 236, not v5's 59). Pin v4 so forecast and thresholds
-# always share a scale; the climatology matcher below runs as a tripwire and
-# the build warns if the operational system stops matching the pin.
+# (verified 2026-08-31: viewer RP1.5 ~ 200 m3/s at the Webe Gestro point =
+# v4 annual RP2 236, not v5's 59). The climatology matcher below runs as a
+# tripwire and the build warns if the operational system stops matching.
 THRESHOLD_VERSION_PIN = "v4_0"
 
 
-RIVER_OF_ZONE = {"ET0506": "Shabelle", "ET0508": "Gestro", "ET0509": "Genale"}
-
-
-def build_map_payload() -> list:
-    """Somali-region admin2 outlines, simplified for inline SVG rendering."""
+def build_map_payload() -> dict:
+    """Region outlines for context plus the riverine adm2 zones."""
     shp = stratus.load_blob_data("eth_shp.zip", stage=STAGE, container_name="polygon")
     tmp = tempfile.mkdtemp()
     zpath = os.path.join(tmp, "eth_shp.zip")
     with open(zpath, "wb") as f:
         f.write(shp)
     zipfile.ZipFile(zpath).extractall(tmp)
+
+    def rings_of(geom):
+        geoms = geom.geoms if geom.geom_type == "MultiPolygon" else [geom]
+        return [[[round(x, 3), round(y, 3)] for x, y in g.exterior.coords] for g in geoms]
+
+    adm1 = gpd.read_file(os.path.join(tmp, "eth_adm1.shp"))
+    adm1["geometry"] = adm1.geometry.simplify(0.03)
+    regions = [{"name": r["ADM1_EN"], "rings": rings_of(r.geometry)} for _, r in adm1.iterrows()]
+
     adm2 = gpd.read_file(os.path.join(tmp, "eth_adm2.shp"))
-    som = adm2[adm2["ADM2_PCODE"].str.startswith("ET05")].copy()
-    som["geometry"] = som.geometry.simplify(0.02)
-    zones = []
-    for _, z in som.iterrows():
-        geoms = z.geometry.geoms if z.geometry.geom_type == "MultiPolygon" else [z.geometry]
-        rings = [
-            [[round(x, 3), round(y, 3)] for x, y in g.exterior.coords]
-            for g in geoms
-        ]
-        zones.append({"pcode": z["ADM2_PCODE"], "name": z["ADM2_EN"], "rings": rings})
-    return zones
+    riverine = adm2[adm2["ADM2_EN"].isin(ZONE_RIVERS)].copy()
+    riverine["geometry"] = riverine.geometry.simplify(0.02)
+    zones = [
+        {"name": z["ADM2_EN"], "pcode": z["ADM2_PCODE"],
+         "rivers": ZONE_RIVERS[z["ADM2_EN"]], "rings": rings_of(z.geometry)}
+        for _, z in riverine.iterrows()
+    ]
+    return {"regions": regions, "zones": zones}
 
 
 def load_river_cells() -> list:
-    """GloFAS channel cells for the map's river layer (precomputed on blob)."""
     try:
         data = stratus.load_blob_data(
             f"{PROJECT_PREFIX}/processed/dashboard/river_cells.json",
@@ -89,18 +101,12 @@ def load_river_cells() -> list:
         return []
 
 
-def update_run_log(issue: pd.Timestamp, stations_payload: list) -> list:
-    """Append today's run to the persistent update log (one entry per date,
-    newest first, capped at 30). A station is logged when its ensemble-median
-    forecast reaches the 1-in-3 year level on any day."""
+def update_run_log(issue: pd.Timestamp, rivers_status: dict) -> None:
     try:
         log = json.loads(stratus.load_blob_data(RUN_LOG_BLOB, stage=STAGE, container_name="projects"))
     except Exception:
         log = []
-    reached = [
-        {"station": st["label"], "level": f"OND 1-in-{RP}"}
-        for st in stations_payload if st["reached"]
-    ]
+    reached = [{"station": r, "level": "top-3 OND level"} for r, v in rivers_status.items() if v["reached"]]
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     entry = {
         "date": today,
@@ -110,16 +116,13 @@ def update_run_log(issue: pd.Timestamp, stations_payload: list) -> list:
     }
     log = [e for e in log if e.get("date") != today]
     log.insert(0, entry)
-    log = log[:30]
     stratus.upload_blob_data(
-        json.dumps(log).encode(), RUN_LOG_BLOB,
+        json.dumps(log[:60]).encode(), RUN_LOG_BLOB,
         stage=STAGE, container_name="projects", content_type="application/json",
     )
-    return log
 
 
 def load_reanalysis_by_version() -> pd.DataFrame:
-    """Daily reanalysis per version | station | date (for climatology matching)."""
     frames = []
     for blob in ["glofas_discharge.parquet", "glofas_discharge_reporting_points.parquet"]:
         df = stratus.load_parquet_from_blob(f"{PROJECT_PREFIX}/processed/glofas/{blob}", stage=STAGE)
@@ -140,13 +143,9 @@ def load_reanalysis_by_version() -> pd.DataFrame:
 
 
 def pick_threshold_version(fc: pd.DataFrame, rean: pd.DataFrame, rivers: pd.Series) -> tuple:
-    """Match the operational forecast to the GloFAS version whose climatology it
-    follows. The test is COHERENCE, not closeness to 1: a real weather anomaly
-    shifts a whole basin by a similar factor, while a version mismatch distorts
-    stations by station-specific factors. Ratios are averaged per RIVER first
-    (the five Shabelle points are one near-identical series in v4 and must not
-    vote five times), then the version with the smallest spread of log-ratios
-    across rivers wins."""
+    """Coherence test: a real weather anomaly shifts a whole basin by a similar
+    factor, a version mismatch distorts stations by station-specific factors.
+    Log-ratios are averaged per river before scoring the spread."""
     doys = set(pd.to_datetime(fc["valid_time"]).dt.dayofyear)
     window = rean[rean["valid_time"].dt.dayofyear.isin(doys)]
     fc_med = fc.groupby("station_id")["discharge"].median()
@@ -155,7 +154,7 @@ def pick_threshold_version(fc: pd.DataFrame, rean: pd.DataFrame, rivers: pd.Seri
         rean_med = g.groupby("station_id")["discharge"].median()
         ratio = (fc_med / rean_med).dropna()
         ratio = ratio[np.isfinite(ratio) & (ratio > 0)]
-        logr = np.log(ratio).groupby(rivers).mean()  # one vote per river
+        logr = np.log(ratio).groupby(rivers).mean()
         scores[version] = float((logr - logr.median()).abs().median())
     best = min(scores, key=scores.get)
     return best, scores
@@ -165,9 +164,9 @@ def main() -> None:
     fc = stratus.load_parquet_from_blob(
         f"{PROJECT_PREFIX}/processed/glofas/glofas_forecast_latest.parquet", stage=STAGE
     )
-    thresholds = stratus.load_parquet_from_blob(
-        f"{PROJECT_PREFIX}/processed/glofas/glofas_return_periods.parquet", stage=STAGE
-    )
+    levels = stratus.load_csv_from_blob(
+        f"{PROJECT_PREFIX}/processed/glofas/ond_trigger_levels.csv", stage=STAGE
+    ).set_index("station_id")
     mapping = stratus.load_csv_from_blob(
         f"{PROJECT_PREFIX}/processed/glofas/station_zone_mapping_all.csv", stage=STAGE
     )
@@ -177,8 +176,8 @@ def main() -> None:
     issue = fc["issued_time"].max()
     fc = fc[fc["issued_time"] == issue]
 
-    rivers = mapping.set_index("station_id")["river"]
-    matched, match_scores = pick_threshold_version(fc, load_reanalysis_by_version(), rivers)
+    rivers_series = mapping.set_index("station_id")["river"]
+    matched, match_scores = pick_threshold_version(fc, load_reanalysis_by_version(), rivers_series)
     version = THRESHOLD_VERSION_PIN or matched
     print(f"thresholds: {version} (pinned) | climatology match: {matched} "
           f"(spread per version: { {k: round(v, 2) for k, v in match_scores.items()} })")
@@ -186,24 +185,19 @@ def main() -> None:
         print(f"WARNING: forecast climatology now matches {matched}, not the pinned {version}. "
               "The operational GloFAS system may have been upgraded - re-check the map viewer "
               "thresholds and update THRESHOLD_VERSION_PIN.")
-    thr = thresholds[thresholds["version"] == version].set_index(
-        ["station_id", "season", "rp"]
-    )["threshold_gumbel"]
 
     stations_payload = []
     for _, meta in mapping.iterrows():
         sid = meta["station_id"]
+        if sid not in levels.index:
+            continue
         sub = fc[fc["station_id"] == sid]
         if len(sub) == 0:
             continue
         ens = sub[sub["product_type"] != "control_forecast"]
+        level = float(levels.loc[sid, "threshold_m3s"])
+        river = levels.loc[sid, "river"]
 
-        key = (sid, "deyr", RP)
-        if key not in thr.index:
-            # no fitted level yet (newly added station): keep it off the page
-            # until the basin calibration in notebook 04 defines its level
-            continue
-        level = float(thr.loc[key])
         leads = []
         for lead, g in ens.groupby("leadtime_days"):
             valid = g["valid_time"].iloc[0]
@@ -213,17 +207,16 @@ def main() -> None:
                 "valid": valid.strftime("%Y-%m-%d"),
                 "in_ond": valid.month in OND,
                 "median": round(median, 1),
-                "level": round(level, 1) if level is not None else None,
-                "ratio": round(median / level, 3) if level else None,
+                "level": round(level, 1),
+                "ratio": round(median / level, 3),
             })
         leads.sort(key=lambda x: x["lead"])
-
-        counting = [l for l in leads if l["in_ond"] and l["ratio"] is not None]
+        counting = [l for l in leads if l["in_ond"]]
         peak = max(counting, key=lambda l: l["ratio"]) if counting else None
         stations_payload.append({
             "id": sid,
             "label": meta["label"],
-            "river": meta["river"],
+            "river": river,
             "zone": meta["zone"],
             "lat": round(float(meta["station_lat"]), 3),
             "lon": round(float(meta["station_lon"]), 3),
@@ -236,12 +229,13 @@ def main() -> None:
         })
 
     rivers_status = {}
-    for river in ["Shabelle", "Genale", "Gestro"]:
-        sts = [s_ for s_ in stations_payload if s_["river"] == river]
+    for river in RIVERS:
+        sts = [s for s in stations_payload if s["river"] == river]
         rivers_status[river] = {
-            "reached": any(s_["reached"] for s_ in sts),
-            "in_window": any(l["in_ond"] for s_ in sts for l in s_["leads"]),
-            "stations_over": [s_["id"] for s_ in sts if s_["reached"]],
+            "reached": any(s["reached"] for s in sts),
+            "in_window": any(l["in_ond"] for s in sts for l in s["leads"]),
+            "n_stations": len(sts),
+            "stations_over": [s["id"] for s in sts if s["reached"]],
         }
     trigger_reached = any(r["reached"] for r in rivers_status.values())
 
@@ -249,15 +243,13 @@ def main() -> None:
         "issued": issue.strftime("%Y-%m-%d"),
         "generated": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
         "threshold_version": version,
-        "rp": RP,
         "trigger_reached": trigger_reached,
         "rivers_status": rivers_status,
-        "zone_river": RIVER_OF_ZONE,
         "map": build_map_payload(),
         "rivers": load_river_cells(),
         "stations": stations_payload,
     }
-    update_run_log(issue, stations_payload)  # kept on blob as the run record
+    update_run_log(issue, rivers_status)
 
     data_json = json.dumps(payload, allow_nan=False)
     stratus.upload_blob_data(
@@ -265,16 +257,14 @@ def main() -> None:
         f"{PROJECT_PREFIX}/processed/dashboard/dashboard_data.json",
         stage=STAGE, container_name="projects", content_type="application/json",
     )
-
     template = (OUT_DIR / "template.html").read_text(encoding="utf-8")
     page = template.replace("__DASHBOARD_DATA__", data_json)
     (OUT_DIR / "eth_flood_dashboard.html").write_text(page, encoding="utf-8")
     docs = HERE.parent / "docs"
-    docs.mkdir(exist_ok=True)
     (docs / "index.html").write_text(page, encoding="utf-8")
-    n_reached = sum(s["reached"] for s in stations_payload)
-    print(f"dashboard built: issue {payload['issued']}, thresholds {version}, "
-          f"{len(stations_payload)} stations, {n_reached} at 1-in-{RP} -> {docs / 'index.html'}")
+    n_reached = [r for r, v in rivers_status.items() if v["reached"]]
+    print(f"dashboard built: issue {payload['issued']}, {len(stations_payload)} stations, "
+          f"rivers reached: {n_reached or 'none'} -> {docs / 'index.html'}")
 
 
 if __name__ == "__main__":
