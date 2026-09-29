@@ -199,7 +199,11 @@ def main() -> None:
         ens = sub[sub["product_type"] != "control_forecast"]
 
         key = (sid, "deyr", RP)
-        level = float(thr.loc[key]) if key in thr.index else None
+        if key not in thr.index:
+            # no fitted level yet (newly added station): keep it off the page
+            # until the basin calibration in notebook 04 defines its level
+            continue
+        level = float(thr.loc[key])
         leads = []
         for lead, g in ens.groupby("leadtime_days"):
             valid = g["valid_time"].iloc[0]
