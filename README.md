@@ -1,9 +1,13 @@
 # Ethiopia Flood Anticipatory Action
 
-Trigger-design work for riverine flooding in Ethiopia's Somali region
-(Shabelle + Genale/Dawa basins), following the approach used for Somalia
-(`ds-aa-som-floods`): GloFAS return-period thresholds validated against
-FloodScan-derived flood events, plus a live forecast dashboard.
+Trigger-design and monitoring work for the riverine flood areas the EDRMC
+Bega alert lists across Ethiopia: seven river systems (Wabi Shebelle, Genale
+Dawa, lower Omo, Bilate, the Abaya-Chamo lakes, Baro, Akobo) monitored at
+fourteen GloFAS points for the OND season. The adopted trigger (notebook 04):
+any river at or over its OND trigger level, its 3rd-largest season on
+2003-2025 reanalysis; overall activation frequency 1-in-3. Live page:
+https://ocha-dap.github.io/ds-aa-eth-flooding/. The Somali-region threshold
+and validation work that led here is in notebooks 01 to 03.
 
 ## Data
 

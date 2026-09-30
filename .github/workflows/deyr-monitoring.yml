@@ -1,4 +1,4 @@
-name: deyr-monitoring
+name: ond-monitoring
 
 # Daily refresh of the Deyr flood-monitoring dashboard: fetch the latest
 # operational GloFAS forecast from EWDS, extract the station cells to blob,
