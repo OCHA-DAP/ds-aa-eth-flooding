@@ -103,24 +103,23 @@ footer p { margin:5px 0; line-height:1.6; }
        channel cell verified against the model's own discharge field and named river geometry.</p>
 
     <h2>River levels, station by station</h2>
-    <p>A river's season statistic is the maximum over its stations of the station's OND daily
-       peak divided by its median OND seasonal maximum, which lets stations of very different
-       size carry equal weight inside one system. The river's threshold ratio starts at its
-       3rd-largest season statistic and is lowered to also catch its lower-ranked seasons that
-       fall in years when a level was already reached, stopping at the first season outside
-       them so no new year can enter (Genale Dawa and Baro gain 2019, Akobo gains 2008). Each
-       station's level in m³/s is that ratio times the station's median OND seasonal maximum.
-       Record: GloFAS v4 reanalysis at channel-snapped cells, October to December, 2003 to
-       2025. v4 is pinned because the operational forecast runs at v4 scale.</p>
-    <div class="tablewrap"><table class="data"><thead><tr><th>River system</th><th>Station</th><th>Zone</th><th class="num">Median OND max (m³/s)</th><th class="num">Level (m³/s)</th><th class="num">Level / median</th></tr></thead><tbody><tr class="group"><td class="river" rowspan="5">Wabi Shebelle</td><td>Shabelle at Gode (G1904)</td><td>Shebelle</td><td class="num">989</td><td class="num"><strong>1,213</strong></td><td class="num">1.23</td></tr><tr><td>Shabelle upstream (43.03E 6.08N)</td><td>Shebelle</td><td class="num">986</td><td class="num"><strong>1,210</strong></td><td class="num">1.23</td></tr><tr><td>Shabelle mid (44.13E 5.63N)</td><td>Shebelle</td><td class="num">989</td><td class="num"><strong>1,213</strong></td><td class="num">1.23</td></tr><tr><td>Shabelle lower (44.53E 5.43N)</td><td>Shebelle</td><td class="num">989</td><td class="num"><strong>1,213</strong></td><td class="num">1.23</td></tr><tr><td>Shabelle at border (44.83E 5.13N)</td><td>Shebelle</td><td class="num">988</td><td class="num"><strong>1,213</strong></td><td class="num">1.23</td></tr><tr class="group"><td class="river" rowspan="4">Genale Dawa</td><td>Genale upper (40.45E 5.35N)</td><td>Liban</td><td class="num">527</td><td class="num"><strong>790</strong></td><td class="num">1.50</td></tr><tr><td>Genale/Juba at Dolow</td><td>Liban</td><td class="num">1,558</td><td class="num"><strong>2,337</strong></td><td class="num">1.50</td></tr><tr><td>Dawa (40.73E 4.43N)</td><td>Daawa</td><td class="num">280</td><td class="num"><strong>419</strong></td><td class="num">1.50</td></tr><tr><td>Webe Gestro (42.08E 4.73N)</td><td>Afder</td><td class="num">193</td><td class="num"><strong>290</strong></td><td class="num">1.50</td></tr><tr class="group"><td class="river" rowspan="1">Omo</td><td>Omo lower (South Omo)</td><td>South Omo</td><td class="num">3,806</td><td class="num"><strong>4,830</strong></td><td class="num">1.27</td></tr><tr class="group"><td class="river" rowspan="1">Bilate</td><td>Bilate (Loka Abaya)</td><td>Sidama</td><td class="num">142</td><td class="num"><strong>217</strong></td><td class="num">1.53</td></tr><tr class="group"><td class="river" rowspan="1">Gamo lakes</td><td>Abaya-Chamo lakes (Kulfo area)</td><td>Gamo</td><td class="num">462</td><td class="num"><strong>706</strong></td><td class="num">1.53</td></tr><tr class="group"><td class="river" rowspan="1">Baro</td><td>Baro at Itang</td><td>Itang Special woreda</td><td class="num">1,601</td><td class="num"><strong>1,989</strong></td><td class="num">1.24</td></tr><tr class="group"><td class="river" rowspan="1">Akobo</td><td>Akobo (Agnewak)</td><td>Agnewak</td><td class="num">285</td><td class="num"><strong>368</strong></td><td class="num">1.29</td></tr></tbody></table></div>
-    <p class="tnote">Level / median: how far above a typical OND peak the level sits.
-       All Wabi Shebelle stations share one ratio (1.23) because the river's statistic is set
-       by its floodiest station each season; the same holds within each river system.</p>
+    <p>Each station's typical season peak is the median of its 23 October to December peaks
+       (the highest daily flow of each season, 2003 to 2025). Each season, every station's peak
+       is compared with its typical peak, and the river takes its highest station. The river's
+       factor starts at its 3rd-biggest season and is lowered to also catch lower-ranked seasons
+       in years when a level was already reached, stopping at the first season outside them so
+       no new year can enter (Genale Dawa and Baro gain 2019, Akobo gains 2008). Each station's
+       level is its typical season peak times the river's factor. Record: GloFAS version 4
+       reanalysis, October to December, 2003 to 2025; version 4 is used because the live
+       forecast runs on it.</p>
+    <div class="tablewrap"><table class="data"><thead><tr><th>River system</th><th>Station</th><th>Zone</th><th class="num">Typical season peak (m³/s)</th><th class="num">Level (m³/s)</th><th class="num">Level vs typical peak</th></tr></thead><tbody><tr class="group"><td class="river" rowspan="5">Wabi Shebelle</td><td>Shabelle at Gode (G1904)</td><td>Shebelle</td><td class="num">989</td><td class="num"><strong>1,213</strong></td><td class="num">1.23</td></tr><tr><td>Shabelle upstream (43.03E 6.08N)</td><td>Shebelle</td><td class="num">986</td><td class="num"><strong>1,210</strong></td><td class="num">1.23</td></tr><tr><td>Shabelle mid (44.13E 5.63N)</td><td>Shebelle</td><td class="num">989</td><td class="num"><strong>1,213</strong></td><td class="num">1.23</td></tr><tr><td>Shabelle lower (44.53E 5.43N)</td><td>Shebelle</td><td class="num">989</td><td class="num"><strong>1,213</strong></td><td class="num">1.23</td></tr><tr><td>Shabelle at border (44.83E 5.13N)</td><td>Shebelle</td><td class="num">988</td><td class="num"><strong>1,213</strong></td><td class="num">1.23</td></tr><tr class="group"><td class="river" rowspan="4">Genale Dawa</td><td>Genale upper (40.45E 5.35N)</td><td>Liban</td><td class="num">527</td><td class="num"><strong>790</strong></td><td class="num">1.50</td></tr><tr><td>Genale/Juba at Dolow</td><td>Liban</td><td class="num">1,558</td><td class="num"><strong>2,337</strong></td><td class="num">1.50</td></tr><tr><td>Dawa (40.73E 4.43N)</td><td>Daawa</td><td class="num">280</td><td class="num"><strong>419</strong></td><td class="num">1.50</td></tr><tr><td>Webe Gestro (42.08E 4.73N)</td><td>Afder</td><td class="num">193</td><td class="num"><strong>290</strong></td><td class="num">1.50</td></tr><tr class="group"><td class="river" rowspan="1">Omo</td><td>Omo lower (South Omo)</td><td>South Omo</td><td class="num">3,806</td><td class="num"><strong>4,830</strong></td><td class="num">1.27</td></tr><tr class="group"><td class="river" rowspan="1">Bilate</td><td>Bilate (Loka Abaya)</td><td>Sidama</td><td class="num">142</td><td class="num"><strong>217</strong></td><td class="num">1.53</td></tr><tr class="group"><td class="river" rowspan="1">Gamo lakes</td><td>Abaya-Chamo lakes (Kulfo area)</td><td>Gamo</td><td class="num">462</td><td class="num"><strong>706</strong></td><td class="num">1.53</td></tr><tr class="group"><td class="river" rowspan="1">Baro</td><td>Baro at Itang</td><td>Itang Special woreda</td><td class="num">1,601</td><td class="num"><strong>1,989</strong></td><td class="num">1.24</td></tr><tr class="group"><td class="river" rowspan="1">Akobo</td><td>Akobo (Agnewak)</td><td>Agnewak</td><td class="num">285</td><td class="num"><strong>368</strong></td><td class="num">1.29</td></tr></tbody></table></div>
+    <p class="tnote">Level vs typical peak: the river's factor. 1.23 means the level is 23%
+       above a typical season's peak. Every station on a river shares its river's factor.</p>
 
     <h2>October to December seasons, 2003 to 2025</h2>
     <figure>
-      <img src="figs/season_statistic.png" alt="Season statistic per river with the reached seasons boxed">
-      <figcaption>Each river's season statistic (normalised seasonal peak), 2003 to 2025.
+      <img src="figs/season_statistic.png" alt="Season peak compared with the typical peak, per river, with the reached seasons boxed">
+      <figcaption>Each river's season peak compared with its typical season peak, 2003 to 2025.
         Red boxes: the seasons at or over the river's level.</figcaption>
     </figure>
     <figure>
@@ -174,7 +173,7 @@ footer p { margin:5px 0; line-height:1.6; }
   <footer>
     <p>Source: <a href="https://github.com/OCHA-DAP/ds-aa-eth-flooding/blob/main/analysis/04_ond_trigger_design.ipynb">analysis/04_ond_trigger_design.ipynb</a>
        and <a href="https://github.com/OCHA-DAP/ds-aa-eth-flooding/blob/main/analysis/05_v5_reanalysis_test.ipynb">05_v5_reanalysis_test.ipynb</a>
-       in OCHA-DAP/ds-aa-eth-flooding · page generated 30 Sep 2026 12:47 UTC from the executed notebooks.</p>
+       in OCHA-DAP/ds-aa-eth-flooding · page generated 30 Sep 2026 12:54 UTC from the executed notebooks.</p>
     <p>Live monitoring: <a href="../">Ethiopia Riverine Flood Watch</a>.</p>
   </footer>
 </div>
