@@ -184,31 +184,6 @@ v5_table = (
     '<th>Years</th></tr></thead><tbody>' + "".join(v5_rows) + "</tbody></table>"
 )
 
-# ------------------------------------------------------------------- lead skill
-lead_text = stream_of("POD by lead")
-pod_block, far_block = lead_text.split("\nFAR by lead\n")
-
-
-def lead_rows(block: str) -> list[str]:
-    out = []
-    for line in block.splitlines():
-        m = re.match(r"^(\S+)\s+((?:[\d.]+\s*){7})$", line.strip())
-        if m and m.group(1) in STATIONS:
-            vals = m.group(2).split()
-            cells = "".join(f'<td class="num">{float(v):.2f}</td>' for v in vals)
-            out.append(f"<tr><td>{STATIONS[m.group(1)][0]}</td>{cells}</tr>")
-    return out
-
-
-lead_head = "".join(f'<th class="num">{d}</th>' for d in range(1, 8))
-lead_table = (
-    f'<table class="data"><thead><tr><th>Station</th>{lead_head}</tr></thead><tbody>'
-    '<tr class="sect"><td colspan="8">POD : share of FloodScan flood events the forecast caught</td></tr>'
-    + "".join(lead_rows(pod_block)) +
-    '<tr class="sect"><td colspan="8">FAR : share of forecast exceedances with no flood event</td></tr>'
-    + "".join(lead_rows(far_block)) + "</tbody></table>"
-)
-
 fig_stat = png_of("Season peak compared with a typical season", "season_statistic.png")
 fig_tiles = png_of("Years each river reached its level", "activations.png")
 
@@ -366,18 +341,9 @@ footer p {{ margin:5px 0; line-height:1.6; }}
 
     <h2>Forecast range: 10 days</h2>
     <p>Monitoring reads the operational GloFAS ensemble median at leads 1 to 10 days. GloFAS
-       publishes to 30 days; 10 days is a monitoring choice, not an optimised value. It gives
-       the page sight of the OND window from about 21 September and roughly a week of warning
-       inside the season. The archive evidence (v4 reforecast 2003 to 2023, Somali stations,
-       scored against FloodScan events) shows forecast skill flat across leads 1 to 7: these
-       rivers carry initial-condition memory rather than rainfall-forecast skill, so a longer
-       lead does not cost accuracy on the record we can test.</p>
-    <div class="tablewrap">{lead_table}</div>
-    <p class="tnote">v4 reforecast, Deyr season, ensemble median over the seasonal RP3 level,
-       scored against FloodScan flood events. Columns: forecast lead in days.</p>
-    <p>Two gaps, stated: leads 8 to 10 are not validated (the reforecast archive was fetched at
-       leads 1 to 7 only), and no lead is validated for the Omo, Bilate, Abaya-Chamo lakes,
-       Baro or Akobo (no reforecast was fetched for those basins).</p>
+       publishes to 30 days; 10 days is a monitoring choice. It gives the page sight of the
+       October to December window from about 21 September and roughly a week of forecast
+       inside the season.</p>
 
     <h2>Limitations</h2>
     <ul>
@@ -385,8 +351,9 @@ footer p {{ margin:5px 0; line-height:1.6; }}
         station is the Abaya-Chamo lake system cell and is labelled as such.</li>
       <li>The Dawa is monitored by a dedicated cell in Daawa zone; the Dolow cell sits below the
         Genale-Dawa confluence.</li>
-      <li>All values are model quantities, not gauge readings. FloodScan validation for the
-        non-Somali zones is an open gap.</li>
+      <li>All values are model quantities, not gauge readings.</li>
+      <li>Forecast accuracy at each lead time is not shown here.</li>
+      <li>FloodScan covers the Somali-region zones only.</li>
     </ul>
 
     <h2 id="contact">Contact</h2>

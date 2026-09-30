@@ -150,18 +150,9 @@ footer p { margin:5px 0; line-height:1.6; }
 
     <h2>Forecast range: 10 days</h2>
     <p>Monitoring reads the operational GloFAS ensemble median at leads 1 to 10 days. GloFAS
-       publishes to 30 days; 10 days is a monitoring choice, not an optimised value. It gives
-       the page sight of the OND window from about 21 September and roughly a week of warning
-       inside the season. The archive evidence (v4 reforecast 2003 to 2023, Somali stations,
-       scored against FloodScan events) shows forecast skill flat across leads 1 to 7: these
-       rivers carry initial-condition memory rather than rainfall-forecast skill, so a longer
-       lead does not cost accuracy on the record we can test.</p>
-    <div class="tablewrap"><table class="data"><thead><tr><th>Station</th><th class="num">1</th><th class="num">2</th><th class="num">3</th><th class="num">4</th><th class="num">5</th><th class="num">6</th><th class="num">7</th></tr></thead><tbody><tr class="sect"><td colspan="8">POD : share of FloodScan flood events the forecast caught</td></tr><tr><td>Shabelle at Gode (G1904)</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td><td class="num">0.00</td></tr><tr><td>Genale upper (40.45E 5.35N)</td><td class="num">0.33</td><td class="num">0.33</td><td class="num">0.33</td><td class="num">0.33</td><td class="num">0.33</td><td class="num">0.33</td><td class="num">0.33</td></tr><tr><td>Genale/Juba at Dolow</td><td class="num">0.33</td><td class="num">0.33</td><td class="num">0.33</td><td class="num">0.33</td><td class="num">0.33</td><td class="num">0.33</td><td class="num">0.33</td></tr><tr class="sect"><td colspan="8">FAR : share of forecast exceedances with no flood event</td></tr><tr><td>Shabelle at Gode (G1904)</td><td class="num">1.00</td><td class="num">1.00</td><td class="num">1.00</td><td class="num">1.00</td><td class="num">1.00</td><td class="num">1.00</td><td class="num">1.00</td></tr><tr><td>Genale upper (40.45E 5.35N)</td><td class="num">0.50</td><td class="num">0.50</td><td class="num">0.50</td><td class="num">0.50</td><td class="num">0.50</td><td class="num">0.50</td><td class="num">0.50</td></tr><tr><td>Genale/Juba at Dolow</td><td class="num">0.60</td><td class="num">0.60</td><td class="num">0.67</td><td class="num">0.33</td><td class="num">0.33</td><td class="num">0.00</td><td class="num">0.00</td></tr></tbody></table></div>
-    <p class="tnote">v4 reforecast, Deyr season, ensemble median over the seasonal RP3 level,
-       scored against FloodScan flood events. Columns: forecast lead in days.</p>
-    <p>Two gaps, stated: leads 8 to 10 are not validated (the reforecast archive was fetched at
-       leads 1 to 7 only), and no lead is validated for the Omo, Bilate, Abaya-Chamo lakes,
-       Baro or Akobo (no reforecast was fetched for those basins).</p>
+       publishes to 30 days; 10 days is a monitoring choice. It gives the page sight of the
+       October to December window from about 21 September and roughly a week of forecast
+       inside the season.</p>
 
     <h2>Limitations</h2>
     <ul>
@@ -169,8 +160,9 @@ footer p { margin:5px 0; line-height:1.6; }
         station is the Abaya-Chamo lake system cell and is labelled as such.</li>
       <li>The Dawa is monitored by a dedicated cell in Daawa zone; the Dolow cell sits below the
         Genale-Dawa confluence.</li>
-      <li>All values are model quantities, not gauge readings. FloodScan validation for the
-        non-Somali zones is an open gap.</li>
+      <li>All values are model quantities, not gauge readings.</li>
+      <li>Forecast accuracy at each lead time is not shown here.</li>
+      <li>FloodScan covers the Somali-region zones only.</li>
     </ul>
 
     <h2 id="contact">Contact</h2>
@@ -182,7 +174,7 @@ footer p { margin:5px 0; line-height:1.6; }
   <footer>
     <p>Source: <a href="https://github.com/OCHA-DAP/ds-aa-eth-flooding/blob/main/analysis/04_ond_trigger_design.ipynb">analysis/04_ond_trigger_design.ipynb</a>
        and <a href="https://github.com/OCHA-DAP/ds-aa-eth-flooding/blob/main/analysis/05_v5_reanalysis_test.ipynb">05_v5_reanalysis_test.ipynb</a>
-       in OCHA-DAP/ds-aa-eth-flooding · page generated 30 Sep 2026 12:42 UTC from the executed notebooks.</p>
+       in OCHA-DAP/ds-aa-eth-flooding · page generated 30 Sep 2026 12:47 UTC from the executed notebooks.</p>
     <p>Live monitoring: <a href="../">Ethiopia Riverine Flood Watch</a>.</p>
   </footer>
 </div>
