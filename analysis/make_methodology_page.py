@@ -336,7 +336,8 @@ footer p {{ margin:5px 0; line-height:1.6; }}
        9 years instead of 8: six years are shared, version 5 adds 2014, 2020 and 2021, and
        drops 2011 and 2013.</p>
     <div class="tablewrap">{v5_table}</div>
-    <p class="tnote">Version 5 levels are not used in monitoring.</p>
+    <p class="tnote">Version 5 levels are not used in monitoring yet: GloFAS version 5 forecasts
+       are coming soon.</p>
 
     <h2>Forecast range: 10 days</h2>
     <p>Monitoring reads the operational GloFAS ensemble median at leads 1 to 10 days. GloFAS
