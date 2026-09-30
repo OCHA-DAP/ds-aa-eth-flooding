@@ -175,13 +175,12 @@ for i, r in v5_cmp.iterrows():
         f'<td class="num">{r["n_activations"]} of 23</td>'
         f'<td class="num">1-in-{r["overall_rp"]:.2f}</td>'
         f'<td class="num">{r["emdat"]}</td><td class="num">{r["cerf"]}</td>'
-        f'<td class="num">{r["floodscan_rp3_somali"]}</td>'
         f'<td class="wrap dim">{r["years"]}</td></tr>'
     )
 v5_table = (
     '<table class="data"><thead><tr><th>Record</th><th class="num">Years reached</th>'
     '<th class="num">Overall frequency</th><th class="num">EM-DAT years caught</th>'
-    '<th class="num">CERF years caught</th><th class="num">FloodScan RP3 years caught</th>'
+    '<th class="num">CERF years caught</th>'
     '<th>Years</th></tr></thead><tbody>' + "".join(v5_rows) + "</tbody></table>"
 )
 
@@ -358,20 +357,12 @@ footer p {{ margin:5px 0; line-height:1.6; }}
        Somali-region zones only; a dot marks a season with a flood event at that severity.</p>
 
     <h2>Comparison with GloFAS version 5</h2>
-    <p>The live watch runs on GloFAS v4 levels because the operational forecast it reads runs
-       at v4 scale. As a reference, the same construction was run on v5 reanalysis across all
-       seven rivers (notebook 05; each station cell was checked against the v5 mean discharge
-       field and stays on-channel). The two records agree on six reached years (2008, 2017,
-       2019, 2023, 2024, 2025); v5 adds 2014, 2020 and 2021 and drops 2011 and 2013. Of the
-       years only v5 adds, 2020 is a CERF flood year; 2014 and 2021 appear in none of the
-       impact records. 2006, the largest miss on v4, is not caught on v5 either: the Wabi
-       Shebelle's 2006 season ranks 4th there, at 97 percent of its level.</p>
+    <p>The watch uses GloFAS version 4 levels, the version the live forecast runs. For
+       reference, the same method on version 5 reanalysis (notebook 05) reaches a level in
+       9 years instead of 8: six years are shared, version 5 adds 2014, 2020 and 2021, and
+       drops 2011 and 2013.</p>
     <div class="tablewrap">{v5_table}</div>
-    <p class="tnote">Same construction on each version's own record: per-river top 3 seasons,
-       lowered within that record's own reached years. v5 levels are not used anywhere
-       in monitoring; if GloFAS upgrades the operational system to v5, the levels would be
-       re-fitted from notebook 05 (the number of top seasons per river re-chosen: on v5 the lowering
-       step chains deeper, taking the Bilate to 9 kept seasons).</p>
+    <p class="tnote">Version 5 levels are not used in monitoring.</p>
 
     <h2>Forecast range: 10 days</h2>
     <p>Monitoring reads the operational GloFAS ensemble median at leads 1 to 10 days. GloFAS
