@@ -113,11 +113,13 @@ footer p { margin:5px 0; line-height:1.6; }
       <li>GloFAS runs the same 10-day forecast 51 times with slightly different starting
         weather; this page uses the ensemble median for each day. Only forecast days falling
         in October to December count.</li>
-      <li>Each river's trigger level is the level of its 3rd-largest OND season on the 2003 to
-        2025 GloFAS record: crossing it is roughly a 1-in-8 year event for that river. The
-        depth was chosen so that the trigger as a whole (any river over its level) has an
-        overall activation frequency of 1-in-3 years: on the record it activates in 8 of 23
-        years (2008, 2011, 2013, 2017, 2019, 2023, 2024, 2025).</li>
+      <li>Each river's trigger level starts at the level of its 3rd-largest OND season on the
+        2003 to 2025 GloFAS record and is lowered where that catches further seasons already
+        inside the trigger's activation years, without letting any new year in: crossing it is
+        a 1-in-8 to 1-in-6 year event depending on the river. The depth was chosen so that the
+        trigger as a whole (any river over its level) has an overall activation frequency of
+        1-in-3 years: on the record it activates in 8 of 23 years (2008, 2011, 2013, 2017,
+        2019, 2023, 2024, 2025).</li>
       <li>The banner, the shaded zones on the map, the chart and the table all show this one
         rule. Zone shading follows the river system that puts the zone at risk.</li>
     </ul>
@@ -153,7 +155,7 @@ const shortName = s => s.replace(/ \(.*\)$/, "");
   const status = DATA.trigger_reached ? "Trigger reached: " + over.join(", ") : "Trigger not reached";
   b.innerHTML = `<span class="status">${status}</span>
     <span class="meta">Rule: any of the seven river systems at or over its OND trigger level
-    (each river's 3rd-largest season on 2003 to 2025, a 1-in-8 river event) ·
+    (set on each river's own top seasons 2003 to 2025, a 1-in-8 to 1-in-6 river event) ·
     overall activation frequency 1-in-3.0 years<br>
     Forecast issued <b>${fmtDate(DATA.issued)}</b> (GloFAS ensemble median, leads 1 to 10 days) ·
     GloFAS version ${DATA.threshold_version.replace("v","").replace("_0","")} levels ·
@@ -281,10 +283,11 @@ document.getElementById("footer").innerHTML =
   "<p><strong>Method.</strong> Trigger levels are empirical: each river system's OND seasons 2003 to 2025 are " +
   "ranked on the maximum over its stations of the normalised seasonal peak (station OND maximum / its median " +
   "OND seasonal maximum), on GloFAS " + DATA.threshold_version.replace("_", ".") + " reanalysis at channel-snapped " +
-  "cells; the level of the 3rd-largest season is the threshold. Forecast: operational GloFAS ensemble, 51 members, " +
+  "cells; the level of the 3rd-largest season is the threshold, lowered where that catches further seasons " +
+  "already inside the trigger's activation years (no new year can enter). Forecast: operational GloFAS ensemble, 51 members, " +
   "leads 1 to 10 days, read as the ensemble median; only October to December days count. Design and backtest: " +
   "notebook 04 (activation years 2008, 2011, 2013, 2017, 2019, 2023, 2024, 2025; overall 1-in-3.0; each river " +
-  "1-in-8). Levels are pinned to the GloFAS version the operational forecast runs (a climatology check flags " +
+  "1-in-8 to 1-in-6). Levels are pinned to the GloFAS version the operational forecast runs (a climatology check flags " +
   "a future upgrade). How the watch works: <a href='methodology/'>methodology page</a>.</p>" +
   "<p><strong>Coverage notes.</strong> The Kulfo, Slena and Sego at Arba Minch are below GloFAS's grid; the Gamo " +
   "station is the Abaya-Chamo lake system cell. The Dawa is monitored by a dedicated cell in Daawa zone. " +

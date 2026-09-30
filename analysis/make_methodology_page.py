@@ -295,9 +295,11 @@ footer p {{ margin:5px 0; line-height:1.6; }}
       <p class="status">The trigger</p>
       <p>Reached when any of the seven river systems (Wabi Shebelle | Genale Dawa | lower Omo |
          Bilate | Abaya-Chamo lakes | Baro | Akobo) is at or over its OND trigger level on a
-         forecast day between 1 October and 31 December. Each river's level is the level of its
-         3rd-largest OND season on the 2003 to 2025 GloFAS record: a 1-in-8 event per river.
-         Overall activation frequency: 8 years in 23 = 1-in-3.0 (2008, 2011, 2013, 2017, 2019,
+         forecast day between 1 October and 31 December. Each river's level starts at the level
+         of its 3rd-largest OND season on the 2003 to 2025 GloFAS record and is lowered where
+         that catches further seasons already inside the trigger's activation years, without
+         letting any new year in: a 1-in-8 to 1-in-6 event depending on the river. Overall
+         activation frequency: 8 years in 23 = 1-in-3.0 (2008, 2011, 2013, 2017, 2019,
          2023, 2024, 2025).</p>
     </div>
 
@@ -312,10 +314,13 @@ footer p {{ margin:5px 0; line-height:1.6; }}
     <h2>How each river's level was set</h2>
     <p>A river's season statistic is the maximum over its stations of the station's OND daily
        peak divided by its median OND seasonal maximum, which lets stations of very different
-       size carry equal weight inside one system. The river's threshold ratio is its 3rd-largest
-       season statistic; each station's level in m³/s is that ratio times the station's median
-       OND seasonal maximum. Record: GloFAS v4 reanalysis at channel-snapped cells, October to
-       December, 2003 to 2025. v4 is pinned because the operational forecast runs at v4 scale.</p>
+       size carry equal weight inside one system. The river's threshold ratio starts at its
+       3rd-largest season statistic and is lowered to also catch its lower-ranked seasons that
+       fall in the trigger's overall activation years, stopping at the first season outside
+       them so no new year can enter (Genale Dawa and Baro gain 2019, Akobo gains 2008). Each
+       station's level in m³/s is that ratio times the station's median OND seasonal maximum.
+       Record: GloFAS v4 reanalysis at channel-snapped cells, October to December, 2003 to
+       2025. v4 is pinned because the operational forecast runs at v4 scale.</p>
     <div class="tablewrap">{levels_table}</div>
     <p class="tnote">Level / median: how far above a typical OND peak the trigger level sits.
        All Wabi Shebelle stations share one ratio (1.23) because the river's statistic is set
@@ -323,9 +328,9 @@ footer p {{ margin:5px 0; line-height:1.6; }}
 
     <h2>Twenty-three OND seasons, river by river</h2>
     <figure>
-      <img src="{fig_stat}" alt="Season statistic per river with the top 3 seasons boxed">
+      <img src="{fig_stat}" alt="Season statistic per river with the activation seasons boxed">
       <figcaption>Each river's season statistic (normalised seasonal peak), 2003 to 2025.
-        Red boxes: the river's top 3 seasons, which define its level.</figcaption>
+        Red boxes: the seasons at or over the river's level.</figcaption>
     </figure>
     <figure>
       <img src="{fig_tiles}" alt="Activation seasons per river and the union">
@@ -339,9 +344,15 @@ footer p {{ margin:5px 0; line-height:1.6; }}
        overall activation frequency of 1-in-3. At a per-river top third the union activates in
        18 of 23 years (1-in-1.3). The candidates compared:</p>
     <div class="tablewrap">{options_table}</div>
-    <p>The adopted rule is the first row: the only candidate meeting the overall 1-in-3 exactly
+    <p>The adopted depth is the first row: the only candidate meeting the overall 1-in-3 exactly
        while keeping the any-river shape and per-river ranking. Its per-river bar is 1-in-8
-       rather than the top third; the working group accepted that trade on 29 September 2026.</p>
+       rather than the top third; the working group accepted that trade on 29 September 2026.
+       On 30 September 2026 the per-river levels were lowered within that rule, just far enough
+       to catch each river's lower-ranked seasons that are already overall activation years
+       (Genale Dawa and Baro gain 2019, Akobo gains 2008, each moving to 1-in-6; the other four
+       rivers' next seasons fall outside the activation years, so their levels are unchanged).
+       The overall activation years and the 1-in-3.0 frequency are unchanged; no new years
+       enter.</p>
     <p class="tnote">Years caught: of the years each impact record flags (7 EM-DAT, 4 CERF,
        8 FloodScan RP3), how many are trigger activation years.</p>
 

@@ -4,10 +4,12 @@ Build the riverine flood monitoring page for the EDRMC OND zones.
 The trigger (notebook 04, working group 29 Sep 2026): reached when any of the
 seven river systems (Wabi Shebelle | Genale Dawa | Omo | Bilate | Gamo lakes |
 Baro | Akobo) has a station at or over its threshold on a forecast day in
-October to December. Thresholds are each river's 3rd-largest normalised OND
-seasonal peak on GloFAS v4 reanalysis 2003-2025 (a 1-in-8 event per river),
-chosen so the overall any-river frequency is 1-in-3.0 (8 activations in 23
-years: 2008, 2011, 2013, 2017, 2019, 2023, 2024, 2025).
+October to December. Thresholds start at each river's 3rd-largest normalised
+OND seasonal peak on GloFAS v4 reanalysis 2003-2025 and are lowered where that
+catches further seasons already inside the overall activation years (adjusted
+30 Sep 2026; a 1-in-8 to 1-in-6 event per river), chosen so the overall
+any-river frequency is 1-in-3.0 (8 activations in 23 years: 2008, 2011, 2013,
+2017, 2019, 2023, 2024, 2025).
 
 Reads from blob:
 - processed/glofas/glofas_forecast_latest.parquet   (fetch_glofas_forecast_live.py)
@@ -106,7 +108,7 @@ def update_run_log(issue: pd.Timestamp, rivers_status: dict) -> None:
         log = json.loads(stratus.load_blob_data(RUN_LOG_BLOB, stage=STAGE, container_name="projects"))
     except Exception:
         log = []
-    reached = [{"station": r, "level": "top-3 OND level"} for r, v in rivers_status.items() if v["reached"]]
+    reached = [{"station": r, "level": "OND trigger level"} for r, v in rivers_status.items() if v["reached"]]
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     entry = {
         "date": today,
