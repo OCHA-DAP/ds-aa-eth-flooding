@@ -108,7 +108,7 @@ def update_run_log(issue: pd.Timestamp, rivers_status: dict) -> None:
         log = json.loads(stratus.load_blob_data(RUN_LOG_BLOB, stage=STAGE, container_name="projects"))
     except Exception:
         log = []
-    reached = [{"station": r, "level": "OND trigger level"} for r, v in rivers_status.items() if v["reached"]]
+    reached = [{"station": r, "level": "OND threshold"} for r, v in rivers_status.items() if v["reached"]]
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     entry = {
         "date": today,

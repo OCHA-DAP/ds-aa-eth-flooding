@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ethiopia Riverine Flood Watch</title>
-<meta name="description" content="Daily monitoring of GloFAS river forecasts at fourteen stations on the seven river systems the EDRMC lists as riverine flood risks, against the OND trigger levels.">
+<meta name="description" content="Daily monitoring of GloFAS river forecasts at fourteen stations on the seven river systems the EDRMC lists as riverine flood risks, against the OND thresholds.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
@@ -93,7 +93,7 @@ footer p { margin:5px 0; line-height:1.6; }
       <p>Daily monitoring of GloFAS river forecasts on the seven river systems the EDRMC lists
          as riverine flood risks: Wabi Shebelle, Genale Dawa, lower Omo, Bilate, the Abaya-Chamo
          lakes, Baro and Akobo. The trigger is reached when any river system is forecast at or
-         over its OND trigger level on a forecast day between 1 October and 31 December.</p>
+         over its OND threshold on a forecast day between 1 October and 31 December.</p>
     </div>
   </header>
 
@@ -106,7 +106,7 @@ footer p { margin:5px 0; line-height:1.6; }
       <div class="legend" id="maplegend"></div>
     </div>
 
-    <h2>Forecast against the trigger levels</h2>
+    <h2>Forecast against the thresholds</h2>
     <figure>
       <div class="smgrid" id="chartgrid"></div>
       <figcaption id="chartcap"></figcaption>
@@ -114,7 +114,7 @@ footer p { margin:5px 0; line-height:1.6; }
 
     <h2>Forecast peak at each station</h2>
     <p>The highest ensemble-median value on forecast days between 1 October and 31 December, against
-       the station's trigger level. A ratio of 1.00&times; or more means the station is over
+       the station's threshold. A ratio of 1.00&times; or more means the station is over
        and its river system reaches the trigger.</p>
     <div class="tablewrap" id="tablebox"></div>
 
@@ -123,11 +123,11 @@ footer p { margin:5px 0; line-height:1.6; }
       <li>GloFAS runs the same 10-day forecast 51 times with slightly different starting
         weather; this page uses the ensemble median for each day. Only forecast days falling
         in October to December count.</li>
-      <li>Each river's trigger level starts at the level of its 3rd-largest OND season on the
+      <li>Each river's threshold starts at the peak of its 3rd-largest OND season on the
         2003 to 2025 GloFAS record and is lowered where that catches further seasons already
         inside the trigger's activation years, without letting any new year in: crossing it is
         a 1-in-8 to 1-in-6 year event depending on the river. The depth was chosen so that the
-        trigger as a whole (any river over its level) has an overall activation frequency of
+        trigger as a whole (any river over its threshold) has an overall activation frequency of
         1-in-3 years: on the record it activates in 8 of 23 years (2008, 2011, 2013, 2017,
         2019, 2023, 2024, 2025).</li>
       <li>The banner, the shaded zones on the map, the river charts and the table all show this one
@@ -164,11 +164,11 @@ const shortName = s => s.replace(/ \(.*\)$/, "");
   const over = Object.entries(DATA.rivers_status).filter(([, r]) => r.reached).map(([k]) => k);
   const status = DATA.trigger_reached ? "Trigger reached: " + over.join(", ") : "Trigger not reached";
   b.innerHTML = `<span class="status">${status}</span>
-    <span class="meta">Rule: any of the seven river systems at or over its OND trigger level
+    <span class="meta">Rule: any of the seven river systems at or over its OND threshold
     (set on each river's own top seasons 2003 to 2025, a 1-in-8 to 1-in-6 river event) ·
     overall activation frequency 1-in-3.0 years<br>
     Forecast issued <b>${fmtDate(DATA.issued)}</b> (GloFAS ensemble median, leads 1 to 10 days) ·
-    GloFAS version ${DATA.threshold_version.replace("v","").replace("_0","")} levels ·
+    GloFAS version ${DATA.threshold_version.replace("v","").replace("_0","")} thresholds ·
     ${DATA.stations.length} stations on 7 rivers · page generated ${DATA.generated}</span>`;
 }
 
@@ -207,7 +207,7 @@ const shortName = s => s.replace(/ \(.*\)$/, "");
   }
   for (const st of DATA.stations) {
     const x = X(st.lon), y = Y(st.lat);
-    const title = st.label + " (" + st.river + "): " + (st.peak_ratio == null ? "no October to December day in the forecast yet" : st.peak_ratio.toFixed(2) + "x its trigger level");
+    const title = st.label + " (" + st.river + "): " + (st.peak_ratio == null ? "no October to December day in the forecast yet" : st.peak_ratio.toFixed(2) + "x its threshold");
     g += '<circle class="pt' + (st.reached ? " over" : "") + '" cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="5.5"><title>' + esc(title) + "</title></circle>";
   }
   const svg = document.getElementById("map");
@@ -218,14 +218,14 @@ const shortName = s => s.replace(/ \(.*\)$/, "");
     '<div class="row"><span class="sw" style="background:rgba(46,139,110,.16);border:1px solid #2E8B6E"></span>Trigger not reached</div>' +
     '<div class="row"><span class="sw" style="background:#e9eeee;border:1px solid #9aa4a6"></span>No October to December day in the forecast yet</div>' +
     "<h3 style='margin-top:16px'>Stations</h3>" +
-    '<div class="row"><span class="dot" style="background:#B34036;border-color:#7A241C"></span>At or over its trigger level</div>' +
-    '<div class="row"><span class="dot"></span>Below its level</div>' +
+    '<div class="row"><span class="dot" style="background:#B34036;border-color:#7A241C"></span>At or over its threshold</div>' +
+    '<div class="row"><span class="dot"></span>Below its threshold</div>' +
     "<h3 style='margin-top:16px'>Map</h3>" +
     '<div class="row"><span class="sw" style="background:#4a90c2;opacity:.55"></span>River channels (GloFAS)</div>' +
     '<div class="row">Point at a zone or a dot for its status</div>';
 }
 
-/* chart: one panel per river, each station as a share of its trigger level */
+/* chart: one panel per river, each station as a share of its threshold */
 {
   const W = 460, H = 190, m = { t:10, r:10, b:24, l:40 };
   const iw = W - m.l - m.r, ih = H - m.t - m.b;
@@ -245,7 +245,7 @@ const shortName = s => s.replace(/ \(.*\)$/, "");
     const status = DATA.rivers_status[river] || {};
     const peaks = sts.map(s => s.peak_ratio).filter(v => v != null);
     const peakTxt = peaks.length
-      ? (status.reached ? "REACHED · " : "") + "peak " + Math.round(Math.max(...peaks) * 100) + "% of level"
+      ? (status.reached ? "REACHED · " : "") + "peak " + Math.round(Math.max(...peaks) * 100) + "% of threshold"
       : "no October to December day yet";
     let g = "";
     if (firstOnd !== 0) {
@@ -259,7 +259,7 @@ const shortName = s => s.replace(/ \(.*\)$/, "");
       g += '<text x="' + (m.l - 5) + '" y="' + (y(v) + 3.2).toFixed(1) + '" text-anchor="end" font-size="9" fill="#5e6a6b">' + Math.round(v * 100) + "%</text>";
     }
     g += '<line x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + y(1).toFixed(1) + '" y2="' + y(1).toFixed(1) + '" stroke="#B34036" stroke-width="1.4" stroke-dasharray="6 4"></line>';
-    g += '<text x="' + (W - m.r - 3) + '" y="' + (y(1) - 4).toFixed(1) + '" text-anchor="end" font-size="9" fill="#B34036" font-weight="600">trigger level</text>';
+    g += '<text x="' + (W - m.r - 3) + '" y="' + (y(1) - 4).toFixed(1) + '" text-anchor="end" font-size="9" fill="#B34036" font-weight="600">threshold</text>';
     L0.forEach((l, i) => {
       if (i % 3 === 0)
         g += '<text x="' + x(i).toFixed(1) + '" y="' + (H - 7) + '" text-anchor="' + (i === n - 1 ? "end" : "middle") +
@@ -281,13 +281,13 @@ const shortName = s => s.replace(/ \(.*\)$/, "");
     if (sts.length === 1) leg = "<span>" + shortName(sts[0].label) + "</span>";
     html += '<div class="sm"><div class="smhead"><span><span class="rivdot" style="background:' + col + '"></span>' + river +
             '</span><span class="smpeak' + (status.reached ? " over" : "") + '">' + peakTxt + "</span></div>" +
-            '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + river + ' forecast as a share of its trigger level">' + g + "</svg>" +
+            '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + river + ' forecast as a share of its threshold">' + g + "</svg>" +
             '<div class="smleg">' + leg + "</div></div>";
   }
   document.getElementById("chartgrid").innerHTML = html;
   document.getElementById("chartcap").textContent =
-    "One panel per river system. Each line is one station's ensemble median, day by day, as a share of its trigger level; " +
-    "all panels share the same scale. The dashed line marks the level; shaded days before 1 October do not count toward the trigger. " +
+    "One panel per river system. Each line is one station's ensemble median, day by day, as a share of its threshold; " +
+    "all panels share the same scale. The dashed line marks the threshold; shaded days before 1 October do not count toward the trigger. " +
     "The peak figure is the highest share on October to December days.";
 }
 
@@ -308,20 +308,20 @@ const shortName = s => s.replace(/ \(.*\)$/, "");
     }).join("");
   document.getElementById("tablebox").innerHTML =
     `<table class="data"><thead><tr><th>Station</th><th>River system</th><th class="n">Forecast peak (m³/s)</th>
-     <th>Day of peak</th><th>Peak / trigger level</th><th class="n">Trigger level (m³/s)</th></tr></thead>
+     <th>Day of peak</th><th>Peak / threshold</th><th class="n">Threshold (m³/s)</th></tr></thead>
      <tbody>${rows}</tbody></table>`;
 }
 
 /* footer */
 document.getElementById("footer").innerHTML =
-  "<p><strong>Method.</strong> Trigger levels are empirical: each river system's OND seasons 2003 to 2025 are " +
+  "<p><strong>Method.</strong> Thresholds are empirical: each river system's OND seasons 2003 to 2025 are " +
   "ranked on the maximum over its stations of the normalised seasonal peak (station OND maximum / its median " +
   "OND seasonal maximum), on GloFAS " + DATA.threshold_version.replace("_", ".") + " reanalysis at channel-snapped " +
-  "cells; the level of the 3rd-largest season is the threshold, lowered where that catches further seasons " +
+  "cells; the peak of the 3rd-largest season is the threshold, lowered where that catches further seasons " +
   "already inside the trigger's activation years (no new year can enter). Forecast: operational GloFAS ensemble, 51 members, " +
   "leads 1 to 10 days, read as the ensemble median; only October to December days count. Design and backtest: " +
   "notebook 04 (activation years 2008, 2011, 2013, 2017, 2019, 2023, 2024, 2025; overall 1-in-3.0; each river " +
-  "1-in-8 to 1-in-6). Levels are pinned to the GloFAS version the operational forecast runs (a climatology check flags " +
+  "1-in-8 to 1-in-6). Thresholds are pinned to the GloFAS version the operational forecast runs (a climatology check flags " +
   "a future upgrade). How the watch works: <a href='methodology/'>methodology page</a>.</p>" +
   "<p><strong>Coverage notes.</strong> The Kulfo, Slena and Sego at Arba Minch are below GloFAS's grid; the Gamo " +
   "station is the Abaya-Chamo lake system cell. The Dawa is monitored by a dedicated cell in Daawa zone. " +
