@@ -320,7 +320,7 @@ footer p {{ margin:5px 0; line-height:1.6; }}
 
   <article>
     <div class="keybox">
-      <p class="status">The monitored condition</p>
+      <p class="status">What REACHED means</p>
       <p>The watch page shows REACHED when any of the seven river systems (Wabi Shebelle |
          Genale Dawa | lower Omo | Bilate | Abaya-Chamo lakes | Baro | Akobo) is at or over its
          OND level on a forecast day between 1 October and 31 December. Each river's level
@@ -328,9 +328,9 @@ footer p {{ margin:5px 0; line-height:1.6; }}
          and is lowered where that catches further seasons in years when a level was already
          reached, without letting any new year in: a 1-in-8 to 1-in-6 event depending on the
          river. On the record, at least one river is at or over its level in 8 years in 23 =
-         1-in-3.0 (2008, 2011, 2013, 2017, 2019, 2023, 2024, 2025). This is a monitoring
-         condition only: there is no official trigger behind this page and nothing is released
-         when a level is reached.</p>
+         1-in-3.0 (2008, 2011, 2013, 2017, 2019, 2023, 2024, 2025). This is monitoring only:
+         there is no official trigger behind this page and nothing is released when a level
+         is reached.</p>
     </div>
 
     <h2>The rivers and zones covered</h2>
