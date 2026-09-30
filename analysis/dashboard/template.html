@@ -83,7 +83,7 @@ footer p { margin:5px 0; line-height:1.6; }
       <p>Daily monitoring of GloFAS river forecasts on the seven river systems the EDRMC lists
          as riverine flood risks: Wabi Shebelle, Genale Dawa, lower Omo, Bilate, the Abaya-Chamo
          lakes, Baro and Akobo. The trigger is reached when any river system is forecast at or
-         over its OND trigger level on a day inside October to December.</p>
+         over its OND trigger level on a forecast day between 1 October and 31 December.</p>
     </div>
   </header>
 
@@ -103,7 +103,7 @@ footer p { margin:5px 0; line-height:1.6; }
     </figure>
 
     <h2>Forecast peak at each station</h2>
-    <p>The highest ensemble-median value on forecast days inside October to December, against
+    <p>The highest ensemble-median value on forecast days between 1 October and 31 December, against
        the station's trigger level. A ratio of 1.00&times; or more means the station is over
        and its river system reaches the trigger.</p>
     <div class="tablewrap" id="tablebox"></div>
@@ -181,7 +181,7 @@ const shortName = s => s.replace(/ \(.*\)$/, "");
     const reached = rs.some(r => r.reached);
     const inWindow = rs.some(r => r.in_window);
     const cls = "zone" + (reached ? " reached" : inWindow ? " clear" : "");
-    const state = reached ? "trigger reached" : inWindow ? "trigger not reached" : "no window day in the forecast yet";
+    const state = reached ? "trigger reached" : inWindow ? "trigger not reached" : "no October to December day in the forecast yet";
     g += '<path class="' + cls + '" d="' + pathOf(z.rings) + '"><title>' +
       esc(z.name + " (" + z.rivers.join(", ") + "): " + state) + "</title></path>";
   }
@@ -195,7 +195,7 @@ const shortName = s => s.replace(/ \(.*\)$/, "");
   }
   for (const st of DATA.stations) {
     const x = X(st.lon), y = Y(st.lat);
-    const title = st.label + " (" + st.river + "): " + (st.peak_ratio == null ? "no window day yet" : st.peak_ratio.toFixed(2) + "x its trigger level");
+    const title = st.label + " (" + st.river + "): " + (st.peak_ratio == null ? "no October to December day in the forecast yet" : st.peak_ratio.toFixed(2) + "x its trigger level");
     g += '<circle class="pt' + (st.reached ? " over" : "") + '" cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="5.5"><title>' + esc(title) + "</title></circle>";
   }
   const svg = document.getElementById("map");
@@ -204,7 +204,7 @@ const shortName = s => s.replace(/ \(.*\)$/, "");
   document.getElementById("maplegend").innerHTML = "<h3>Riverine zones</h3>" +
     '<div class="row"><span class="sw" style="background:rgba(179,64,54,.28);border:1px solid #B34036"></span>Trigger reached</div>' +
     '<div class="row"><span class="sw" style="background:rgba(46,139,110,.16);border:1px solid #2E8B6E"></span>Trigger not reached</div>' +
-    '<div class="row"><span class="sw" style="background:#e9eeee;border:1px solid #9aa4a6"></span>No window day in the forecast yet</div>' +
+    '<div class="row"><span class="sw" style="background:#e9eeee;border:1px solid #9aa4a6"></span>No October to December day in the forecast yet</div>' +
     "<h3 style='margin-top:16px'>Stations</h3>" +
     '<div class="row"><span class="dot" style="background:#B34036;border-color:#7A241C"></span>At or over its trigger level</div>' +
     '<div class="row"><span class="dot"></span>Below its level</div>' +
@@ -262,7 +262,7 @@ const shortName = s => s.replace(/ \(.*\)$/, "");
     .map(st => {
       const dot = '<span class="rivdot" style="background:' + RIVER_COLOR[st.river] + '"></span>';
       if (st.peak_ratio == null)
-        return `<tr><td>${shortName(st.label)}</td><td>${dot}${st.river}</td><td colspan="4">no forecast day inside the window yet</td></tr>`;
+        return `<tr><td>${shortName(st.label)}</td><td>${dot}${st.river}</td><td colspan="4">no October to December day in the forecast yet</td></tr>`;
       const w = Math.max(2, Math.min(st.peak_ratio, 2.5) * 60);
       return `<tr><td>${shortName(st.label)}</td><td>${dot}${st.river}</td>
         <td class="n ${st.reached ? "over" : ""}">${n0(st.peak)}</td>
