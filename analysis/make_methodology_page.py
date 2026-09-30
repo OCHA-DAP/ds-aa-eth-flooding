@@ -111,8 +111,8 @@ for river in RIVER_ORDER:
         )
 levels_table = (
     '<table class="data"><thead><tr><th>River system</th><th>Station</th><th>Zone</th>'
-    '<th class="num">Typical season peak (m³/s)</th><th class="num">Level (m³/s)</th>'
-    '<th class="num">Level vs typical peak</th></tr></thead><tbody>' + "".join(rows) + "</tbody></table>"
+    '<th class="num">Typical season peak (m³/s)</th><th class="num">Threshold (m³/s)</th>'
+    '<th class="num">Threshold vs typical peak</th></tr></thead><tbody>' + "".join(rows) + "</tbody></table>"
 )
 
 # ---------------------------------------------------------- activation seasons
@@ -300,11 +300,11 @@ footer p {{ margin:5px 0; line-height:1.6; }}
        factor starts at its 3rd-biggest season and is lowered to also catch lower-ranked seasons
        in years when a level was already reached, stopping at the first season outside them so
        no new year can enter (Genale Dawa and Baro gain 2019, Akobo gains 2008). Each station's
-       level is its typical season peak times the river's factor. Record: GloFAS version 4
+       threshold is its typical season peak times the river's factor. Record: GloFAS version 4
        reanalysis, October to December, 2003 to 2025; version 4 is used because the live
        forecast runs on it.</p>
     <div class="tablewrap">{levels_table}</div>
-    <p class="tnote">Level vs typical peak: the river's factor. 1.23 means the level is 23%
+    <p class="tnote">Threshold vs typical peak: the river's factor. 1.23 means the threshold is 23%
        above a typical season's peak. Every station on a river shares its river's factor.</p>
 
     <h2>October to December seasons, 2003 to 2025</h2>
