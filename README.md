@@ -39,6 +39,8 @@ Run order:
 1. `analysis/01_glofas_return_periods.ipynb` : threshold fitting (v4 + v5, seasonal)
 2. `analysis/02_floodscan_events_validation.ipynb` : FloodScan event catalogue + POD/FAR of GloFAS RP crossings
 3. `analysis/03_reforecast_trigger_skill.ipynb` : ensemble trigger skill by lead time (v4 reforecast)
+4. `analysis/04_ond_trigger_design.ipynb` : the adopted OND trigger (levels, backtest, impact record)
+5. `analysis/05_v5_reanalysis_test.ipynb` : the same rule tested on v5 reanalysis (reference only)
 
 Key findings so far:
 
