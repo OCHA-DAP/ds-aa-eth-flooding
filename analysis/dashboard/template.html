@@ -56,6 +56,16 @@ article a { color:var(--b6); }
 figure { margin:20px 0 8px; }
 figure svg { display:block; width:100%; height:auto; border:1px solid #e2e7e7; border-radius:4px; background:#fff; }
 figcaption { font-size:12px; color:var(--n7); margin-top:7px; line-height:1.5; }
+.smgrid { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:14px; }
+.sm { border:1px solid #e2e7e7; border-radius:4px; background:#fff; padding:10px 12px 8px; min-width:0; }
+.sm svg { display:block; width:100%; height:auto; border:none; }
+.smhead { display:flex; justify-content:space-between; align-items:baseline; gap:10px; font-size:14px; font-weight:700; color:var(--n9); margin:0 0 4px; }
+.smhead .rivdot { width:10px; height:10px; }
+.smpeak { font-size:12px; font-weight:400; color:var(--n7); white-space:nowrap; }
+.smpeak.over { color:#B34036; font-weight:700; }
+.smleg { display:flex; flex-wrap:wrap; gap:4px 14px; font-size:11px; color:var(--n7); margin-top:2px; }
+.smleg svg { display:inline-block; width:22px; height:8px; vertical-align:middle; margin-right:4px; }
+@media (max-width:720px){ .smgrid { grid-template-columns:1fr; } }
 table.data { border-collapse:collapse; width:100%; margin:12px 0 4px; font-size:13px; }
 table.data th { text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--n7); font-weight:700; border-bottom:2px solid var(--b1); padding:7px 9px 6px; }
 table.data td { border-bottom:1px solid #eef1f1; padding:6px 9px; color:var(--n8); white-space:nowrap; }
@@ -98,7 +108,7 @@ footer p { margin:5px 0; line-height:1.6; }
 
     <h2>Forecast against the trigger levels</h2>
     <figure>
-      <svg id="chart"></svg>
+      <div class="smgrid" id="chartgrid"></div>
       <figcaption id="chartcap"></figcaption>
     </figure>
 
@@ -120,7 +130,7 @@ footer p { margin:5px 0; line-height:1.6; }
         trigger as a whole (any river over its level) has an overall activation frequency of
         1-in-3 years: on the record it activates in 8 of 23 years (2008, 2011, 2013, 2017,
         2019, 2023, 2024, 2025).</li>
-      <li>The banner, the shaded zones on the map, the chart and the table all show this one
+      <li>The banner, the shaded zones on the map, the river charts and the table all show this one
         rule. Zone shading follows the river system that puts the zone at risk.</li>
     </ul>
 
@@ -215,46 +225,70 @@ const shortName = s => s.replace(/ \(.*\)$/, "");
     '<div class="row">Point at a zone or a dot for its status</div>';
 }
 
-/* chart: each station as a share of its trigger level */
+/* chart: one panel per river, each station as a share of its trigger level */
 {
-  const W = 920, H = 300, m = { t:16, r:130, b:34, l:52 };
+  const W = 460, H = 190, m = { t:10, r:10, b:24, l:40 };
   const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const DASH = ["", "6 3", "2 2.5", "9 3 2 3", "1 3"];
   const L0 = DATA.stations[0].leads;
-  const maxRatio = Math.max(1.2, ...DATA.stations.flatMap(s => s.leads.map(l => l.ratio || 0)) ) * 1.08;
-  const x = i => m.l + i / (L0.length - 1) * iw;
+  const n = L0.length;
+  const maxRatio = Math.max(1.2, ...DATA.stations.flatMap(s => s.leads.map(l => l.ratio || 0))) * 1.08;
+  const step = maxRatio > 2.4 ? 0.5 : 0.25;
+  const x = i => m.l + i / (n - 1) * iw;
   const y = r => m.t + ih - r / maxRatio * ih;
-  let g = "";
-  for (let v = 0; v <= maxRatio; v += 0.25) {
-    g += '<line x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + y(v).toFixed(1) + '" y2="' + y(v).toFixed(1) + '" stroke="#eef1f1"></line>';
-    g += '<text x="' + (m.l - 6) + '" y="' + (y(v) + 3.5).toFixed(1) + '" text-anchor="end" font-size="10" fill="#5e6a6b">' + Math.round(v * 100) + "%</text>";
-  }
-  g += '<line x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + y(1).toFixed(1) + '" y2="' + y(1).toFixed(1) + '" stroke="#B34036" stroke-width="1.5" stroke-dasharray="6 4"></line>';
-  g += '<text x="' + (W - m.r + 6) + '" y="' + (y(1) + 3.5).toFixed(1) + '" font-size="11" fill="#B34036" font-weight="600">trigger level</text>';
-  L0.forEach((l, i) => {
-    if (i % 2 === 0)
-      g += '<text x="' + x(i).toFixed(1) + '" y="' + (H - 12) + '" text-anchor="middle" font-size="10" fill="#5e6a6b">' + fmtDay(l.valid) + "</text>";
-  });
-  const labelled = new Set();
-  for (const st of DATA.stations) {
-    const pts = st.leads.map((l, i) => l.ratio == null ? null : [x(i), y(l.ratio)]);
-    let d = "", pen = false;
-    for (const p of pts) { if (!p) { pen = false; continue; } d += (pen ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1); pen = true; }
-    if (!d) continue;
-    g += '<path d="' + d + '" fill="none" stroke="' + RIVER_COLOR[st.river] + '" stroke-width="1.8" opacity=".85"><title>' + shortName(st.label) + "</title></path>";
-    const last = pts[pts.length - 1];
-    if (last && !labelled.has(st.river)) {
-      labelled.add(st.river);
-      g += '<text x="' + (W - m.r + 6) + '" y="' + (last[1] + 3.5).toFixed(1) + '" font-size="10.5" fill="' + RIVER_COLOR[st.river] + '" font-weight="600">' + st.river + "</text>";
+  const firstOnd = L0.findIndex(l => l.in_ond);
+  let html = "";
+  for (const river of RIVERS) {
+    const sts = DATA.stations.filter(s => s.river === river);
+    if (!sts.length) continue;
+    const col = RIVER_COLOR[river];
+    const status = DATA.rivers_status[river] || {};
+    const peaks = sts.map(s => s.peak_ratio).filter(v => v != null);
+    const peakTxt = peaks.length
+      ? (status.reached ? "REACHED · " : "") + "peak " + Math.round(Math.max(...peaks) * 100) + "% of level"
+      : "no October to December day yet";
+    let g = "";
+    if (firstOnd !== 0) {
+      const xe = firstOnd < 0 ? W - m.r : (x(firstOnd - 1) + x(firstOnd)) / 2;
+      g += '<rect x="' + m.l + '" y="' + m.t + '" width="' + (xe - m.l).toFixed(1) + '" height="' + ih + '" fill="#f3f5f5"></rect>';
+      if (xe - m.l > 70)
+        g += '<text x="' + (m.l + 5) + '" y="' + (m.t + 11) + '" font-size="9" fill="#8a9496">before 1 Oct: not counted</text>';
     }
+    for (let v = 0; v <= maxRatio + 1e-9; v += step) {
+      g += '<line x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + y(v).toFixed(1) + '" y2="' + y(v).toFixed(1) + '" stroke="#e6eaea"></line>';
+      g += '<text x="' + (m.l - 5) + '" y="' + (y(v) + 3.2).toFixed(1) + '" text-anchor="end" font-size="9" fill="#5e6a6b">' + Math.round(v * 100) + "%</text>";
+    }
+    g += '<line x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + y(1).toFixed(1) + '" y2="' + y(1).toFixed(1) + '" stroke="#B34036" stroke-width="1.4" stroke-dasharray="6 4"></line>';
+    g += '<text x="' + (W - m.r - 3) + '" y="' + (y(1) - 4).toFixed(1) + '" text-anchor="end" font-size="9" fill="#B34036" font-weight="600">trigger level</text>';
+    L0.forEach((l, i) => {
+      if (i % 3 === 0)
+        g += '<text x="' + x(i).toFixed(1) + '" y="' + (H - 7) + '" text-anchor="' + (i === n - 1 ? "end" : "middle") +
+             '" font-size="9" fill="#5e6a6b">' + fmtDay(l.valid) + "</text>";
+    });
+    let leg = "";
+    sts.forEach((st, k) => {
+      const dash = DASH[k % DASH.length];
+      const pts = st.leads.map((l, i) => l.ratio == null ? null : [x(i), y(l.ratio)]);
+      let d = "", pen = false;
+      for (const p of pts) { if (!p) { pen = false; continue; } d += (pen ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1); pen = true; }
+      if (d)
+        g += '<path d="' + d + '" fill="none" stroke="' + col + '" stroke-width="1.9"' + (dash ? ' stroke-dasharray="' + dash + '"' : "") +
+             '><title>' + shortName(st.label) + "</title></path>";
+      if (sts.length > 1)
+        leg += '<span><svg viewBox="0 0 22 8"><line x1="0" x2="22" y1="4" y2="4" stroke="' + col + '" stroke-width="2"' +
+               (dash ? ' stroke-dasharray="' + dash + '"' : "") + '></line></svg>' + shortName(st.label) + "</span>";
+    });
+    if (sts.length === 1) leg = "<span>" + shortName(sts[0].label) + "</span>";
+    html += '<div class="sm"><div class="smhead"><span><span class="rivdot" style="background:' + col + '"></span>' + river +
+            '</span><span class="smpeak' + (status.reached ? " over" : "") + '">' + peakTxt + "</span></div>" +
+            '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + river + ' forecast as a share of its trigger level">' + g + "</svg>" +
+            '<div class="smleg">' + leg + "</div></div>";
   }
-  g += '<text x="12" y="' + (m.t + ih / 2).toFixed(1) + '" font-size="10" fill="#5e6a6b" text-anchor="middle" transform="rotate(-90 12 ' + (m.t + ih / 2).toFixed(1) + ')">share of the trigger level</text>';
-  const svg = document.getElementById("chart");
-  svg.setAttribute("viewBox", "0 0 " + W + " " + H);
-  svg.innerHTML = g;
+  document.getElementById("chartgrid").innerHTML = html;
   document.getElementById("chartcap").textContent =
-    "Each line is one station's ensemble median, day by day, as a share of its trigger level. " +
-    "The dashed line marks the level; days before 1 October do not count toward the trigger. " +
-    "One colour per river system, matching the table. Point at a line for the station name.";
+    "One panel per river system. Each line is one station's ensemble median, day by day, as a share of its trigger level; " +
+    "all panels share the same scale. The dashed line marks the level; shaded days before 1 October do not count toward the trigger. " +
+    "The peak figure is the highest share on October to December days.";
 }
 
 /* table */

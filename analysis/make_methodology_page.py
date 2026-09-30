@@ -160,8 +160,8 @@ imp_rows = []
 for _, r in imp.iterrows():
     cls = ' class="hit"' if r["trigger"] else ""
     trig = '<span class="reached">reached</span>' if r["trigger"] else ""
-    fs2 = '<span class="dot"></span>' if r["floodscan_rp2_somali"] else ""
     fs3 = '<span class="dot"></span>' if r["floodscan_rp3_somali"] else ""
+    fs5 = '<span class="dot"></span>' if r["floodscan_rp5_somali"] else ""
     if r["emdat_events"]:
         emdat = f'{r["emdat_events"]} event'
         if pd.notna(r["emdat_affected"]):
@@ -171,12 +171,12 @@ for _, r in imp.iterrows():
     cerf = f'USD {r["cerf_usd"] / 1e6:.1f}M ({r["cerf_allocations"]})' if r["cerf_allocations"] else ""
     imp_rows.append(
         f'<tr{cls}><td class="num">{r["year"]}</td><td>{trig}</td>'
-        f'<td class="ctr">{fs2}</td><td class="ctr">{fs3}</td>'
+        f'<td class="ctr">{fs3}</td><td class="ctr">{fs5}</td>'
         f"<td>{emdat}</td><td>{cerf}</td></tr>"
     )
 impact_table = (
     '<table class="data"><thead><tr><th class="num">Year</th><th>Level reached</th>'
-    '<th class="ctr">FloodScan RP2</th><th class="ctr">FloodScan RP3</th>'
+    '<th class="ctr">FloodScan RP3</th><th class="ctr">FloodScan RP5</th>'
     "<th>EM-DAT riverine floods</th><th>CERF flood allocations</th></tr></thead><tbody>"
     + "".join(imp_rows) + "</tbody></table>"
 )
