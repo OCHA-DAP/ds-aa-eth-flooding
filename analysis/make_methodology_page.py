@@ -232,8 +232,8 @@ lead_table = (
     + "".join(lead_rows(far_block)) + "</tbody></table>"
 )
 
-fig_stat = png_of("Season statistic per river", "season_statistic.png")
-fig_tiles = png_of("Seasons at or over each river's level", "activations.png")
+fig_stat = png_of("Season peak compared with a typical season", "season_statistic.png")
+fig_tiles = png_of("Years each river reached its level", "activations.png")
 
 generated = datetime.now(timezone.utc).strftime("%d %b %Y %H:%M UTC")
 
@@ -242,7 +242,7 @@ page = f"""<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Riverine Flood Watch Methodology</title>
+<title>Flood Watch Methods</title>
 <meta name="description" content="How the Ethiopia Riverine Flood Watch works: the rivers and zones covered, how each river's OND level was set, the backtest and the impact record.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -309,8 +309,8 @@ footer p {{ margin:5px 0; line-height:1.6; }}
   </div>
   <header class="hero">
     <div class="inner">
-      <p class="crumb"><a href="../">Ethiopia Riverine Flood Watch</a> / methodology</p>
-      <h1>How the Riverine Flood Watch works</h1>
+      <p class="crumb"><a href="../">Ethiopia Riverine Flood Watch</a> / methods</p>
+      <h1>Methods and data behind the Ethiopia Riverine Flood Watch</h1>
       <p>What sits behind the watch page: the rivers and zones it covers, how each river's
          October to December level was set, the alternatives that were tested, and how the
          years when levels were reached line up with the flood impact records. Every number, table and
@@ -320,7 +320,7 @@ footer p {{ margin:5px 0; line-height:1.6; }}
 
   <article>
     <div class="keybox">
-      <p class="status">What REACHED means</p>
+      <p class="status">When the watch page shows REACHED</p>
       <p>The watch page shows REACHED when any of the seven river systems (Wabi Shebelle |
          Genale Dawa | lower Omo | Bilate | Abaya-Chamo lakes | Baro | Akobo) is at or over its
          OND level on a forecast day between 1 October and 31 December. Each river's level
@@ -333,7 +333,7 @@ footer p {{ margin:5px 0; line-height:1.6; }}
          is reached.</p>
     </div>
 
-    <h2>The rivers and zones covered</h2>
+    <h2>Rivers and zones monitored</h2>
     <p>The watch covers the river basin and zone pairs the EDRMC Bega flood alert lists as at
        risk of riverine flooding: the middle and lower Wabi Shebelle (Shebelle zone) | the lower
        Genale Dawa (Afder, Liben, Dawa) | the lower Omo (South Omo) | the Bilate (Sidama, West
@@ -341,7 +341,7 @@ footer p {{ margin:5px 0; line-height:1.6; }}
        (Itang, Nuwer, Agnewak). Fourteen GloFAS points monitor these reaches; each sits on a
        channel cell verified against the model's own discharge field and named river geometry.</p>
 
-    <h2>How each river's level was set</h2>
+    <h2>River levels, station by station</h2>
     <p>A river's season statistic is the maximum over its stations of the station's OND daily
        peak divided by its median OND seasonal maximum, which lets stations of very different
        size carry equal weight inside one system. The river's threshold ratio starts at its
@@ -356,7 +356,7 @@ footer p {{ margin:5px 0; line-height:1.6; }}
        All Wabi Shebelle stations share one ratio (1.23) because the river's statistic is set
        by its floodiest station each season; the same holds within each river system.</p>
 
-    <h2>Twenty-three OND seasons, river by river</h2>
+    <h2>October to December seasons, 2003 to 2025</h2>
     <figure>
       <img src="{fig_stat}" alt="Season statistic per river with the reached seasons boxed">
       <figcaption>Each river's season statistic (normalised seasonal peak), 2003 to 2025.
@@ -369,7 +369,7 @@ footer p {{ margin:5px 0; line-height:1.6; }}
     </figure>
     <div class="tablewrap">{acts_table}</div>
 
-    <h2>How the depth was chosen</h2>
+    <h2>Other level options tested</h2>
     <p>The working group's constraints were per-river ranking, an any-river rule, and an
        overall frequency of 1-in-3. At a per-river top third, at least one river is over its
        level in 18 of 23 years (1-in-1.3). The candidates compared:</p>
@@ -386,7 +386,7 @@ footer p {{ margin:5px 0; line-height:1.6; }}
     <p class="tnote">Years caught: of the years each impact record flags (7 EM-DAT, 4 CERF,
        8 FloodScan RP3), how many fall in that rule's reached years.</p>
 
-    <h2>The years reached, beside the impact records</h2>
+    <h2>Years reached and recorded floods</h2>
     <p>Three records beside the years when a level was reached: FloodScan flood events in the Somali-region riverine
        zones (satellite; the extract for the other zones is not built and is a named gap),
        EM-DAT flood events whose locations name the riverine areas and whose dates touch OND
@@ -396,7 +396,7 @@ footer p {{ margin:5px 0; line-height:1.6; }}
     <p class="tnote">Shaded rows: years when a level was reached. FloodScan columns cover the
        Somali-region zones only; a dot marks a season with a flood event at that severity.</p>
 
-    <h2>The same rule on v5 reanalysis</h2>
+    <h2>Comparison with GloFAS version 5</h2>
     <p>The live watch runs on GloFAS v4 levels because the operational forecast it reads runs
        at v4 scale. As a reference, the same construction was run on v5 reanalysis across all
        seven rivers (notebook 05; each station cell was checked against the v5 mean discharge
@@ -412,7 +412,7 @@ footer p {{ margin:5px 0; line-height:1.6; }}
        re-fitted from notebook 05 (the depth re-chosen, not just re-ranked: on v5 the lowering
        step chains deeper, taking the Bilate to 9 kept seasons).</p>
 
-    <h2>Why the forecast looks 10 days ahead</h2>
+    <h2>Forecast range: 10 days</h2>
     <p>Monitoring reads the operational GloFAS ensemble median at leads 1 to 10 days. GloFAS
        publishes to 30 days; 10 days is a monitoring choice, not an optimised value. It gives
        the page sight of the OND window from about 21 September and roughly a week of warning
@@ -427,7 +427,7 @@ footer p {{ margin:5px 0; line-height:1.6; }}
        leads 1 to 7 only), and no lead is validated for the Omo, Bilate, Abaya-Chamo lakes,
        Baro or Akobo (no reforecast was fetched for those basins).</p>
 
-    <h2>Known limits</h2>
+    <h2>Limitations</h2>
     <ul>
       <li>The Kulfo, Slena and Sego at Arba Minch are below GloFAS's 0.05 degree grid; the Gamo
         station is the Abaya-Chamo lake system cell and is labelled as such.</li>
