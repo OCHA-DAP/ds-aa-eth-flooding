@@ -17,12 +17,14 @@ import pandas as pd
 
 HERE = Path(__file__).resolve().parent
 NB = HERE / "04_ond_trigger_design.ipynb"
+NB5 = HERE / "05_v5_reanalysis_test.ipynb"
 OUT = HERE.parent / "docs" / "methodology"
 FIGS = OUT / "figs"
 OUT.mkdir(parents=True, exist_ok=True)
 FIGS.mkdir(exist_ok=True)
 
 nb = json.loads(NB.read_text(encoding="utf-8"))
+nb5 = json.loads(NB5.read_text(encoding="utf-8"))
 
 RIVER_ORDER = ["Wabi Shebelle", "Genale Dawa", "Omo", "Bilate", "Gamo lakes", "Baro", "Akobo"]
 # display names + zones as on the monitoring page (processed/glofas/station_zone_mapping_all.csv)
@@ -44,23 +46,23 @@ STATIONS = {
 }
 
 
-def cell_outputs(marker: str) -> dict:
+def cell_outputs(marker: str, book: dict | None = None) -> dict:
     """Outputs of the first code cell whose source contains the marker."""
-    for c in nb["cells"]:
+    for c in (book or nb)["cells"]:
         if c["cell_type"] == "code" and marker in "".join(c["source"]):
             return c.get("outputs", [])
     raise KeyError(marker)
 
 
-def html_of(marker: str) -> str:
-    for o in cell_outputs(marker):
+def html_of(marker: str, book: dict | None = None) -> str:
+    for o in cell_outputs(marker, book):
         if o.get("output_type") == "execute_result" and "text/html" in o.get("data", {}):
             return "".join(o["data"]["text/html"])
     raise KeyError(f"no html table in cell: {marker}")
 
 
-def df_of(marker: str) -> pd.DataFrame:
-    return pd.read_html(io.StringIO(html_of(marker)))[0]
+def df_of(marker: str, book: dict | None = None) -> pd.DataFrame:
+    return pd.read_html(io.StringIO(html_of(marker, book)))[0]
 
 
 def png_of(marker: str, name: str) -> str:
@@ -71,9 +73,9 @@ def png_of(marker: str, name: str) -> str:
     raise KeyError(f"no figure in cell: {marker}")
 
 
-def stream_of(marker: str) -> str:
+def stream_of(marker: str, book: dict | None = None) -> str:
     txt = ""
-    for o in cell_outputs(marker):
+    for o in cell_outputs(marker, book):
         if o.get("output_type") == "stream":
             txt += "".join(o["text"])
     return txt.strip()
@@ -109,7 +111,7 @@ for river in RIVER_ORDER:
         )
 levels_table = (
     '<table class="data"><thead><tr><th>River system</th><th>Station</th><th>Zone</th>'
-    '<th class="num">Median OND max (m³/s)</th><th class="num">Trigger level (m³/s)</th>'
+    '<th class="num">Median OND max (m³/s)</th><th class="num">Activation level (m³/s)</th>'
     '<th class="num">Level / median</th></tr></thead><tbody>' + "".join(rows) + "</tbody></table>"
 )
 
@@ -127,7 +129,7 @@ union_years = ["2008", "2011", "2013", "2017", "2019", "2023", "2024", "2025"]
 acts_table = (
     '<table class="data"><thead><tr><th>River system</th><th>OND seasons at or over its level</th>'
     '<th class="num">Frequency</th></tr></thead><tbody>' + "".join(act_rows) +
-    f'<tr class="total"><td class="river">Any river (the trigger)</td><td>{chips(union_years)}</td>'
+    f'<tr class="total"><td class="river">Any river (overall)</td><td>{chips(union_years)}</td>'
     f'<td class="num">1-in-{float(rp):.1f}</td></tr></tbody></table>'
 )
 
@@ -173,10 +175,36 @@ for _, r in imp.iterrows():
         f"<td>{emdat}</td><td>{cerf}</td></tr>"
     )
 impact_table = (
-    '<table class="data"><thead><tr><th class="num">Year</th><th>Trigger</th>'
+    '<table class="data"><thead><tr><th class="num">Year</th><th>Activation</th>'
     '<th class="ctr">FloodScan RP2</th><th class="ctr">FloodScan RP3</th>'
     "<th>EM-DAT riverine floods</th><th>CERF flood allocations</th></tr></thead><tbody>"
     + "".join(imp_rows) + "</tbody></table>"
+)
+
+# ----------------------------------------------------------------- v5 comparison
+v5_text = stream_of("only in v5:", nb5)
+v5_cmp = df_of("pd.DataFrame(rows)", nb5).drop(columns="Unnamed: 0")
+v5_diff = dict(re.findall(r"(only in v5|only in v4|in both)\s*: \[(.*)\]", v5_text))
+v5_rows = []
+for i, r in v5_cmp.iterrows():
+    is_v4 = "v4" in r["record"]
+    live = ' <span class="tag">live</span>' if is_v4 else ""
+    cls = ' class="adopted"' if is_v4 else ""
+    name = r["record"].replace(" (adopted)", ", the watch record").replace(" (this test)", ", this test")
+    v5_rows.append(
+        f"<tr{cls}>"
+        f'<td class="wrap">{name}{live}</td>'
+        f'<td class="num">{r["n_activations"]} of 23</td>'
+        f'<td class="num">1-in-{r["overall_rp"]:.2f}</td>'
+        f'<td class="num">{r["emdat"]}</td><td class="num">{r["cerf"]}</td>'
+        f'<td class="num">{r["floodscan_rp3_somali"]}</td>'
+        f'<td class="wrap dim">{r["years"]}</td></tr>'
+    )
+v5_table = (
+    '<table class="data"><thead><tr><th>Record</th><th class="num">Activation years</th>'
+    '<th class="num">Overall frequency</th><th class="num">EM-DAT years caught</th>'
+    '<th class="num">CERF years caught</th><th class="num">FloodScan RP3 years caught</th>'
+    '<th>Years</th></tr></thead><tbody>' + "".join(v5_rows) + "</tbody></table>"
 )
 
 # ------------------------------------------------------------------- lead skill
@@ -215,7 +243,7 @@ page = f"""<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Riverine Flood Watch Methodology</title>
-<meta name="description" content="How the Ethiopia Riverine Flood Watch works: the rivers and zones covered, how each river's OND trigger level was set, the backtest and the impact record.">
+<meta name="description" content="How the Ethiopia Riverine Flood Watch works: the rivers and zones covered, how each river's OND activation level was set, the backtest and the impact record.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
@@ -284,7 +312,7 @@ footer p {{ margin:5px 0; line-height:1.6; }}
       <p class="crumb"><a href="../">Ethiopia Riverine Flood Watch</a> / methodology</p>
       <h1>How the Riverine Flood Watch works</h1>
       <p>What sits behind the watch page: the rivers and zones it covers, how each river's
-         October to December trigger level was set, the alternatives that were tested, and how
+         October to December activation level was set, the alternatives that were tested, and how
          the activation years line up with the flood impact records. Every number, table and
          figure below comes from the analysis notebook's own output.</p>
     </div>
@@ -292,19 +320,19 @@ footer p {{ margin:5px 0; line-height:1.6; }}
 
   <article>
     <div class="keybox">
-      <p class="status">The trigger</p>
+      <p class="status">The activation rule</p>
       <p>Reached when any of the seven river systems (Wabi Shebelle | Genale Dawa | lower Omo |
-         Bilate | Abaya-Chamo lakes | Baro | Akobo) is at or over its OND trigger level on a
+         Bilate | Abaya-Chamo lakes | Baro | Akobo) is at or over its OND activation level on a
          forecast day between 1 October and 31 December. Each river's level starts at the level
          of its 3rd-largest OND season on the 2003 to 2025 GloFAS record and is lowered where
-         that catches further seasons already inside the trigger's activation years, without
+         that catches further seasons already inside the watch's activation years, without
          letting any new year in: a 1-in-8 to 1-in-6 event depending on the river. Overall
          activation frequency: 8 years in 23 = 1-in-3.0 (2008, 2011, 2013, 2017, 2019,
          2023, 2024, 2025).</p>
     </div>
 
     <h2>The rivers and zones covered</h2>
-    <p>The trigger covers the river basin and zone pairs the EDRMC Bega flood alert lists as at
+    <p>The watch covers the river basin and zone pairs the EDRMC Bega flood alert lists as at
        risk of riverine flooding: the middle and lower Wabi Shebelle (Shebelle zone) | the lower
        Genale Dawa (Afder, Liben, Dawa) | the lower Omo (South Omo) | the Bilate (Sidama, West
        Guji) | the Kulfo, Slena and Sego at Arba Minch (Gamo) | the Akobo (Agnewak) | the Baro
@@ -316,13 +344,13 @@ footer p {{ margin:5px 0; line-height:1.6; }}
        peak divided by its median OND seasonal maximum, which lets stations of very different
        size carry equal weight inside one system. The river's threshold ratio starts at its
        3rd-largest season statistic and is lowered to also catch its lower-ranked seasons that
-       fall in the trigger's overall activation years, stopping at the first season outside
+       fall in the overall activation years, stopping at the first season outside
        them so no new year can enter (Genale Dawa and Baro gain 2019, Akobo gains 2008). Each
        station's level in m³/s is that ratio times the station's median OND seasonal maximum.
        Record: GloFAS v4 reanalysis at channel-snapped cells, October to December, 2003 to
        2025. v4 is pinned because the operational forecast runs at v4 scale.</p>
     <div class="tablewrap">{levels_table}</div>
-    <p class="tnote">Level / median: how far above a typical OND peak the trigger level sits.
+    <p class="tnote">Level / median: how far above a typical OND peak the activation level sits.
        All Wabi Shebelle stations share one ratio (1.23) because the river's statistic is set
        by its floodiest station each season; the same holds within each river system.</p>
 
@@ -334,13 +362,13 @@ footer p {{ margin:5px 0; line-height:1.6; }}
     </figure>
     <figure>
       <img src="{fig_tiles}" alt="Activation seasons per river and the union">
-      <figcaption>Seasons at or over each river's level, and the any-river union the trigger
+      <figcaption>Seasons at or over each river's level, and the any-river union the watch
         activates on.</figcaption>
     </figure>
     <div class="tablewrap">{acts_table}</div>
 
     <h2>How the depth was chosen</h2>
-    <p>The working group's constraints were per-river ranking, an any-river trigger, and an
+    <p>The working group's constraints were per-river ranking, an any-river rule, and an
        overall activation frequency of 1-in-3. At a per-river top third the union activates in
        18 of 23 years (1-in-1.3). The candidates compared:</p>
     <div class="tablewrap">{options_table}</div>
@@ -354,17 +382,33 @@ footer p {{ margin:5px 0; line-height:1.6; }}
        The overall activation years and the 1-in-3.0 frequency are unchanged; no new years
        enter.</p>
     <p class="tnote">Years caught: of the years each impact record flags (7 EM-DAT, 4 CERF,
-       8 FloodScan RP3), how many are trigger activation years.</p>
+       8 FloodScan RP3), how many are activation years.</p>
 
-    <h2>The trigger beside the impact records, year by year</h2>
-    <p>Three records beside the trigger: FloodScan flood events in the Somali-region riverine
+    <h2>Activations beside the impact records, year by year</h2>
+    <p>Three records beside the activation years: FloodScan flood events in the Somali-region riverine
        zones (satellite; the extract for the other zones is not built and is a named gap),
        EM-DAT flood events whose locations name the riverine areas and whose dates touch OND
        (manually refreshed snapshot), and CERF allocations to Ethiopia with emergency type
        flood (national record).</p>
     <div class="tablewrap">{impact_table}</div>
-    <p class="tnote">Shaded rows: trigger activation years. FloodScan columns cover the
+    <p class="tnote">Shaded rows: activation years. FloodScan columns cover the
        Somali-region zones only; a dot marks a season with a flood event at that severity.</p>
+
+    <h2>The same rule on v5 reanalysis</h2>
+    <p>The live watch runs on GloFAS v4 levels because the operational forecast it reads runs
+       at v4 scale. As a reference, the same construction was run on v5 reanalysis across all
+       seven rivers (notebook 05; each station cell was checked against the v5 mean discharge
+       field and stays on-channel). The two records agree on six activation years (2008, 2017,
+       2019, 2023, 2024, 2025); v5 adds 2014, 2020 and 2021 and drops 2011 and 2013. Of the
+       years only v5 adds, 2020 is a CERF flood year; 2014 and 2021 appear in none of the
+       impact records. 2006, the largest miss on v4, is not caught on v5 either: the Wabi
+       Shebelle's 2006 season ranks 4th there, at 97 percent of its level.</p>
+    <div class="tablewrap">{v5_table}</div>
+    <p class="tnote">Same construction on each version's own record: per-river top 3 seasons,
+       lowered within that record's overall activation years. v5 levels are not used anywhere
+       in monitoring; if GloFAS upgrades the operational system to v5, the levels would be
+       re-fitted from notebook 05 (the depth re-chosen, not just re-ranked: on v5 the lowering
+       step chains deeper, taking the Bilate to 9 kept seasons).</p>
 
     <h2>Why the forecast looks 10 days ahead</h2>
     <p>Monitoring reads the operational GloFAS ensemble median at leads 1 to 10 days. GloFAS
@@ -399,7 +443,8 @@ footer p {{ margin:5px 0; line-height:1.6; }}
 
   <footer>
     <p>Source: <a href="https://github.com/OCHA-DAP/ds-aa-eth-flooding/blob/main/analysis/04_ond_trigger_design.ipynb">analysis/04_ond_trigger_design.ipynb</a>
-       in OCHA-DAP/ds-aa-eth-flooding · page generated {generated} from the executed notebook.</p>
+       and <a href="https://github.com/OCHA-DAP/ds-aa-eth-flooding/blob/main/analysis/05_v5_reanalysis_test.ipynb">05_v5_reanalysis_test.ipynb</a>
+       in OCHA-DAP/ds-aa-eth-flooding · page generated {generated} from the executed notebooks.</p>
     <p>Live monitoring: <a href="../">Ethiopia Riverine Flood Watch</a>.</p>
   </footer>
 </div>
