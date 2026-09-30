@@ -127,7 +127,7 @@ for river, per_rp, yrs in re.findall(r"^\s{2}(.+?)\s+\(([\d.]+)-yr\): \[(.*)\]",
     )
 union_years = ["2008", "2011", "2013", "2017", "2019", "2023", "2024", "2025"]
 acts_table = (
-    '<table class="data"><thead><tr><th>River system</th><th>OND seasons at or over its level</th>'
+    '<table class="data"><thead><tr><th>River system</th><th>OND seasons at or over its threshold</th>'
     '<th class="num">Frequency</th></tr></thead><tbody>' + "".join(act_rows) +
     f'<tr class="total"><td class="river">Any river (overall)</td><td>{chips(union_years)}</td>'
     f'<td class="num">1-in-{float(rp):.1f}</td></tr></tbody></table>'
@@ -153,7 +153,7 @@ for _, r in imp.iterrows():
         f"<td>{emdat}</td><td>{cerf}</td></tr>"
     )
 impact_table = (
-    '<table class="data"><thead><tr><th class="num">Year</th><th>Level reached</th>'
+    '<table class="data"><thead><tr><th class="num">Year</th><th>Threshold reached</th>'
     '<th class="ctr">FloodScan RP5</th>'
     "<th>EM-DAT riverine floods</th><th>CERF flood allocations</th></tr></thead><tbody>"
     + "".join(imp_rows) + "</tbody></table>"
@@ -185,7 +185,7 @@ v5_table = (
 )
 
 fig_stat = png_of("Season peak compared with a typical season", "season_statistic.png")
-fig_tiles = png_of("Years each river reached its level", "activations.png")
+fig_tiles = png_of("Years each river reached its threshold", "activations.png")
 
 generated = datetime.now(timezone.utc).strftime("%d %b %Y %H:%M UTC")
 
@@ -195,7 +195,7 @@ page = f"""<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Flood Watch Methods</title>
-<meta name="description" content="How the Ethiopia Riverine Flood Watch works: the rivers and zones covered, how each river's OND level was set, the backtest and the impact record.">
+<meta name="description" content="How the Ethiopia Riverine Flood Watch works: the rivers and zones covered, how each river's OND threshold was set, the backtest and the impact record.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
@@ -264,8 +264,8 @@ footer p {{ margin:5px 0; line-height:1.6; }}
       <p class="crumb"><a href="../">Ethiopia Riverine Flood Watch</a> / methods</p>
       <h1>Methods and data behind the Ethiopia Riverine Flood Watch</h1>
       <p>What sits behind the watch page: the rivers and zones it covers, how each river's
-         October to December level was set, and how the
-         years when levels were reached line up with the flood impact records. Every number, table and
+         October to December threshold was set, and how the
+         years when thresholds were reached line up with the flood impact records. Every number, table and
          figure below comes from the analysis notebook's own output.</p>
     </div>
   </header>
@@ -275,13 +275,13 @@ footer p {{ margin:5px 0; line-height:1.6; }}
       <p class="status">When the watch page shows REACHED</p>
       <p>The watch page shows REACHED when any of the seven river systems (Wabi Shebelle |
          Genale Dawa | lower Omo | Bilate | Abaya-Chamo lakes | Baro | Akobo) is at or over its
-         OND level on a forecast day between 1 October and 31 December. Each river's level
-         starts at the level of its 3rd-largest OND season on the 2003 to 2025 GloFAS record
-         and is lowered where that catches further seasons in years when a level was already
+         OND threshold on a forecast day between 1 October and 31 December. Each river's threshold
+         starts at the peak of its 3rd-largest OND season on the 2003 to 2025 GloFAS record
+         and is lowered where that catches further seasons in years when a threshold was already
          reached, without letting any new year in: a 1-in-8 to 1-in-6 event depending on the
-         river. On the record, at least one river is at or over its level in 8 years in 23 =
+         river. On the record, at least one river is at or over its threshold in 8 years in 23 =
          1-in-3.0 (2008, 2011, 2013, 2017, 2019, 2023, 2024, 2025). This is monitoring only:
-         there is no official trigger behind this page and nothing is released when a level
+         there is no official trigger behind this page and nothing is released when a threshold
          is reached.</p>
     </div>
 
@@ -293,12 +293,12 @@ footer p {{ margin:5px 0; line-height:1.6; }}
        (Itang, Nuwer, Agnewak). Fourteen GloFAS points monitor these reaches; each sits on a
        channel cell verified against the model's own discharge field and named river geometry.</p>
 
-    <h2>River levels, station by station</h2>
+    <h2>River thresholds, station by station</h2>
     <p>Each station's typical season peak is the median of its 23 October to December peaks
        (the highest daily flow of each season, 2003 to 2025). Each season, every station's peak
        is compared with its typical peak, and the river takes its highest station. The river's
        factor starts at its 3rd-biggest season and is lowered to also catch lower-ranked seasons
-       in years when a level was already reached, stopping at the first season outside them so
+       in years when a threshold was already reached, stopping at the first season outside them so
        no new year can enter (Genale Dawa and Baro gain 2019, Akobo gains 2008). Each station's
        threshold is its typical season peak times the river's factor. Record: GloFAS version 4
        reanalysis, October to December, 2003 to 2025; version 4 is used because the live
@@ -311,32 +311,32 @@ footer p {{ margin:5px 0; line-height:1.6; }}
     <figure>
       <img src="{fig_stat}" alt="Season peak compared with the typical peak, per river, with the reached seasons boxed">
       <figcaption>Each river's season peak compared with its typical season peak, 2003 to 2025.
-        Red boxes: the seasons at or over the river's level.</figcaption>
+        Red boxes: the seasons at or over the river's threshold.</figcaption>
     </figure>
     <figure>
-      <img src="{fig_tiles}" alt="Seasons at or over each river's level and the union">
-      <figcaption>Seasons at or over each river's level, and the any-river union across
+      <img src="{fig_tiles}" alt="Seasons at or over each river's threshold and the union">
+      <figcaption>Seasons at or over each river's threshold, and the any-river union across
         them.</figcaption>
     </figure>
     <div class="tablewrap">{acts_table}</div>
 
     <h2>Years reached and recorded floods</h2>
-    <p>Three records beside the years when a level was reached: FloodScan flood events in the Somali-region riverine
+    <p>Three records beside the years when a threshold was reached: FloodScan flood events in the Somali-region riverine
        zones (satellite; the extract for the other zones is not built and is a named gap),
        EM-DAT flood events whose locations name the riverine areas and whose dates touch OND
        (manually refreshed snapshot), and CERF allocations to Ethiopia with emergency type
        flood (national record).</p>
     <div class="tablewrap">{impact_table}</div>
-    <p class="tnote">Shaded rows: years when a level was reached. The FloodScan column covers the
+    <p class="tnote">Shaded rows: years when a threshold was reached. The FloodScan column covers the
        Somali-region zones only; a dot marks a season with a flood event at that severity.</p>
 
     <h2>Comparison with GloFAS version 5</h2>
-    <p>The watch uses GloFAS version 4 levels, the version the live forecast runs. For
-       reference, the same method on version 5 reanalysis (notebook 05) reaches a level in
+    <p>The watch uses GloFAS version 4 thresholds, the version the live forecast runs. For
+       reference, the same method on version 5 reanalysis (notebook 05) reaches a threshold in
        9 years instead of 8: six years are shared, version 5 adds 2014, 2020 and 2021, and
        drops 2011 and 2013.</p>
     <div class="tablewrap">{v5_table}</div>
-    <p class="tnote">Version 5 levels are not used in monitoring yet: GloFAS version 5 forecasts
+    <p class="tnote">Version 5 thresholds are not used in monitoring yet: GloFAS version 5 forecasts
        are coming soon.</p>
 
     <h2>Forecast range: 10 days</h2>
