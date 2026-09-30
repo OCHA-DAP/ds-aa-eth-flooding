@@ -111,7 +111,7 @@ for river in RIVER_ORDER:
         )
 levels_table = (
     '<table class="data"><thead><tr><th>River system</th><th>Station</th><th>Zone</th>'
-    '<th class="num">Median OND max (m³/s)</th><th class="num">Activation level (m³/s)</th>'
+    '<th class="num">Median OND max (m³/s)</th><th class="num">Level (m³/s)</th>'
     '<th class="num">Level / median</th></tr></thead><tbody>' + "".join(rows) + "</tbody></table>"
 )
 
@@ -148,7 +148,7 @@ for i, r in opts.iterrows():
         f'<td class="wrap dim">{r["years"]}</td></tr>'
     )
 options_table = (
-    '<table class="data"><thead><tr><th>Candidate rule</th><th class="num">Activation years</th>'
+    '<table class="data"><thead><tr><th>Candidate rule</th><th class="num">Years reached</th>'
     '<th class="num">Overall frequency</th><th class="num">EM-DAT years caught</th>'
     '<th class="num">CERF years caught</th><th class="num">FloodScan RP3 years caught</th>'
     '<th>Years</th></tr></thead><tbody>' + "".join(opt_rows) + "</tbody></table>"
@@ -175,7 +175,7 @@ for _, r in imp.iterrows():
         f"<td>{emdat}</td><td>{cerf}</td></tr>"
     )
 impact_table = (
-    '<table class="data"><thead><tr><th class="num">Year</th><th>Activation</th>'
+    '<table class="data"><thead><tr><th class="num">Year</th><th>Level reached</th>'
     '<th class="ctr">FloodScan RP2</th><th class="ctr">FloodScan RP3</th>'
     "<th>EM-DAT riverine floods</th><th>CERF flood allocations</th></tr></thead><tbody>"
     + "".join(imp_rows) + "</tbody></table>"
@@ -201,7 +201,7 @@ for i, r in v5_cmp.iterrows():
         f'<td class="wrap dim">{r["years"]}</td></tr>'
     )
 v5_table = (
-    '<table class="data"><thead><tr><th>Record</th><th class="num">Activation years</th>'
+    '<table class="data"><thead><tr><th>Record</th><th class="num">Years reached</th>'
     '<th class="num">Overall frequency</th><th class="num">EM-DAT years caught</th>'
     '<th class="num">CERF years caught</th><th class="num">FloodScan RP3 years caught</th>'
     '<th>Years</th></tr></thead><tbody>' + "".join(v5_rows) + "</tbody></table>"
@@ -233,7 +233,7 @@ lead_table = (
 )
 
 fig_stat = png_of("Season statistic per river", "season_statistic.png")
-fig_tiles = png_of("Activation seasons per river", "activations.png")
+fig_tiles = png_of("Seasons at or over each river's level", "activations.png")
 
 generated = datetime.now(timezone.utc).strftime("%d %b %Y %H:%M UTC")
 
@@ -243,7 +243,7 @@ page = f"""<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Riverine Flood Watch Methodology</title>
-<meta name="description" content="How the Ethiopia Riverine Flood Watch works: the rivers and zones covered, how each river's OND activation level was set, the backtest and the impact record.">
+<meta name="description" content="How the Ethiopia Riverine Flood Watch works: the rivers and zones covered, how each river's OND level was set, the backtest and the impact record.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
@@ -312,23 +312,25 @@ footer p {{ margin:5px 0; line-height:1.6; }}
       <p class="crumb"><a href="../">Ethiopia Riverine Flood Watch</a> / methodology</p>
       <h1>How the Riverine Flood Watch works</h1>
       <p>What sits behind the watch page: the rivers and zones it covers, how each river's
-         October to December activation level was set, the alternatives that were tested, and how
-         the activation years line up with the flood impact records. Every number, table and
+         October to December level was set, the alternatives that were tested, and how the
+         years when levels were reached line up with the flood impact records. Every number, table and
          figure below comes from the analysis notebook's own output.</p>
     </div>
   </header>
 
   <article>
     <div class="keybox">
-      <p class="status">The activation rule</p>
-      <p>Reached when any of the seven river systems (Wabi Shebelle | Genale Dawa | lower Omo |
-         Bilate | Abaya-Chamo lakes | Baro | Akobo) is at or over its OND activation level on a
-         forecast day between 1 October and 31 December. Each river's level starts at the level
-         of its 3rd-largest OND season on the 2003 to 2025 GloFAS record and is lowered where
-         that catches further seasons already inside the watch's activation years, without
-         letting any new year in: a 1-in-8 to 1-in-6 event depending on the river. Overall
-         activation frequency: 8 years in 23 = 1-in-3.0 (2008, 2011, 2013, 2017, 2019,
-         2023, 2024, 2025).</p>
+      <p class="status">The monitored condition</p>
+      <p>The watch page shows REACHED when any of the seven river systems (Wabi Shebelle |
+         Genale Dawa | lower Omo | Bilate | Abaya-Chamo lakes | Baro | Akobo) is at or over its
+         OND level on a forecast day between 1 October and 31 December. Each river's level
+         starts at the level of its 3rd-largest OND season on the 2003 to 2025 GloFAS record
+         and is lowered where that catches further seasons in years when a level was already
+         reached, without letting any new year in: a 1-in-8 to 1-in-6 event depending on the
+         river. On the record, at least one river is at or over its level in 8 years in 23 =
+         1-in-3.0 (2008, 2011, 2013, 2017, 2019, 2023, 2024, 2025). This is a monitoring
+         condition only: there is no official trigger behind this page and nothing is released
+         when a level is reached.</p>
     </div>
 
     <h2>The rivers and zones covered</h2>
@@ -344,68 +346,68 @@ footer p {{ margin:5px 0; line-height:1.6; }}
        peak divided by its median OND seasonal maximum, which lets stations of very different
        size carry equal weight inside one system. The river's threshold ratio starts at its
        3rd-largest season statistic and is lowered to also catch its lower-ranked seasons that
-       fall in the overall activation years, stopping at the first season outside
+       fall in years when a level was already reached, stopping at the first season outside
        them so no new year can enter (Genale Dawa and Baro gain 2019, Akobo gains 2008). Each
        station's level in m³/s is that ratio times the station's median OND seasonal maximum.
        Record: GloFAS v4 reanalysis at channel-snapped cells, October to December, 2003 to
        2025. v4 is pinned because the operational forecast runs at v4 scale.</p>
     <div class="tablewrap">{levels_table}</div>
-    <p class="tnote">Level / median: how far above a typical OND peak the activation level sits.
+    <p class="tnote">Level / median: how far above a typical OND peak the level sits.
        All Wabi Shebelle stations share one ratio (1.23) because the river's statistic is set
        by its floodiest station each season; the same holds within each river system.</p>
 
     <h2>Twenty-three OND seasons, river by river</h2>
     <figure>
-      <img src="{fig_stat}" alt="Season statistic per river with the activation seasons boxed">
+      <img src="{fig_stat}" alt="Season statistic per river with the reached seasons boxed">
       <figcaption>Each river's season statistic (normalised seasonal peak), 2003 to 2025.
         Red boxes: the seasons at or over the river's level.</figcaption>
     </figure>
     <figure>
-      <img src="{fig_tiles}" alt="Activation seasons per river and the union">
-      <figcaption>Seasons at or over each river's level, and the any-river union the watch
-        activates on.</figcaption>
+      <img src="{fig_tiles}" alt="Seasons at or over each river's level and the union">
+      <figcaption>Seasons at or over each river's level, and the any-river union across
+        them.</figcaption>
     </figure>
     <div class="tablewrap">{acts_table}</div>
 
     <h2>How the depth was chosen</h2>
     <p>The working group's constraints were per-river ranking, an any-river rule, and an
-       overall activation frequency of 1-in-3. At a per-river top third the union activates in
-       18 of 23 years (1-in-1.3). The candidates compared:</p>
+       overall frequency of 1-in-3. At a per-river top third, at least one river is over its
+       level in 18 of 23 years (1-in-1.3). The candidates compared:</p>
     <div class="tablewrap">{options_table}</div>
     <p>The adopted depth is the first row: the only candidate meeting the overall 1-in-3 exactly
        while keeping the any-river shape and per-river ranking. Its per-river bar is 1-in-8
        rather than the top third; the working group accepted that trade on 29 September 2026.
        On 30 September 2026 the per-river levels were lowered within that rule, just far enough
-       to catch each river's lower-ranked seasons that are already overall activation years
+       to catch each river's lower-ranked seasons in years when a level was already reached
        (Genale Dawa and Baro gain 2019, Akobo gains 2008, each moving to 1-in-6; the other four
-       rivers' next seasons fall outside the activation years, so their levels are unchanged).
-       The overall activation years and the 1-in-3.0 frequency are unchanged; no new years
+       rivers' next seasons fall outside those years, so their levels are unchanged).
+       The overall reached years and the 1-in-3.0 frequency are unchanged; no new years
        enter.</p>
     <p class="tnote">Years caught: of the years each impact record flags (7 EM-DAT, 4 CERF,
-       8 FloodScan RP3), how many are activation years.</p>
+       8 FloodScan RP3), how many fall in that rule's reached years.</p>
 
-    <h2>Activations beside the impact records, year by year</h2>
-    <p>Three records beside the activation years: FloodScan flood events in the Somali-region riverine
+    <h2>The years reached, beside the impact records</h2>
+    <p>Three records beside the years when a level was reached: FloodScan flood events in the Somali-region riverine
        zones (satellite; the extract for the other zones is not built and is a named gap),
        EM-DAT flood events whose locations name the riverine areas and whose dates touch OND
        (manually refreshed snapshot), and CERF allocations to Ethiopia with emergency type
        flood (national record).</p>
     <div class="tablewrap">{impact_table}</div>
-    <p class="tnote">Shaded rows: activation years. FloodScan columns cover the
+    <p class="tnote">Shaded rows: years when a level was reached. FloodScan columns cover the
        Somali-region zones only; a dot marks a season with a flood event at that severity.</p>
 
     <h2>The same rule on v5 reanalysis</h2>
     <p>The live watch runs on GloFAS v4 levels because the operational forecast it reads runs
        at v4 scale. As a reference, the same construction was run on v5 reanalysis across all
        seven rivers (notebook 05; each station cell was checked against the v5 mean discharge
-       field and stays on-channel). The two records agree on six activation years (2008, 2017,
+       field and stays on-channel). The two records agree on six reached years (2008, 2017,
        2019, 2023, 2024, 2025); v5 adds 2014, 2020 and 2021 and drops 2011 and 2013. Of the
        years only v5 adds, 2020 is a CERF flood year; 2014 and 2021 appear in none of the
        impact records. 2006, the largest miss on v4, is not caught on v5 either: the Wabi
        Shebelle's 2006 season ranks 4th there, at 97 percent of its level.</p>
     <div class="tablewrap">{v5_table}</div>
     <p class="tnote">Same construction on each version's own record: per-river top 3 seasons,
-       lowered within that record's overall activation years. v5 levels are not used anywhere
+       lowered within that record's own reached years. v5 levels are not used anywhere
        in monitoring; if GloFAS upgrades the operational system to v5, the levels would be
        re-fitted from notebook 05 (the depth re-chosen, not just re-ranked: on v5 the lowering
        step chains deeper, taking the Bilate to 9 kept seasons).</p>
