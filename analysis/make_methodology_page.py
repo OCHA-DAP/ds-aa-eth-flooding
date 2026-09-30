@@ -133,34 +133,12 @@ acts_table = (
     f'<td class="num">1-in-{float(rp):.1f}</td></tr></tbody></table>'
 )
 
-# ----------------------------------------------------------------- depth options
-opts = df_of("pd.DataFrame(opts)").drop(columns="Unnamed: 0")
-opt_rows = []
-for i, r in opts.iterrows():
-    tag = ' <span class="tag">adopted</span>' if i == 0 else ""
-    cls = ' class="adopted"' if i == 0 else ""
-    opt_rows.append(
-        f'<tr{cls}><td class="wrap">{r["rule"]}{tag}</td>'
-        f'<td class="num">{r["n_activations"]} of 23</td>'
-        f'<td class="num">1-in-{r["overall_rp"]:.1f}</td>'
-        f'<td class="num">{r["emdat"]}</td><td class="num">{r["cerf"]}</td>'
-        f'<td class="num">{r["floodscan_rp5_somali"]}</td>'
-        f'<td class="wrap dim">{r["years"]}</td></tr>'
-    )
-options_table = (
-    '<table class="data"><thead><tr><th>Candidate rule</th><th class="num">Years reached</th>'
-    '<th class="num">Overall frequency</th><th class="num">EM-DAT years caught</th>'
-    '<th class="num">CERF years caught</th><th class="num">FloodScan RP5 years caught</th>'
-    '<th>Years</th></tr></thead><tbody>' + "".join(opt_rows) + "</tbody></table>"
-)
-
 # ----------------------------------------------------------------- impact record
 imp = df_of('impact["cerf_usd"]').rename(columns={"Unnamed: 0": "year"})
 imp_rows = []
 for _, r in imp.iterrows():
     cls = ' class="hit"' if r["trigger"] else ""
     trig = '<span class="reached">reached</span>' if r["trigger"] else ""
-    fs3 = '<span class="dot"></span>' if r["floodscan_rp3_somali"] else ""
     fs5 = '<span class="dot"></span>' if r["floodscan_rp5_somali"] else ""
     if r["emdat_events"]:
         emdat = f'{r["emdat_events"]} event'
@@ -171,12 +149,12 @@ for _, r in imp.iterrows():
     cerf = f'USD {r["cerf_usd"] / 1e6:.1f}M ({r["cerf_allocations"]})' if r["cerf_allocations"] else ""
     imp_rows.append(
         f'<tr{cls}><td class="num">{r["year"]}</td><td>{trig}</td>'
-        f'<td class="ctr">{fs3}</td><td class="ctr">{fs5}</td>'
+        f'<td class="ctr">{fs5}</td>'
         f"<td>{emdat}</td><td>{cerf}</td></tr>"
     )
 impact_table = (
     '<table class="data"><thead><tr><th class="num">Year</th><th>Level reached</th>'
-    '<th class="ctr">FloodScan RP3</th><th class="ctr">FloodScan RP5</th>'
+    '<th class="ctr">FloodScan RP5</th>'
     "<th>EM-DAT riverine floods</th><th>CERF flood allocations</th></tr></thead><tbody>"
     + "".join(imp_rows) + "</tbody></table>"
 )
@@ -312,7 +290,7 @@ footer p {{ margin:5px 0; line-height:1.6; }}
       <p class="crumb"><a href="../">Ethiopia Riverine Flood Watch</a> / methods</p>
       <h1>Methods and data behind the Ethiopia Riverine Flood Watch</h1>
       <p>What sits behind the watch page: the rivers and zones it covers, how each river's
-         October to December level was set, the alternatives that were tested, and how the
+         October to December level was set, and how the
          years when levels were reached line up with the flood impact records. Every number, table and
          figure below comes from the analysis notebook's own output.</p>
     </div>
@@ -369,23 +347,6 @@ footer p {{ margin:5px 0; line-height:1.6; }}
     </figure>
     <div class="tablewrap">{acts_table}</div>
 
-    <h2>Other level options tested</h2>
-    <p>The working group's constraints were per-river ranking, an any-river rule, and an
-       overall frequency of 1-in-3. At a per-river top third, at least one river is over its
-       level in 18 of 23 years (1-in-1.3). The candidates compared:</p>
-    <div class="tablewrap">{options_table}</div>
-    <p>The adopted depth is the first row: the only candidate meeting the overall 1-in-3 exactly
-       while keeping the any-river shape and per-river ranking. Its per-river bar is 1-in-8
-       rather than the top third; the working group accepted that trade on 29 September 2026.
-       On 30 September 2026 the per-river levels were lowered within that rule, just far enough
-       to catch each river's lower-ranked seasons in years when a level was already reached
-       (Genale Dawa and Baro gain 2019, Akobo gains 2008, each moving to 1-in-6; the other four
-       rivers' next seasons fall outside those years, so their levels are unchanged).
-       The overall reached years and the 1-in-3.0 frequency are unchanged; no new years
-       enter.</p>
-    <p class="tnote">Years caught: of the years each impact record flags (7 EM-DAT, 4 CERF,
-       4 FloodScan RP5), how many fall in that rule's reached years.</p>
-
     <h2>Years reached and recorded floods</h2>
     <p>Three records beside the years when a level was reached: FloodScan flood events in the Somali-region riverine
        zones (satellite; the extract for the other zones is not built and is a named gap),
@@ -393,7 +354,7 @@ footer p {{ margin:5px 0; line-height:1.6; }}
        (manually refreshed snapshot), and CERF allocations to Ethiopia with emergency type
        flood (national record).</p>
     <div class="tablewrap">{impact_table}</div>
-    <p class="tnote">Shaded rows: years when a level was reached. FloodScan columns cover the
+    <p class="tnote">Shaded rows: years when a level was reached. The FloodScan column covers the
        Somali-region zones only; a dot marks a season with a flood event at that severity.</p>
 
     <h2>Comparison with GloFAS version 5</h2>
@@ -409,7 +370,7 @@ footer p {{ margin:5px 0; line-height:1.6; }}
     <p class="tnote">Same construction on each version's own record: per-river top 3 seasons,
        lowered within that record's own reached years. v5 levels are not used anywhere
        in monitoring; if GloFAS upgrades the operational system to v5, the levels would be
-       re-fitted from notebook 05 (the depth re-chosen, not just re-ranked: on v5 the lowering
+       re-fitted from notebook 05 (the number of top seasons per river re-chosen: on v5 the lowering
        step chains deeper, taking the Bilate to 9 kept seasons).</p>
 
     <h2>Forecast range: 10 days</h2>
