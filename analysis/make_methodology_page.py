@@ -144,13 +144,13 @@ for i, r in opts.iterrows():
         f'<td class="num">{r["n_activations"]} of 23</td>'
         f'<td class="num">1-in-{r["overall_rp"]:.1f}</td>'
         f'<td class="num">{r["emdat"]}</td><td class="num">{r["cerf"]}</td>'
-        f'<td class="num">{r["floodscan_rp3_somali"]}</td>'
+        f'<td class="num">{r["floodscan_rp5_somali"]}</td>'
         f'<td class="wrap dim">{r["years"]}</td></tr>'
     )
 options_table = (
     '<table class="data"><thead><tr><th>Candidate rule</th><th class="num">Years reached</th>'
     '<th class="num">Overall frequency</th><th class="num">EM-DAT years caught</th>'
-    '<th class="num">CERF years caught</th><th class="num">FloodScan RP3 years caught</th>'
+    '<th class="num">CERF years caught</th><th class="num">FloodScan RP5 years caught</th>'
     '<th>Years</th></tr></thead><tbody>' + "".join(opt_rows) + "</tbody></table>"
 )
 
@@ -384,7 +384,7 @@ footer p {{ margin:5px 0; line-height:1.6; }}
        The overall reached years and the 1-in-3.0 frequency are unchanged; no new years
        enter.</p>
     <p class="tnote">Years caught: of the years each impact record flags (7 EM-DAT, 4 CERF,
-       8 FloodScan RP3), how many fall in that rule's reached years.</p>
+       4 FloodScan RP5), how many fall in that rule's reached years.</p>
 
     <h2>Years reached and recorded floods</h2>
     <p>Three records beside the years when a level was reached: FloodScan flood events in the Somali-region riverine
