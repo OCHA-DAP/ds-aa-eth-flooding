@@ -7,6 +7,7 @@ exactly what the notebook computed. Rerun after rerunning the notebook.
 """
 
 import base64
+import math
 import io
 import json
 import re
@@ -82,7 +83,8 @@ def stream_of(marker: str, book: dict | None = None) -> str:
 
 
 def n0(x) -> str:
-    return f"{x:,.0f}"
+    # halves round up, matching Math.round on the watch page
+    return f"{math.floor(x + 0.5):,}"
 
 
 def chips(years) -> str:
