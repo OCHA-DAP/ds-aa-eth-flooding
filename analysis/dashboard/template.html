@@ -4,17 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ethiopia Riverine Flood Watch</title>
-<meta name="description" content="Daily monitoring of GloFAS river forecasts at fourteen stations on the seven river systems the EDRMC lists as riverine flood risks, against the OND thresholds.">
+<meta name="description" content="Daily check of GloFAS river forecasts at fourteen stations on the seven river systems the EDRMC lists as riverine flood risks, against each station's October to December threshold.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-/* OCHA blue, as on the Somalia monitoring page: the UN-OCHA common_design
-   brand values mapped onto the team's site tokens. */
-:root {
-  --b5:#1f69b3; --b6:#1f69b3; --b7:#144372; --b05:#ebf0f4; --b1:#d4e5f7;
-  --n9:#1f2324; --n8:#3f4748; --n7:#5e6a6b; --n05:#f5f7f7;
-}
+/* Layout and styles follow the Somalia live monitoring page (ds-aa-som-floods pages/monitoring),
+   with its OCHA blue override of the HDX v2 site tokens. */
+:root { --b5:#1f69b3; --b6:#1f69b3; --b7:#144372; --b05:#ebf0f4; --b1:#d4e5f7;
+        --n9:#1f2324; --n8:#3f4748; --n7:#5e6a6b; --n05:#f5f7f7; }
 * { box-sizing:border-box; }
 body { margin:0; background:var(--n05); color:var(--n9);
   font-family:'Roboto',system-ui,-apple-system,'Segoe UI','Helvetica Neue',Arial,sans-serif; line-height:1.5; }
@@ -22,22 +20,44 @@ body { margin:0; background:var(--n05); color:var(--n9);
 .brand { display:flex; justify-content:space-between; align-items:center; gap:20px; padding:14px 44px; background:#fff; border-bottom:1px solid #e2e7e7; }
 .brand a { display:block; line-height:0; }
 .brand img { height:44px; width:auto; display:block; }
-.contact { margin:12px 0 8px; padding:16px 20px; border-radius:6px; background:var(--b05); border-left:5px solid var(--b6); }
-.contact p { margin:0; }
 .hero { background:var(--b6); padding:40px 44px 34px; }
-.eyebrow { font-size:11px; letter-spacing:.15em; text-transform:uppercase; font-weight:700; color:rgba(255,255,255,.88); margin:0 0 12px; }
 .hero h1 { font-family:'Merriweather',Georgia,serif; font-weight:700; font-size:28px; line-height:1.2; color:#fff; margin:0 0 14px; }
 .hero p { margin:0; font-size:15px; line-height:1.6; color:#fff; max-width:64ch; }
+.crumb { font-size:12px; margin:0 0 14px !important; color:rgba(255,255,255,.85) !important; }
+.crumb a { color:rgba(255,255,255,.85); text-decoration:none; } .crumb a:hover { text-decoration:underline; }
+.contact { margin:30px 0 8px; padding:16px 20px; border-radius:6px; background:var(--b05); border-left:5px solid var(--b6); }
+.contact p { margin:0; }
 article { padding:8px 44px 24px; max-width:1000px; }
 article h2 { font-family:'Merriweather',Georgia,serif; font-size:20px; color:var(--n9); margin:34px 0 10px; line-height:1.25; }
 article p, article li { font-size:14.5px; color:var(--n8); line-height:1.65; }
+article li { margin-bottom:6px; }
 article a { color:var(--b6); }
 .banner { display:flex; flex-wrap:wrap; align-items:center; gap:14px 22px; margin:22px 0 6px; padding:16px 20px; border-radius:6px; border:1px solid #e2e7e7; border-left:8px solid #9aa4a6; background:#fff; }
-.banner .status { font-family:'Merriweather',Georgia,serif; font-size:22px; font-weight:700; color:#5e6a6b; }
+.banner .status { font-family:'Merriweather',Georgia,serif; font-size:22px; font-weight:700; color:#5e6a6b; text-transform:uppercase; }
 .banner.error { border-left-color:#B34036; } .banner.error .status { color:#B34036; }
 .banner .meta { font-size:12.5px; color:var(--n7); line-height:1.6; }
-.maprow { display:grid; grid-template-columns:minmax(0,1fr) 210px; gap:18px; align-items:start; margin:14px 0 4px; }
-@media (max-width:760px){ .maprow { grid-template-columns:1fr } }
+.callout { margin:12px 0 18px; padding:12px 16px; border-radius:4px; background:var(--b05); border-left:5px solid var(--b5); font-size:13.5px; color:var(--n8); line-height:1.6; }
+.callout b { color:var(--n9); }
+.grid4 { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin:18px 0 8px; }
+@media (max-width:640px){ .grid4 { grid-template-columns:1fr } }
+.win { background:#fff; border:1px solid #e2e7e7; border-top:3px solid var(--b5); border-radius:5px; padding:14px 16px 12px; }
+.win.closed { opacity:.62; border-top-color:#c8d0d1; }
+.win.act { border-top-color:#B34036; }
+.win h3 { margin:0 0 4px; font-family:'Merriweather',Georgia,serif; font-size:15px; color:var(--n9); }
+.win .src { font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--n7); margin-bottom:10px; }
+.win .leg { display:flex; justify-content:space-between; align-items:baseline; gap:12px; font-size:13px; color:var(--n8); padding:5px 0; border-top:1px solid #f0f3f3; }
+.win .leg .sub { font-size:11px; color:var(--n7); }
+.win .leg b { font-size:17px; color:var(--n9); white-space:nowrap; }
+.win .leg .fired { color:#B34036; }
+.pill { display:inline-block; font-size:10px; padding:2px 7px; border-radius:10px; text-transform:uppercase; letter-spacing:.07em; font-weight:700; background:var(--b05); color:var(--b7); border:1px solid var(--b1); vertical-align:2px; margin-left:6px; }
+.pill.red { background:#fbeeec; color:#B34036; border-color:#f3c9c4; }
+.pill.grey { background:#f0f3f3; color:#5e6a6b; border-color:#e2e7e7; }
+.rivdot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:7px; vertical-align:1px; }
+.maprow { display:grid; grid-template-columns:1fr; gap:16px; margin:14px 0 4px; }
+.legend { display:grid; grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr); gap:6px 24px; }
+@media (max-width:760px){ .legend { grid-template-columns:1fr } }
+.legend .riverlist { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 16px; }
+@media (max-width:520px){ .legend .riverlist { grid-template-columns:1fr } }
 .map { border:1px solid #e2e7e7; border-radius:6px; background:#f6f8f8; overflow:hidden; }
 .map svg { display:block; width:100%; height:auto; }
 .region { fill:#fff; stroke:#c9d2d3; stroke-width:.8; }
@@ -45,39 +65,47 @@ article a { color:var(--b6); }
 .zone.reached { fill:rgba(179,64,54,.28); stroke:#B34036; }
 .zone.clear { fill:rgba(46,139,110,.16); stroke:#2E8B6E; }
 .rivcell { fill:#4a90c2; opacity:.55; }
-.pt { stroke:#1f2324; stroke-width:1.1; fill:#fff; }
+.pt { stroke:#1f2324; stroke-width:1.2; fill:#fff; }
 .pt.over { fill:#B34036; stroke:#7A241C; }
-.zlbl { font:10px Roboto,sans-serif; fill:#5e6a6b; paint-order:stroke; stroke:#fff; stroke-width:2.5px; }
+.zlbl { font:500 10px Roboto,sans-serif; fill:#3f4748; paint-order:stroke; stroke:#fff; stroke-width:2.5px; }
+.zriv { font:italic 500 9.5px Roboto,sans-serif; paint-order:stroke; stroke:#fff; stroke-width:2.5px; }
 .legend { font-size:13px; color:var(--n8); }
 .legend h3 { font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--n7); font-weight:700; margin:0 0 8px; }
 .legend .row { display:flex; align-items:center; gap:9px; margin:6px 0; }
+.legend .sw { width:14px; height:14px; border-radius:3px; border:1px solid #9aa4a6; flex:none; }
 .legend .dot { width:12px; height:12px; border-radius:50%; border:1.5px solid #1f2324; flex:none; background:#fff; }
-.legend .sw { width:14px; height:6px; border-radius:3px; flex:none; }
+.legend .note { font-size:12px; color:var(--n7); margin-top:14px; }
 figure { margin:20px 0 8px; }
-figure svg { display:block; width:100%; height:auto; border:1px solid #e2e7e7; border-radius:4px; background:#fff; }
 figcaption { font-size:12px; color:var(--n7); margin-top:7px; line-height:1.5; }
 .smgrid { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:14px; }
-.sm { border:1px solid #e2e7e7; border-radius:4px; background:#fff; padding:10px 12px 8px; min-width:0; }
-.sm svg { display:block; width:100%; height:auto; border:none; }
-.smhead { display:flex; justify-content:space-between; align-items:baseline; gap:10px; font-size:14px; font-weight:700; color:var(--n9); margin:0 0 4px; }
-.smhead .rivdot { width:10px; height:10px; }
-.smpeak { font-size:12px; font-weight:400; color:var(--n7); white-space:nowrap; }
+@media (max-width:720px){ .smgrid { grid-template-columns:1fr; } }
+.sm { border:1px solid #e2e7e7; border-radius:5px; background:#fff; padding:10px 12px 8px; min-width:0; }
+.sm.act { border-top:3px solid #B34036; }
+.sm svg { display:block; width:100%; height:auto; }
+.smhead { display:flex; justify-content:space-between; align-items:baseline; gap:10px; font-family:'Merriweather',Georgia,serif; font-size:14px; font-weight:700; color:var(--n9); margin:0 0 4px; }
+.smpeak { font-family:'Roboto',sans-serif; font-size:12px; font-weight:400; color:var(--n7); white-space:nowrap; }
 .smpeak.over { color:#B34036; font-weight:700; }
 .smleg { display:flex; flex-wrap:wrap; gap:4px 14px; font-size:11px; color:var(--n7); margin-top:2px; }
 .smleg svg { display:inline-block; width:22px; height:8px; vertical-align:middle; margin-right:4px; }
-@media (max-width:720px){ .smgrid { grid-template-columns:1fr; } }
+details.howto { margin:14px 0 4px; border:1px solid #e2e7e7; border-radius:6px; background:#fff; }
+details.howto summary { cursor:pointer; padding:10px 14px; font-weight:500; color:var(--b7); }
+details.howto > p, details.howto > div { padding:0 14px; }
+details.howto p.muted { color:var(--n7); font-size:12.5px; padding-bottom:10px; }
+.howto-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+@media (max-width:760px){ .howto-grid { grid-template-columns:1fr } }
+.howto-grid figure { margin:8px 0; }
+.howto-grid .sm { padding:8px 10px 6px; }
 table.data { border-collapse:collapse; width:100%; margin:12px 0 4px; font-size:13px; }
 table.data th { text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--n7); font-weight:700; border-bottom:2px solid var(--b1); padding:7px 9px 6px; }
 table.data td { border-bottom:1px solid #eef1f1; padding:6px 9px; color:var(--n8); white-space:nowrap; }
 table.data td.n, table.data th.n { text-align:right; font-variant-numeric:tabular-nums; }
 table.data td.over { color:#B34036; font-weight:600; }
-.rivdot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px; vertical-align:1px; }
 .bar { display:inline-block; height:9px; background:var(--b1); border-radius:2px; vertical-align:middle; margin-right:6px; }
 .bar.over { background:#B34036; }
 .tablewrap { overflow-x:auto; }
 footer { margin:34px 44px 0; padding:14px 0 40px; border-top:1px solid #eef1f1; font-size:12.5px; color:var(--n7); max-width:95ch; }
 footer p { margin:5px 0; line-height:1.6; }
-@media (max-width:640px){ article { padding:4px 22px 16px; } .hero { padding:32px 22px 28px; } footer { margin:34px 22px 0; } .brand { padding:14px 22px; } }
+@media (max-width:640px){ article { padding:4px 22px 16px; } .hero { padding:32px 22px 28px; } footer { margin:34px 22px 0; } .brand { padding:12px 22px; } .brand img { height:34px; } }
 </style>
 </head>
 <body>
@@ -88,50 +116,72 @@ footer p { margin:5px 0; line-height:1.6; }
   </div>
   <header class="hero">
     <div class="inner">
-      <p class="eyebrow">Ethiopia · riverine flood areas</p>
+      <p class="crumb">Live monitoring · <a href="methodology/">how the thresholds were set</a></p>
       <h1>Ethiopia Riverine Flood Watch</h1>
-      <p>Daily monitoring of GloFAS river forecasts on the seven river systems the EDRMC lists
-         as riverine flood risks: Wabi Shebelle, Genale Dawa, lower Omo, Bilate, the Abaya-Chamo
-         lakes, Baro and Akobo. The trigger is reached when any river system is forecast at or
-         over its OND threshold on a forecast day between 1 October and 31 December.</p>
+      <p>A daily check of the GloFAS river forecast for the next 10 days at 14 stations on the seven
+         river systems the EDRMC lists as riverine flood risks: Wabi Shebelle, Genale Dawa, lower Omo,
+         Bilate, the Abaya-Chamo lakes, Baro and Akobo. Each station's forecast is compared with its
+         October to December threshold. Updated once a day from about 14:15 EAT, after GloFAS
+         publishes the day's forecast.</p>
     </div>
   </header>
 
   <article>
     <div id="banner" class="banner"><span class="status">Loading</span></div>
+    <div id="explain" class="callout"></div>
+    <div id="windows" class="grid4"></div>
 
     <h2>Where the rivers stand</h2>
     <div class="maprow">
-      <div class="map"><svg id="map" role="img" aria-label="Map of Ethiopia with the riverine zones shaded by their river system's trigger status and the fourteen monitored stations"></svg></div>
+      <div class="map"><svg id="map" role="img" aria-label="Map of Ethiopia with the riverine zones shaded by their river system's status and the fourteen monitored stations"></svg></div>
       <div class="legend" id="maplegend"></div>
     </div>
 
-    <h2>Forecast against the thresholds</h2>
+    <h2>Latest forecasts against the thresholds</h2>
     <figure>
       <div class="smgrid" id="chartgrid"></div>
       <figcaption id="chartcap"></figcaption>
     </figure>
+    <details class="howto">
+      <summary>How to read these charts</summary>
+      <p>Each panel is one river system. Each line is one station's forecast for the next 10 days, shown
+         as a percentage of that station's own threshold, so stations of very different size share one
+         scale. The red dashed line is the threshold (100%). A river is REACHED as soon as any one of its
+         stations goes over the dashed line on a day between 1 October and 31 December.</p>
+      <div class="howto-grid" id="examples"></div>
+      <p class="muted">These three panels are illustrations, not readings. They reuse one real station's
+         forecast with its values scaled up or down.</p>
+    </details>
 
     <h2>Forecast peak at each station</h2>
     <p>The highest ensemble-median value on forecast days between 1 October and 31 December, against
-       the station's threshold. A ratio of 1.00&times; or more means the station is over
-       and its river system reaches the trigger.</p>
+       the station's threshold. A ratio of 1.00&times; or more means the station is at or over its
+       threshold, and its river system is REACHED.</p>
     <div class="tablewrap" id="tablebox"></div>
 
     <h2>How to read this page</h2>
     <ul>
-      <li>GloFAS runs the same 10-day forecast 51 times with slightly different starting
-        weather; this page uses the ensemble median for each day. Only forecast days falling
-        in October to December count.</li>
-      <li>Each river's threshold starts at the peak of its 3rd-largest OND season on the
-        2003 to 2025 GloFAS record and is lowered where that catches further seasons already
-        inside the trigger's activation years, without letting any new year in: crossing it is
-        a 1-in-8 to 1-in-6 year event depending on the river. The depth was chosen so that the
-        trigger as a whole (any river over its threshold) has an overall activation frequency of
-        1-in-3 years: on the record it activates in 8 of 23 years (2008, 2011, 2013, 2017,
-        2019, 2023, 2024, 2025).</li>
-      <li>The banner, the shaded zones on the map, the river charts and the table all show this one
-        rule. Zone shading follows the river system that puts the zone at risk.</li>
+      <li><strong>What is checked.</strong> Every day, GloFAS runs its 10-day river forecast 51 times
+        from slightly different starting weather. This page uses the middle value of those 51 runs (the
+        ensemble median) for each day, at 14 stations on 7 river systems.</li>
+      <li><strong>When a river is REACHED.</strong> A river is REACHED when any one of its stations is
+        forecast at or over its threshold on a day between 1 October and 31 December. The banner shows
+        REACHED when at least one river is. Rivers are checked separately: one river reaching its
+        threshold does not depend on the others.</li>
+      <li><strong>Where the thresholds come from.</strong> Each station's threshold is set from the
+        October to December seasons 2003 to 2025 on the GloFAS version 4 record (the version the live
+        forecast runs on). On that record, a single river reaches its threshold about 1 year in 6 to
+        8, and at least one of the seven rivers about 1 year in 3 (8 of 23 years: 2008, 2011, 2013,
+        2017, 2019, 2023, 2024, 2025). Details, tables and the record against floods: the
+        <a href="methodology/">methods page</a>.</li>
+      <li><strong>Only October to December counts.</strong> The page updates all year. Forecast days
+        outside October to December are shaded grey in the charts and do not count.</li>
+      <li><strong>Monitoring only.</strong> There is no official trigger behind this page, and nothing
+        is released when a river is REACHED.</li>
+      <li><strong>Limits.</strong> All values are model forecasts, not gauge readings. The Kulfo, Slena
+        and Sego at Arba Minch are too small for GloFAS's grid: the Gamo lakes station is the
+        Abaya-Chamo lake system. GloFAS forecasts further ahead tend to read lower than nearer ones,
+        so a crossing often shows up only in the last few days before it.</li>
     </ul>
 
     <h2 id="contact">Contact</h2>
@@ -154,141 +204,203 @@ const RIVERS = Object.keys(RIVER_COLOR);
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const fmtDate = iso => { const [y,m,d] = iso.split("-").map(Number); return d + " " + MONTHS[m-1] + " " + y; };
 const fmtDay = iso => { const [y,m,d] = iso.split("-").map(Number); return d + " " + MONTHS[m-1]; };
-const n0 = x => x == null ? "-" : Math.round(x).toLocaleString("en-GB");
+const n0 = x => x == null ? "" : Math.round(x).toLocaleString("en-GB");
 const shortName = s => s.replace(/ \(.*\)$/, "");
+const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+const pct = r => Math.round(r * 100) + "%";
 
-/* banner */
+const byRiver = {};
+for (const r of RIVERS) byRiver[r] = DATA.stations.filter(s => s.river === r);
+const zonesOf = {};
+for (const z of DATA.map.zones) for (const r of z.rivers) (zonesOf[r] = zonesOf[r] || []).push(z.name);
+const reachedRivers = RIVERS.filter(r => (DATA.rivers_status[r] || {}).reached);
+const anyInWindow = DATA.stations.some(s => s.leads.some(l => l.in_ond));
+
+/* banner + plain-language summary */
 {
   const b = document.getElementById("banner");
   b.className = "banner" + (DATA.trigger_reached ? " error" : "");
-  const over = Object.entries(DATA.rivers_status).filter(([, r]) => r.reached).map(([k]) => k);
-  const status = DATA.trigger_reached ? "Trigger reached: " + over.join(", ") : "Trigger not reached";
-  b.innerHTML = `<span class="status">${status}</span>
-    <span class="meta">Rule: any of the seven river systems at or over its OND threshold
-    (set on each river's own top seasons 2003 to 2025, a 1-in-8 to 1-in-6 river event) ·
-    overall activation frequency 1-in-3.0 years<br>
-    Forecast issued <b>${fmtDate(DATA.issued)}</b> (GloFAS ensemble median, leads 1 to 10 days) ·
-    GloFAS version ${DATA.threshold_version.replace("v","").replace("_0","")} thresholds ·
-    ${DATA.stations.length} stations on 7 rivers · page generated ${DATA.generated}</span>`;
+  const status = DATA.trigger_reached ? "Reached: " + reachedRivers.join(", ") : "Not reached";
+  const first = DATA.stations[0].leads, last = first[first.length - 1];
+  b.innerHTML = `<span class="status">${esc(status)}</span>
+    <span class="meta">Forecast issued <b>${fmtDate(DATA.issued)}</b> (GloFAS, ensemble median of 51 runs) ·
+    covers <b>${fmtDay(first[0].valid)} to ${fmtDay(last.valid)}</b><br>
+    GloFAS version ${DATA.threshold_version.replace("v","").replace("_0","")} · ${DATA.stations.length} stations on 7 river systems ·
+    page updated ${esc(DATA.generated)}</span>`;
+  const top = DATA.stations.filter(s => s.peak_ratio != null).sort((a, b) => b.peak_ratio - a.peak_ratio)[0];
+  let msg;
+  if (!anyInWindow) msg = "No forecast day falls between 1 October and 31 December yet, so no river can be REACHED today.";
+  else if (DATA.trigger_reached)
+    msg = `<b>${esc(reachedRivers.join(", "))}</b> ${reachedRivers.length > 1 ? "are" : "is"} forecast at or over the threshold at ` +
+          `${reachedRivers.length > 1 ? "least one station each" : "one or more stations"} in the next 10 days.`;
+  else msg = `No station is forecast at or over its threshold in the next 10 days. The highest is ` +
+             `<b>${esc(shortName(top.label))}</b> (${esc(top.river)}) at <b>${pct(top.peak_ratio)}</b> of its threshold.`;
+  document.getElementById("explain").innerHTML = msg +
+    " A river is REACHED when any one of its stations is forecast at or over its threshold on a day between" +
+    " 1 October and 31 December. Monitoring only: no official trigger, nothing is released.";
+}
+
+/* river cards, one per river system */
+{
+  document.getElementById("windows").innerHTML = RIVERS.map(river => {
+    const sts = byRiver[river], st = DATA.rivers_status[river] || {};
+    const nOver = sts.filter(s => s.reached).length;
+    const peaks = sts.map(s => s.peak_ratio).filter(v => v != null);
+    const cls = !st.in_window ? "closed" : st.reached ? "act" : "";
+    const pill = !st.in_window ? '<span class="pill grey">no Oct to Dec day yet</span>' : st.reached ? '<span class="pill red">reached</span>' : "";
+    return `<div class="win ${cls}"><h3><span class="rivdot" style="background:${RIVER_COLOR[river]}"></span>${esc(river)}${pill}</h3>
+      <div class="src">GloFAS · next 10 days · ${esc((zonesOf[river] || []).join(", "))}</div>
+      <div class="leg"><span>Stations at or over their threshold<br><span class="sub">REACHED if 1 or more</span></span>
+        <b class="${st.reached ? "fired" : ""}">${nOver}/${sts.length}</b></div>
+      <div class="leg"><span>Highest forecast<br><span class="sub">share of the station's threshold</span></span>
+        <b class="${st.reached ? "fired" : ""}">${peaks.length ? pct(Math.max(...peaks)) : "-"}</b></div>
+    </div>`;
+  }).join("");
 }
 
 /* map */
 {
-  const allPts = DATA.map.regions.flatMap(z => z.rings.flat());
+  const allPts = DATA.map.zones.flatMap(z => z.rings.flat()).concat(DATA.stations.map(s => [s.lon, s.lat]));
   const lons = allPts.map(p => p[0]), lats = allPts.map(p => p[1]);
-  const pad = 0.2;
+  const pad = 0.6;
   const LON0 = Math.min(...lons) - pad, LON1 = Math.max(...lons) + pad;
   const LAT0 = Math.min(...lats) - pad, LAT1 = Math.max(...lats) + pad;
   const W = 780, H = Math.round(W * (LAT1 - LAT0) / (LON1 - LON0));
   const X = lon => (lon - LON0) / (LON1 - LON0) * W;
   const Y = lat => H - (lat - LAT0) / (LAT1 - LAT0) * H;
-  const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
   const pathOf = rings => rings.map(ring =>
     ring.map((p,i) => (i?"L":"M") + X(p[0]).toFixed(1) + " " + Y(p[1]).toFixed(1)).join("") + "Z").join("");
   let g = "";
-  for (const r of DATA.map.regions)
-    g += '<path class="region" d="' + pathOf(r.rings) + '"></path>';
+  for (const r of DATA.map.regions) g += '<path class="region" d="' + pathOf(r.rings) + '"></path>';
   for (const z of DATA.map.zones) {
     const rs = z.rivers.map(r => DATA.rivers_status[r]).filter(Boolean);
-    const reached = rs.some(r => r.reached);
-    const inWindow = rs.some(r => r.in_window);
+    const reached = rs.some(r => r.reached), inWindow = rs.some(r => r.in_window);
     const cls = "zone" + (reached ? " reached" : inWindow ? " clear" : "");
-    const state = reached ? "trigger reached" : inWindow ? "trigger not reached" : "no October to December day in the forecast yet";
-    g += '<path class="' + cls + '" d="' + pathOf(z.rings) + '"><title>' +
-      esc(z.name + " (" + z.rivers.join(", ") + "): " + state) + "</title></path>";
+    const state = reached ? "REACHED" : inWindow ? "not reached" : "no October to December day in the forecast yet";
+    g += '<path class="' + cls + '" d="' + pathOf(z.rings) + '"><title>' + esc(z.name + " (" + z.rivers.join(", ") + "): " + state) + "</title></path>";
   }
   for (const c of (DATA.rivers || []))
     g += '<circle class="rivcell" cx="' + X(c[0]).toFixed(1) + '" cy="' + Y(c[1]).toFixed(1) + '" r="' + (c[2] >= 100 ? 1.9 : 1.3) + '"></circle>';
+  // zones too small to hold their own label get it outside, on a leader line
+  const OUTSIDE = { "Itang Special woreda": "ne", "Nuwer": "n" };
+  const SHIFT = { "Shabelle": [0, -16], "Gamo": [-16, -4] };
   for (const z of DATA.map.zones) {
     const ring = z.rings[0];
-    const cx = ring.reduce((a,p) => a + X(p[0]), 0) / ring.length;
-    const cy = ring.reduce((a,p) => a + Y(p[1]), 0) / ring.length;
-    g += '<text class="zlbl" x="' + cx.toFixed(1) + '" y="' + cy.toFixed(1) + '" text-anchor="middle">' + esc(z.name) + "</text>";
+    let cx = ring.reduce((a,p) => a + X(p[0]), 0) / ring.length, cy = ring.reduce((a,p) => a + Y(p[1]), 0) / ring.length;
+    let anchor = "middle";
+    const side = OUTSIDE[z.name];
+    if (side) {
+      const xs = z.rings.flat().map(p => X(p[0])), ys = z.rings.flat().map(p => Y(p[1]));
+      const lx = side === "ne" ? Math.max(...xs) + 16 : Math.max(6, Math.min(...xs)), ly = Math.min(...ys) - 14;
+      g += '<line x1="' + cx.toFixed(1) + '" y1="' + cy.toFixed(1) + '" x2="' + (side === "ne" ? lx - 3 : lx + 12).toFixed(1) + '" y2="' + (ly + 12).toFixed(1) + '" stroke="#7c8789" stroke-width=".8"></line>';
+      cx = lx; cy = ly; anchor = "start";
+    } else if (SHIFT[z.name]) { cx += SHIFT[z.name][0]; cy += SHIFT[z.name][1]; }
+    g += '<text class="zlbl" x="' + cx.toFixed(1) + '" y="' + (cy - 2).toFixed(1) + '" text-anchor="' + anchor + '">' + esc(z.name) + "</text>";
+    g += '<text class="zriv" x="' + cx.toFixed(1) + '" y="' + (cy + 9).toFixed(1) + '" text-anchor="' + anchor + '">' +
+         z.rivers.map(r => '<tspan fill="' + RIVER_COLOR[r] + '">' + esc(r) + "</tspan>").join('<tspan fill="#5e6a6b">, </tspan>') + "</text>";
   }
   for (const st of DATA.stations) {
-    const x = X(st.lon), y = Y(st.lat);
-    const title = st.label + " (" + st.river + "): " + (st.peak_ratio == null ? "no October to December day in the forecast yet" : st.peak_ratio.toFixed(2) + "x its threshold");
-    g += '<circle class="pt' + (st.reached ? " over" : "") + '" cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="5.5"><title>' + esc(title) + "</title></circle>";
+    const title = shortName(st.label) + " (" + st.river + "): " + (st.peak_ratio == null ? "no October to December day in the forecast yet" : pct(st.peak_ratio) + " of its threshold");
+    g += '<circle class="pt' + (st.reached ? " over" : "") + '" cx="' + X(st.lon).toFixed(1) + '" cy="' + Y(st.lat).toFixed(1) + '" r="6"' +
+         (st.reached ? "" : ' style="stroke:' + RIVER_COLOR[st.river] + ';stroke-width:2.6"') + "><title>" + esc(title) + "</title></circle>";
   }
   const svg = document.getElementById("map");
   svg.setAttribute("viewBox", "0 0 " + W + " " + H);
   svg.innerHTML = g;
-  document.getElementById("maplegend").innerHTML = "<h3>Riverine zones</h3>" +
-    '<div class="row"><span class="sw" style="background:rgba(179,64,54,.28);border:1px solid #B34036"></span>Trigger reached</div>' +
-    '<div class="row"><span class="sw" style="background:rgba(46,139,110,.16);border:1px solid #2E8B6E"></span>Trigger not reached</div>' +
-    '<div class="row"><span class="sw" style="background:#e9eeee;border:1px solid #9aa4a6"></span>No October to December day in the forecast yet</div>' +
-    "<h3 style='margin-top:16px'>Stations</h3>" +
+  const riverRows = RIVERS.map(r => '<div class="row" style="align-items:flex-start"><span class="dot" style="border-color:' + RIVER_COLOR[r] +
+    ';border-width:2.6px;margin-top:3px"></span><span><b style="font-weight:500;color:var(--n9)">' + esc(r) + "</b><br>" +
+    '<span style="font-size:12px;color:var(--n7)">' + esc((zonesOf[r] || []).join(", ")) + "</span></span></div>").join("");
+  document.getElementById("maplegend").innerHTML =
+    '<div><h3>Rivers and their zones</h3><div class="riverlist">' + riverRows + "</div></div>" +
+    "<div><h3>Zone status</h3>" +
+    '<div class="row"><span class="sw" style="background:rgba(179,64,54,.28);border-color:#B34036"></span>REACHED</div>' +
+    '<div class="row"><span class="sw" style="background:rgba(46,139,110,.16);border-color:#2E8B6E"></span>Not reached</div>' +
+    '<div class="row"><span class="sw" style="background:#e9eeee"></span>No October to December day in the forecast yet</div>' +
+    '<div class="note">Each zone takes the status of the river named under it on the map. Agnewak is at risk from both the Baro and the Akobo.</div></div>' +
+    "<div><h3>Stations</h3>" +
+    '<div class="row"><span class="dot" style="border-color:#2a78d6;border-width:2.6px"></span>Below its threshold (ring in its river\'s colour)</div>' +
     '<div class="row"><span class="dot" style="background:#B34036;border-color:#7A241C"></span>At or over its threshold</div>' +
-    '<div class="row"><span class="dot"></span>Below its threshold</div>' +
-    "<h3 style='margin-top:16px'>Map</h3>" +
-    '<div class="row"><span class="sw" style="background:#4a90c2;opacity:.55"></span>River channels (GloFAS)</div>' +
-    '<div class="row">Point at a zone or a dot for its status</div>';
+    '<div class="row"><span class="sw" style="background:#4a90c2;opacity:.55;border:0"></span>River channels (GloFAS)</div>' +
+    '<div class="note">Point at a zone or a station for its status.</div></div>';
 }
 
-/* chart: one panel per river, each station as a share of its threshold */
-{
-  const W = 460, H = 190, m = { t:10, r:10, b:24, l:40 };
-  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+/* charts: one panel per river; the same drawing is reused for the how-to examples */
+const LEADS = DATA.stations[0].leads;
+const SCALE = Math.max(1.2, ...DATA.stations.flatMap(s => s.leads.map(l => l.ratio || 0))) * 1.08;
+function panel(title, lines, opts) {
+  const W = 460, H = 190, m = { t:10, r:10, b:24, l:40 }, iw = W - m.l - m.r, ih = H - m.t - m.b;
   const DASH = ["", "6 3", "2 2.5", "9 3 2 3", "1 3"];
-  const L0 = DATA.stations[0].leads;
-  const n = L0.length;
-  const maxRatio = Math.max(1.2, ...DATA.stations.flatMap(s => s.leads.map(l => l.ratio || 0))) * 1.08;
-  const step = maxRatio > 2.4 ? 0.5 : 0.25;
-  const x = i => m.l + i / (n - 1) * iw;
-  const y = r => m.t + ih - r / maxRatio * ih;
-  const firstOnd = L0.findIndex(l => l.in_ond);
-  let html = "";
-  for (const river of RIVERS) {
-    const sts = DATA.stations.filter(s => s.river === river);
-    if (!sts.length) continue;
-    const col = RIVER_COLOR[river];
-    const status = DATA.rivers_status[river] || {};
-    const peaks = sts.map(s => s.peak_ratio).filter(v => v != null);
-    const peakTxt = peaks.length
-      ? (status.reached ? "REACHED · " : "") + "peak " + Math.round(Math.max(...peaks) * 100) + "% of threshold"
-      : "no October to December day yet";
-    let g = "";
-    if (firstOnd !== 0) {
-      const xe = firstOnd < 0 ? W - m.r : (x(firstOnd - 1) + x(firstOnd)) / 2;
-      g += '<rect x="' + m.l + '" y="' + m.t + '" width="' + (xe - m.l).toFixed(1) + '" height="' + ih + '" fill="#f3f5f5"></rect>';
-      if (xe - m.l > 70)
-        g += '<text x="' + (m.l + 5) + '" y="' + (m.t + 11) + '" font-size="9" fill="#8a9496">before 1 Oct: not counted</text>';
-    }
-    for (let v = 0; v <= maxRatio + 1e-9; v += step) {
-      g += '<line x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + y(v).toFixed(1) + '" y2="' + y(v).toFixed(1) + '" stroke="#e6eaea"></line>';
-      g += '<text x="' + (m.l - 5) + '" y="' + (y(v) + 3.2).toFixed(1) + '" text-anchor="end" font-size="9" fill="#5e6a6b">' + Math.round(v * 100) + "%</text>";
-    }
-    g += '<line x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + y(1).toFixed(1) + '" y2="' + y(1).toFixed(1) + '" stroke="#B34036" stroke-width="1.4" stroke-dasharray="6 4"></line>';
-    g += '<text x="' + (W - m.r - 3) + '" y="' + (y(1) - 4).toFixed(1) + '" text-anchor="end" font-size="9" fill="#B34036" font-weight="600">threshold</text>';
-    L0.forEach((l, i) => {
-      if (i % 3 === 0)
-        g += '<text x="' + x(i).toFixed(1) + '" y="' + (H - 7) + '" text-anchor="' + (i === n - 1 ? "end" : "middle") +
-             '" font-size="9" fill="#5e6a6b">' + fmtDay(l.valid) + "</text>";
-    });
-    let leg = "";
-    sts.forEach((st, k) => {
-      const dash = DASH[k % DASH.length];
-      const pts = st.leads.map((l, i) => l.ratio == null ? null : [x(i), y(l.ratio)]);
-      let d = "", pen = false;
-      for (const p of pts) { if (!p) { pen = false; continue; } d += (pen ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1); pen = true; }
-      if (d)
-        g += '<path d="' + d + '" fill="none" stroke="' + col + '" stroke-width="1.9"' + (dash ? ' stroke-dasharray="' + dash + '"' : "") +
-             '><title>' + shortName(st.label) + "</title></path>";
-      if (sts.length > 1)
-        leg += '<span><svg viewBox="0 0 22 8"><line x1="0" x2="22" y1="4" y2="4" stroke="' + col + '" stroke-width="2"' +
-               (dash ? ' stroke-dasharray="' + dash + '"' : "") + '></line></svg>' + shortName(st.label) + "</span>";
-    });
-    if (sts.length === 1) leg = "<span>" + shortName(sts[0].label) + "</span>";
-    html += '<div class="sm"><div class="smhead"><span><span class="rivdot" style="background:' + col + '"></span>' + river +
-            '</span><span class="smpeak' + (status.reached ? " over" : "") + '">' + peakTxt + "</span></div>" +
-            '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + river + ' forecast as a share of its threshold">' + g + "</svg>" +
-            '<div class="smleg">' + leg + "</div></div>";
+  const leads = opts.leads, n = leads.length, top = opts.scale;
+  const step = top > 2.4 ? 0.5 : 0.25;
+  const x = i => m.l + i / (n - 1) * iw, y = r => m.t + ih - r / top * ih;
+  let g = "";
+  const outIdx = leads.map((l, i) => l.in_ond ? -1 : i).filter(i => i >= 0);
+  if (outIdx.length) {
+    const x0 = Math.max(m.l, x(outIdx[0] - 0.5)), x1 = Math.min(W - m.r, x(outIdx[outIdx.length - 1] + 0.5));
+    g += '<rect x="' + x0.toFixed(1) + '" y="' + m.t + '" width="' + (x1 - x0).toFixed(1) + '" height="' + ih + '" fill="#eef1f1"></rect>';
+    if (x1 - x0 > 60) g += '<text x="' + (x0 + 5).toFixed(1) + '" y="' + (m.t + 11) + '" font-size="9" fill="#7c8789">outside Oct to Dec: not counted</text>';
   }
-  document.getElementById("chartgrid").innerHTML = html;
+  for (let v = 0; v <= top + 1e-9; v += step) {
+    g += '<line x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + y(v).toFixed(1) + '" y2="' + y(v).toFixed(1) + '" stroke="#e6eaea"></line>';
+    g += '<text x="' + (m.l - 5) + '" y="' + (y(v) + 3.2).toFixed(1) + '" text-anchor="end" font-size="9" fill="#5e6a6b">' + Math.round(v * 100) + "%</text>";
+  }
+  g += '<line x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + y(1).toFixed(1) + '" y2="' + y(1).toFixed(1) + '" stroke="#B34036" stroke-width="1.5" stroke-dasharray="6 4"></line>';
+  g += '<text x="' + (W - m.r - 3) + '" y="' + (y(1) - 4).toFixed(1) + '" text-anchor="end" font-size="9" fill="#B34036" font-weight="700">threshold</text>';
+  leads.forEach((l, i) => {
+    if (i % 3 === 0 || i === n - 1)
+      g += '<text x="' + x(i).toFixed(1) + '" y="' + (H - 7) + '" text-anchor="' + (i === n - 1 ? "end" : i === 0 ? "start" : "middle") + '" font-size="9" fill="#5e6a6b">' + fmtDay(l.valid) + "</text>";
+  });
+  let leg = "";
+  lines.forEach((ln, k) => {
+    const dash = DASH[k % DASH.length];
+    let d = "", pen = false;
+    ln.ratios.forEach((r, i) => { if (r == null) { pen = false; return; } d += (pen ? "L" : "M") + x(i).toFixed(1) + " " + y(r).toFixed(1); pen = true; });
+    if (d) g += '<path d="' + d + '" fill="none" stroke="' + opts.color + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"' + (dash ? ' stroke-dasharray="' + dash + '"' : "") + '><title>' + esc(ln.name) + "</title></path>";
+    ln.ratios.forEach((r, i) => {
+      if (r != null && r >= 1 && leads[i].in_ond)
+        g += '<circle cx="' + x(i).toFixed(1) + '" cy="' + y(r).toFixed(1) + '" r="3.2" fill="#B34036" stroke="#fff" stroke-width="1"></circle>';
+    });
+    if (lines.length > 1)
+      leg += '<span><svg viewBox="0 0 22 8"><line x1="0" x2="22" y1="4" y2="4" stroke="' + opts.color + '" stroke-width="2"' + (dash ? ' stroke-dasharray="' + dash + '"' : "") + '></line></svg>' + esc(ln.name) + "</span>";
+  });
+  if (lines.length === 1) leg = "<span>" + esc(lines[0].name) + "</span>";
+  return '<div class="sm' + (opts.reached ? " act" : "") + '"><div class="smhead"><span><span class="rivdot" style="background:' + opts.color + '"></span>' + esc(title) +
+    '</span><span class="smpeak' + (opts.reached ? " over" : "") + '">' + opts.note + "</span></div>" +
+    '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + esc(title) + ' forecast as a share of the threshold">' + g + "</svg>" +
+    '<div class="smleg">' + leg + "</div></div>";
+}
+{
+  document.getElementById("chartgrid").innerHTML = RIVERS.map(river => {
+    const sts = byRiver[river], st = DATA.rivers_status[river] || {};
+    const peaks = sts.map(s => s.peak_ratio).filter(v => v != null);
+    const note = !peaks.length ? "no Oct to Dec day yet" : (st.reached ? "REACHED · " : "") + "peak " + pct(Math.max(...peaks)) + " of threshold";
+    return panel(river, sts.map(s => ({ name: shortName(s.label), ratios: s.leads.map(l => l.ratio) })),
+                 { leads: LEADS, scale: SCALE, color: RIVER_COLOR[river], reached: st.reached, note: note });
+  }).join("");
   document.getElementById("chartcap").textContent =
-    "One panel per river system. Each line is one station's ensemble median, day by day, as a share of its threshold; " +
-    "all panels share the same scale. The dashed line marks the threshold; shaded days before 1 October do not count toward the trigger. " +
-    "The peak figure is the highest share on October to December days.";
+    "One panel per river system, all on the same scale. Each line is one station's forecast (ensemble median) for each of the next 10 days, " +
+    "as a percentage of that station's threshold. The red dashed line is the threshold; a red dot marks a day at or over it. " +
+    "Grey shading marks days outside October to December, which do not count.";
+}
+
+/* how-to examples: one real station's forecast, scaled */
+{
+  const src = DATA.stations.filter(s => s.peak_ratio != null).sort((a, b) => b.peak_ratio - a.peak_ratio)[0] || DATA.stations[0];
+  const base = src.leads.map(l => l.ratio);
+  const peak = Math.max(...base.filter(v => v != null));
+  const scaled = f => base.map(v => v == null ? null : v * f);
+  const exLeads = LEADS.map(l => ({ ...l, in_ond: true }));
+  const shiftLeads = LEADS.map((l, i) => ({ ...l, in_ond: i >= 4 }));
+  const fNot = 0.8 / peak, fHit = 1.25 / peak;
+  const peakIdx = base.indexOf(peak);
+  const early = base.map((v, i) => v == null ? null : v * fHit * (i <= 2 ? 1 : 0.85 - 0.04 * i));
+  const ex = [
+    ["Not reached", [{ name: "every line under the dashed line", ratios: scaled(fNot) }], exLeads, false, "peak 80% of threshold"],
+    ["REACHED", [{ name: "one line over it on an Oct to Dec day", ratios: scaled(fHit) }], exLeads, true, "peak 125% of threshold"],
+    ["Not counted", [{ name: "over it only on a shaded day", ratios: early }], shiftLeads, false, "outside Oct to Dec"],
+  ];
+  document.getElementById("examples").innerHTML = ex.map(([t, lines, leads, reached, note]) =>
+    "<figure>" + panel(t, lines, { leads: leads, scale: 1.45, color: "#1f69b3", reached: reached, note: note }) + "</figure>").join("");
 }
 
 /* table */
@@ -298,9 +410,9 @@ const shortName = s => s.replace(/ \(.*\)$/, "");
     .map(st => {
       const dot = '<span class="rivdot" style="background:' + RIVER_COLOR[st.river] + '"></span>';
       if (st.peak_ratio == null)
-        return `<tr><td>${shortName(st.label)}</td><td>${dot}${st.river}</td><td colspan="4">no October to December day in the forecast yet</td></tr>`;
+        return `<tr><td>${esc(shortName(st.label))}</td><td>${dot}${esc(st.river)}</td><td colspan="4">no October to December day in the forecast yet</td></tr>`;
       const w = Math.max(2, Math.min(st.peak_ratio, 2.5) * 60);
-      return `<tr><td>${shortName(st.label)}</td><td>${dot}${st.river}</td>
+      return `<tr><td>${esc(shortName(st.label))}</td><td>${dot}${esc(st.river)}</td>
         <td class="n ${st.reached ? "over" : ""}">${n0(st.peak)}</td>
         <td>${fmtDay(st.peak_date)}</td>
         <td><span class="bar ${st.reached ? "over" : ""}" style="width:${w.toFixed(0)}px"></span>${st.peak_ratio.toFixed(2)}&times;</td>
@@ -314,20 +426,11 @@ const shortName = s => s.replace(/ \(.*\)$/, "");
 
 /* footer */
 document.getElementById("footer").innerHTML =
-  "<p><strong>Method.</strong> Thresholds are empirical: each river system's OND seasons 2003 to 2025 are " +
-  "ranked on the maximum over its stations of the normalised seasonal peak (station OND maximum / its median " +
-  "OND seasonal maximum), on GloFAS " + DATA.threshold_version.replace("_", ".") + " reanalysis at channel-snapped " +
-  "cells; the peak of the 3rd-largest season is the threshold, lowered where that catches further seasons " +
-  "already inside the trigger's activation years (no new year can enter). Forecast: operational GloFAS ensemble, 51 members, " +
-  "leads 1 to 10 days, read as the ensemble median; only October to December days count. Design and backtest: " +
-  "notebook 04 (activation years 2008, 2011, 2013, 2017, 2019, 2023, 2024, 2025; overall 1-in-3.0; each river " +
-  "1-in-8 to 1-in-6). Thresholds are pinned to the GloFAS version the operational forecast runs (a climatology check flags " +
-  "a future upgrade). How the watch works: <a href='methodology/'>methodology page</a>.</p>" +
-  "<p><strong>Coverage notes.</strong> The Kulfo, Slena and Sego at Arba Minch are below GloFAS's grid; the Gamo " +
-  "station is the Abaya-Chamo lake system cell. The Dawa is monitored by a dedicated cell in Daawa zone. " +
-  "Values are model quantities, not gauge readings. The page rebuilds daily from a GitHub Action at 11:15 UTC " +
-  "with a catch-up at 14:15 UTC.</p>" +
-  "<p>Forecast issued " + DATA.issued + " · page generated " + DATA.generated + ".</p>";
+  "<p>Forecast: operational GloFAS ensemble (51 runs), days 1 to 10, read at channel cells chosen on the GloFAS river network. " +
+  "Thresholds: GloFAS " + DATA.threshold_version.replace("_", ".") + " reanalysis, October to December 2003 to 2025; " +
+  "set out in full on the <a href='methodology/'>methods page</a>. The page rebuilds daily from a GitHub Action at 11:15 UTC, " +
+  "with a catch-up run at 14:15 UTC.</p>" +
+  "<p>Forecast issued " + fmtDate(DATA.issued) + " · page updated " + esc(DATA.generated) + ".</p>";
 </script>
 </body>
 </html>
