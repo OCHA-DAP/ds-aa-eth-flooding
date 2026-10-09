@@ -16,6 +16,7 @@ Reads from blob:
 - processed/glofas/ond_trigger_levels.csv           (notebook 04: station thresholds)
 - processed/glofas/station_zone_mapping_all.csv
 - processed/dashboard/river_cells.json
+- processed/glofas/glofas_reanalysis_recent.parquet  (fetch_glofas_reanalysis_recent.py; optional)
 
 The page checks the GloFAS ensemble median at leads 1 to 10 days; days outside
 October to December do not count. The version pin below guards the v4 scale.
@@ -44,6 +45,7 @@ HERE = Path(__file__).resolve().parent
 OUT_DIR = HERE / "dashboard"
 OUT_DIR.mkdir(exist_ok=True)
 RUN_LOG_BLOB = f"{PROJECT_PREFIX}/processed/dashboard/run_log.json"
+RECENT_DAYS = 30  # days of recent reanalysis shown before the forecast
 
 RIVERS = ["Wabi Shebelle", "Genale Dawa", "Omo", "Bilate", "Gamo lakes", "Baro", "Akobo"]
 # EDRMC riverine zones (ADM2_EN) -> the river systems that put them at risk
@@ -178,6 +180,16 @@ def main() -> None:
     issue = fc["issued_time"].max()
     fc = fc[fc["issued_time"] == issue]
 
+    try:
+        recent = stratus.load_parquet_from_blob(
+            f"{PROJECT_PREFIX}/processed/glofas/glofas_reanalysis_recent.parquet", stage=STAGE
+        )
+        recent["valid_time"] = pd.to_datetime(recent["valid_time"])
+        recent = recent[recent["valid_time"] > recent["valid_time"].max() - pd.Timedelta(days=RECENT_DAYS)]
+    except Exception as exc:
+        print(f"no recent reanalysis ({type(exc).__name__}): the charts show the forecast only")
+        recent = pd.DataFrame(columns=["station_id", "valid_time", "discharge"])
+
     rivers_series = mapping.set_index("station_id")["river"]
     matched, match_scores = pick_threshold_version(fc, load_reanalysis_by_version(), rivers_series)
     version = THRESHOLD_VERSION_PIN or matched
@@ -213,6 +225,9 @@ def main() -> None:
                 "ratio": round(median / level, 3),
             })
         leads.sort(key=lambda x: x["lead"])
+        past = recent[recent["station_id"] == sid].sort_values("valid_time")
+        past_days = [{"valid": t.strftime("%Y-%m-%d"), "value": round(float(q), 1), "ratio": round(float(q) / level, 3)}
+                     for t, q in zip(past["valid_time"], past["discharge"])]
         counting = [l for l in leads if l["in_ond"]]
         peak = max(counting, key=lambda l: l["ratio"]) if counting else None
         stations_payload.append({
@@ -223,6 +238,7 @@ def main() -> None:
             "lat": round(float(meta["station_lat"]), 3),
             "lon": round(float(meta["station_lon"]), 3),
             "leads": leads,
+            "recent": past_days,
             "peak": peak["median"] if peak else None,
             "peak_date": peak["valid"] if peak else None,
             "peak_ratio": peak["ratio"] if peak else None,
@@ -245,6 +261,7 @@ def main() -> None:
         "issued": issue.strftime("%Y-%m-%d"),
         "generated": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
         "threshold_version": version,
+        "reanalysis_to": recent["valid_time"].max().strftime("%Y-%m-%d") if len(recent) else None,
         "trigger_reached": trigger_reached,
         "rivers_status": rivers_status,
         "map": build_map_payload(),

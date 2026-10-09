@@ -53,6 +53,11 @@ jobs:
       - name: Fetch latest operational forecast
         run: python analysis/fetch_glofas_forecast_live.py
 
+      - name: Fetch recent reanalysis (context on the charts; optional)
+        continue-on-error: true
+        timeout-minutes: 30
+        run: python analysis/fetch_glofas_reanalysis_recent.py
+
       - name: Build dashboard
         run: python analysis/make_dashboard.py
 

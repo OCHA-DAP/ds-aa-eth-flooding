@@ -147,7 +147,9 @@ footer p { margin:5px 0; line-height:1.6; }
       <p>Each panel is one river system. Each line is one station's forecast for the next 10 days, shown
          as a percentage of that station's own threshold, so stations of very different size share one
          scale. The red dashed line is the threshold (100%). A river is REACHED as soon as any one of its
-         stations goes over the dashed line on a day between 1 October and 31 December.</p>
+         stations goes over the dashed line on a forecast day between 1 October and 31 December. The faint
+         line left of the dotted marker shows how the river actually ran over the past 30 days (GloFAS
+         reanalysis): it gives context only and never counts.</p>
       <div class="howto-grid" id="examples"></div>
       <p class="muted">These three panels are illustrations, not readings. They reuse one real station's
          forecast with its values scaled up or down.</p>
@@ -326,17 +328,23 @@ const anyInWindow = DATA.stations.some(s => s.leads.some(l => l.in_ond));
 
 /* charts: one panel per river; the same drawing is reused for the how-to examples */
 const LEADS = DATA.stations[0].leads;
-const SCALE = Math.max(1.2, ...DATA.stations.flatMap(s => s.leads.map(l => l.ratio || 0))) * 1.08;
+const SCALE = Math.max(1.2, ...DATA.stations.flatMap(s => s.leads.map(l => l.ratio || 0).concat((s.recent || []).map(p => p.ratio || 0)))) * 1.08;
+const dayNum = iso => { const [y,m,d] = iso.split("-").map(Number); return Date.UTC(y, m - 1, d) / 864e5; };
+const isoOf = n => new Date(n * 864e5).toISOString().slice(0, 10);
 function panel(title, lines, opts) {
-  const W = 460, H = 190, m = { t:10, r:10, b:24, l:40 }, iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const W = 460, H = 190, m = { t:14, r:10, b:24, l:40 }, iw = W - m.l - m.r, ih = H - m.t - m.b;
   const DASH = ["", "6 3", "2 2.5", "9 3 2 3", "1 3"];
   const leads = opts.leads, n = leads.length, top = opts.scale;
   const step = top > 2.4 ? 0.5 : 0.25;
-  const x = i => m.l + i / (n - 1) * iw, y = r => m.t + ih - r / top * ih;
+  const pastDays = lines.flatMap(ln => (ln.past || []).map(p => dayNum(p.valid)));
+  const f0 = dayNum(leads[0].valid), f1 = dayNum(leads[n - 1].valid);
+  const d0 = pastDays.length ? Math.min(...pastDays) : f0, span = Math.max(1, f1 - d0);
+  const x = day => m.l + (day - d0) / span * iw, y = r => m.t + ih - r / top * ih;
+  const half = iw / span / 2;
   let g = "";
   const outIdx = leads.map((l, i) => l.in_ond ? -1 : i).filter(i => i >= 0);
   if (outIdx.length) {
-    const x0 = Math.max(m.l, x(outIdx[0] - 0.5)), x1 = Math.min(W - m.r, x(outIdx[outIdx.length - 1] + 0.5));
+    const x0 = Math.max(m.l, x(dayNum(leads[outIdx[0]].valid)) - half), x1 = Math.min(W - m.r, x(dayNum(leads[outIdx[outIdx.length - 1]].valid)) + half);
     g += '<rect x="' + x0.toFixed(1) + '" y="' + m.t + '" width="' + (x1 - x0).toFixed(1) + '" height="' + ih + '" fill="#eef1f1"></rect>';
     if (x1 - x0 > 60) g += '<text x="' + (x0 + 5).toFixed(1) + '" y="' + (m.t + 11) + '" font-size="9" fill="#7c8789">outside Oct to Dec: not counted</text>';
   }
@@ -346,19 +354,39 @@ function panel(title, lines, opts) {
   }
   g += '<line x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + y(1).toFixed(1) + '" y2="' + y(1).toFixed(1) + '" stroke="#B34036" stroke-width="1.5" stroke-dasharray="6 4"></line>';
   g += '<text x="' + (W - m.r - 3) + '" y="' + (y(1) - 4).toFixed(1) + '" text-anchor="end" font-size="9" fill="#B34036" font-weight="700">threshold</text>';
-  leads.forEach((l, i) => {
-    if (i % 3 === 0 || i === n - 1)
-      g += '<text x="' + x(i).toFixed(1) + '" y="' + (H - 7) + '" text-anchor="' + (i === n - 1 ? "end" : i === 0 ? "start" : "middle") + '" font-size="9" fill="#5e6a6b">' + fmtDay(l.valid) + "</text>";
+  if (pastDays.length) {
+    const xs = x(f0) - half;
+    g += '<line x1="' + xs.toFixed(1) + '" x2="' + xs.toFixed(1) + '" y1="' + (m.t - 4) + '" y2="' + (m.t + ih) + '" stroke="#7c8789" stroke-width="1" stroke-dasharray="3 3"></line>';
+    g += '<text x="' + (xs - 4).toFixed(1) + '" y="' + (m.t + 3) + '" text-anchor="end" font-size="9" fill="#5e6a6b">past: reanalysis</text>';
+    g += '<text x="' + (xs + 4).toFixed(1) + '" y="' + (m.t + 3) + '" font-size="9" fill="#5e6a6b" font-weight="700">forecast</text>';
+  }
+  const ticks = pastDays.length
+    ? Array.from({ length: Math.floor(span / 7) + 1 }, (_, k) => d0 + 7 * k).filter(t => f1 - t >= 3).concat([f1])
+    : leads.map(l => dayNum(l.valid)).filter((t, i) => i % 3 === 0 || i === n - 1);
+  ticks.forEach((t, k) => {
+    const anchor = k === ticks.length - 1 ? "end" : k === 0 ? "start" : "middle";
+    g += '<text x="' + x(t).toFixed(1) + '" y="' + (H - 7) + '" text-anchor="' + anchor + '" font-size="9" fill="#5e6a6b">' + fmtDay(isoOf(t)) + "</text>";
   });
   let leg = "";
   lines.forEach((ln, k) => {
     const dash = DASH[k % DASH.length];
+    const dashAttr = dash ? ' stroke-dasharray="' + dash + '"' : "";
+    if (ln.past && ln.past.length) {
+      let p = "", pen = false, prev = null;
+      ln.past.forEach(pt => {
+        const t = dayNum(pt.valid);
+        if (pt.ratio == null || (prev != null && t - prev > 1)) pen = false;
+        if (pt.ratio != null) { p += (pen ? "L" : "M") + x(t).toFixed(1) + " " + y(pt.ratio).toFixed(1); pen = true; }
+        prev = t;
+      });
+      if (p) g += '<path d="' + p + '" fill="none" stroke="' + opts.color + '" stroke-opacity=".45" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"' + dashAttr + '><title>' + esc(ln.name) + " (reanalysis)</title></path>";
+    }
     let d = "", pen = false;
-    ln.ratios.forEach((r, i) => { if (r == null) { pen = false; return; } d += (pen ? "L" : "M") + x(i).toFixed(1) + " " + y(r).toFixed(1); pen = true; });
-    if (d) g += '<path d="' + d + '" fill="none" stroke="' + opts.color + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"' + (dash ? ' stroke-dasharray="' + dash + '"' : "") + '><title>' + esc(ln.name) + "</title></path>";
+    ln.ratios.forEach((r, i) => { if (r == null) { pen = false; return; } d += (pen ? "L" : "M") + x(dayNum(leads[i].valid)).toFixed(1) + " " + y(r).toFixed(1); pen = true; });
+    if (d) g += '<path d="' + d + '" fill="none" stroke="' + opts.color + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"' + dashAttr + '><title>' + esc(ln.name) + " (forecast)</title></path>";
     ln.ratios.forEach((r, i) => {
       if (r != null && r >= 1 && leads[i].in_ond)
-        g += '<circle cx="' + x(i).toFixed(1) + '" cy="' + y(r).toFixed(1) + '" r="3.2" fill="#B34036" stroke="#fff" stroke-width="1"></circle>';
+        g += '<circle cx="' + x(dayNum(leads[i].valid)).toFixed(1) + '" cy="' + y(r).toFixed(1) + '" r="3.2" fill="#B34036" stroke="#fff" stroke-width="1"></circle>';
     });
     if (lines.length > 1)
       leg += '<span><svg viewBox="0 0 22 8"><line x1="0" x2="22" y1="4" y2="4" stroke="' + opts.color + '" stroke-width="2"' + (dash ? ' stroke-dasharray="' + dash + '"' : "") + '></line></svg>' + esc(ln.name) + "</span>";
@@ -374,13 +402,17 @@ function panel(title, lines, opts) {
     const sts = byRiver[river], st = DATA.rivers_status[river] || {};
     const peaks = sts.map(s => s.peak_ratio).filter(v => v != null);
     const note = !peaks.length ? "no Oct to Dec day yet" : (st.reached ? "REACHED · " : "") + "peak " + pct(Math.max(...peaks)) + " of threshold";
-    return panel(river, sts.map(s => ({ name: shortName(s.label), ratios: s.leads.map(l => l.ratio) })),
+    return panel(river, sts.map(s => ({ name: shortName(s.label), ratios: s.leads.map(l => l.ratio), past: s.recent || [] })),
                  { leads: LEADS, scale: SCALE, color: RIVER_COLOR[river], reached: st.reached, note: note });
   }).join("");
   document.getElementById("chartcap").textContent =
-    "One panel per river system, all on the same scale. Each line is one station's forecast (ensemble median) for each of the next 10 days, " +
-    "as a percentage of that station's threshold. The red dashed line is the threshold; a red dot marks a day at or over it. " +
-    "Grey shading marks days outside October to December, which do not count.";
+    "One panel per river system, all on the same scale, each station as a percentage of its own threshold. " +
+    (DATA.reanalysis_to
+      ? "Left of the dotted line, the faint line is how the river actually ran over the past 30 days (GloFAS reanalysis, published a few days behind, latest " + fmtDay(DATA.reanalysis_to) + "). " +
+        "Right of it, the strong line is the forecast (ensemble median) for the next 10 days. "
+      : "Each line is one station's forecast (ensemble median) for each of the next 10 days. ") +
+    "The red dashed line is the threshold; a red dot marks a forecast day at or over it. " +
+    "Only forecast days count; grey shading marks forecast days outside October to December, which do not count.";
 }
 
 /* how-to examples: one real station's forecast, scaled */
