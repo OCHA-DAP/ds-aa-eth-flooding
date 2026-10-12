@@ -15,7 +15,8 @@ Outputs on blob (projects/dev):
   the dashboard always shows the newest issue; raw netcdfs accumulate)
 
 Re-runnable: skips products whose raw blob for the latest issue already
-exists, but still rebuilds the parquet from local/blob raw files.
+exists, unless a stored ensemble file has fewer than 50 members (fetched
+mid-publication), which is downloaded again; always rebuilds the parquet.
 """
 
 import logging
@@ -59,6 +60,7 @@ def box_of(lon: float) -> str:
     return "gambella" if lon < 35.65 else "omo_rift"
 LEADTIME_HOURS = [str(h) for h in range(24, 24 * 10 + 1, 24)]  # 1-10 days
 PRODUCTS = ["control_forecast", "ensemble_perturbed_forecasts"]
+ENSEMBLE_MEMBERS = 50  # perturbed members per operational issue (plus 1 control)
 CONSTRAINTS_URL = (
     "https://ewds.climate.copernicus.eu/api/catalogue/v1/collections/"
     "cems-glofas-forecast/constraints.json"
@@ -130,6 +132,31 @@ def extract(nc_path: Path, cells: pd.DataFrame, product: str) -> pd.DataFrame:
     return out[keep]
 
 
+def n_members(path: Path) -> int:
+    with xr.open_dataset(path) as ds:
+        return int(ds.sizes.get("number", 1))
+
+
+def download(client, issue, product, area, local: Path, blob_name: str) -> None:
+    client.retrieve("cems-glofas-forecast", {
+        "system_version": "operational",
+        "hydrological_model": "lisflood",
+        "product_type": product,
+        "variable": "river_discharge_in_the_last_24_hours",
+        "year": str(issue.year),
+        "month": f"{issue.month:02d}",
+        "day": f"{issue.day:02d}",
+        "leadtime_hour": LEADTIME_HOURS,
+        "data_format": "netcdf",
+        "area": area,
+    }, str(local))
+    with open(local, "rb") as f:
+        stratus.upload_blob_data(
+            f.read(), blob_name, stage=STAGE, container_name=CONTAINER,
+            content_type="application/x-netcdf",
+        )
+
+
 def fetch_issue(client, issue, cells, existing) -> list:
     """Fetch and extract both products for every box for one issue date.
     Raises on any failure, so the caller can fall back to an earlier issue."""
@@ -149,24 +176,24 @@ def fetch_issue(client, issue, cells, existing) -> list:
                     )
                     log.info(f"{stem}: pulled raw from blob")
                 else:
-                    client.retrieve("cems-glofas-forecast", {
-                        "system_version": "operational",
-                        "hydrological_model": "lisflood",
-                        "product_type": product,
-                        "variable": "river_discharge_in_the_last_24_hours",
-                        "year": str(issue.year),
-                        "month": f"{issue.month:02d}",
-                        "day": f"{issue.day:02d}",
-                        "leadtime_hour": LEADTIME_HOURS,
-                        "data_format": "netcdf",
-                        "area": area,
-                    }, str(local))
-                    with open(local, "rb") as f:
-                        stratus.upload_blob_data(
-                            f.read(), blob_name, stage=STAGE, container_name=CONTAINER,
-                            content_type="application/x-netcdf",
-                        )
+                    download(client, issue, product, area, local, blob_name)
                     log.info(f"{stem}: downloaded + uploaded")
+            # EWDS can serve an issue before all its members are published
+            # (2026-10-12: 15 and 20 of 50), and it caches the answer to an
+            # identical request, so the retry widens the box by one grid row
+            if product == "ensemble_perturbed_forecasts":
+                n, retried = n_members(local), False
+                for k in (1, 2):
+                    if n >= ENSEMBLE_MEMBERS:
+                        break
+                    log.warning(f"{stem}: {n} of {ENSEMBLE_MEMBERS} members stored; downloading again")
+                    retry_area = [area[0] + 0.05 * k] + list(area[1:])
+                    download(client, issue, product, retry_area, local, blob_name)
+                    n, retried = n_members(local), True
+                if n < ENSEMBLE_MEMBERS:
+                    log.warning(f"{stem}: EWDS still serves {n} of {ENSEMBLE_MEMBERS} members; using them for now")
+                elif retried:
+                    log.info(f"{stem}: complete ensemble ({n} members) stored")
             frames.append(extract(local, box_cells, product))
     return frames
 

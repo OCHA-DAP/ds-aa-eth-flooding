@@ -163,8 +163,9 @@ footer p { margin:5px 0; line-height:1.6; }
 
     <h2>How to read this page</h2>
     <ul>
-      <li><strong>What is checked.</strong> Every day, GloFAS runs its 10-day river forecast 51 times
-        from slightly different starting weather. This page uses the middle value of those 51 runs (the
+      <li><strong>What is checked.</strong> Every day, GloFAS runs its river forecast 50 times from
+        slightly different starting weather, plus one unperturbed control run. This page uses the middle
+        value of the 50 runs (the
         ensemble median) for each day, at 14 stations on 7 river systems.</li>
       <li><strong>When a river is REACHED.</strong> A river is REACHED when any one of its stations is
         forecast at or over its threshold on a day between 1 October and 31 December. The banner shows
@@ -224,8 +225,11 @@ const anyInWindow = DATA.stations.some(s => s.leads.some(l => l.in_ond));
   b.className = "banner" + (DATA.trigger_reached ? " error" : "");
   const status = DATA.trigger_reached ? "Reached: " + reachedRivers.join(", ") : "Not reached";
   const first = DATA.stations[0].leads, last = first[first.length - 1];
+  const mem = DATA.members || [50, 50];
+  const runsText = (mem[0] === mem[1] ? mem[0] : mem[0] + " to " + mem[1]) + " runs";
+  const partial = mem[0] < 50;
   b.innerHTML = `<span class="status">${esc(status)}</span>
-    <span class="meta">Forecast issued <b>${fmtDate(DATA.issued)}</b> (GloFAS, ensemble median of 51 runs) ·
+    <span class="meta">Forecast issued <b>${fmtDate(DATA.issued)}</b> (GloFAS, ensemble median of ${runsText}) ·
     covers <b>${fmtDay(first[0].valid)} to ${fmtDay(last.valid)}</b><br>
     GloFAS version ${DATA.threshold_version.replace("v","").replace("_0","")} · ${DATA.stations.length} stations on 7 river systems ·
     page updated ${esc(DATA.generated)}</span>`;
@@ -239,7 +243,9 @@ const anyInWindow = DATA.stations.some(s => s.leads.some(l => l.in_ond));
              `<b>${esc(shortName(top.label))}</b> (${esc(top.river)}) at <b>${pct(top.peak_ratio)}</b> of its threshold.`;
   document.getElementById("explain").innerHTML = msg +
     " A river is REACHED when any one of its stations is forecast at or over its threshold on a day between" +
-    " 1 October and 31 December. Monitoring only: no official trigger, nothing is released.";
+    " 1 October and 31 December. Monitoring only: no official trigger, nothing is released." +
+    (partial ? "<br><b>Incomplete forecast:</b> GloFAS had published only " + runsText.replace(" runs", "") + " of its 50 ensemble runs when this page was built." +
+               " The next run downloads the rest." : "");
 }
 
 /* river cards, one per river system */
@@ -458,7 +464,7 @@ function panel(title, lines, opts) {
 
 /* footer */
 document.getElementById("footer").innerHTML =
-  "<p>Forecast: operational GloFAS ensemble (51 runs), days 1 to 10, read at channel cells chosen on the GloFAS river network. " +
+  "<p>Forecast: operational GloFAS ensemble (median of the 50 perturbed runs), days 1 to 10, read at channel cells chosen on the GloFAS river network. " +
   "Thresholds: GloFAS " + DATA.threshold_version.replace("_", ".") + " reanalysis, October to December 2003 to 2025; " +
   "set out in full on the <a href='methodology/'>methods page</a>. The page rebuilds daily from a GitHub Action at 11:15 UTC, " +
   "with a catch-up run at 14:15 UTC.</p>" +
