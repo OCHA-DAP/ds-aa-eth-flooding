@@ -88,9 +88,9 @@ table.data.opts .hits { display:block; font-size:11.5px; color:#B34036; }
     <div class="chart" id="strip"></div>
     <p class="note" id="stripnote"></p>
 
-    <h2>Possible trigger (not an official trigger)</h2>
-    <p>Two stages, met when any of the three basins meets them. Backtested over the 23 seasons from 2003 to 2025;
-       not in use.</p>
+    <h2>What to watch for</h2>
+    <p>Two signs from the records above, counted when any of the three basins shows them, checked against the 23
+       seasons from 2003 to 2025. Monitoring only: no official trigger, nothing is released.</p>
     <div class="tablewrap" id="trigstages"></div>
     <div class="chart" id="trigstrip"></div>
     <p class="note" id="trignote"></p>
@@ -100,7 +100,7 @@ table.data.opts .hits { display:block; font-size:11.5px; color:#B34036; }
     <ul class="caveats">
       <li>Both thresholds are set on the same 23 seasons they are tested on.</li>
       <li id="trigsens"></li>
-      <li>The readiness backtest uses GloFAS river flow computed from past weather, not past forecasts.</li>
+      <li>The river flow check uses GloFAS river flow computed from past weather, not past forecasts.</li>
     </ul>
 
     <h2>Data and method</h2>
@@ -235,13 +235,13 @@ document.getElementById("summary").innerHTML = BASINS.map(b => {
   const yrs = k => T.years.filter(d => d[k]).map(d => d.year);
   const both = T.years.filter(d => d.readiness || d.action).map(d => d.year);
   const mm = T.thresholds.map(t => `${t.basin} ${Math.round(t.threshold_mm)} mm`).join(", ");
-  document.getElementById("trigstages").innerHTML = `<table class="data opts"><thead><tr><th>Stage</th><th>Condition (any basin)</th><th>Seasons met</th><th>Once every</th></tr></thead><tbody>
-    <tr><td class="opt">Readiness</td><td>GloFAS river flow reaches the river's threshold on the watch. In use this would be the GloFAS forecast for the next 1 to 10 days.</td><td>${yrs("readiness").length}<span class="yrs">${yrs("readiness").join(", ")}</span></td><td>${every(yrs("readiness").length)} years</td></tr>
-    <tr><td class="opt">Action</td><td>Basin 7-day rainfall (IMERG) reaches ${mm}: each basin's second-highest season from 2003 to 2025.</td><td>${yrs("action").length}<span class="yrs">${yrs("action").join(", ")}</span></td><td>${every(yrs("action").length)} years</td></tr>
-    <tr><td class="opt">Either stage</td><td></td><td>${both.length}<span class="yrs">${both.join(", ")}</span></td><td>${every(both.length)} years</td></tr>
+  document.getElementById("trigstages").innerHTML = `<table class="data opts"><thead><tr><th>Sign</th><th>What it is (any basin)</th><th>Seasons met</th><th>Once every</th></tr></thead><tbody>
+    <tr><td class="opt">River flow</td><td>GloFAS river flow reaches the river's threshold on the watch. On the watch this is the GloFAS forecast for the next 1 to 10 days.</td><td>${yrs("readiness").length}<span class="yrs">${yrs("readiness").join(", ")}</span></td><td>${every(yrs("readiness").length)} years</td></tr>
+    <tr><td class="opt">Heavy rainfall</td><td>Basin 7-day rainfall (IMERG) reaches ${mm}: each basin's second-highest season from 2003 to 2025.</td><td>${yrs("action").length}<span class="yrs">${yrs("action").join(", ")}</span></td><td>${every(yrs("action").length)} years</td></tr>
+    <tr><td class="opt">Either sign</td><td></td><td>${both.length}<span class="yrs">${both.join(", ")}</span></td><td>${every(both.length)} years</td></tr>
   </tbody></table>`;
 
-  const ROWS = [["Readiness (GloFAS)", "readiness", "#1f2324"], ["Action (rainfall)", "action", "#1f69b3"],
+  const ROWS = [["River flow sign (GloFAS)", "readiness", "#1f2324"], ["Heavy rainfall sign (IMERG)", "action", "#1f69b3"],
                 ["EM-DAT flood event", "emdat", "#B34036"], ["CERF allocation", "cerf", "#B34036"],
                 ["FloodScan 1-in-3 flood, Somali region", "floodscan_rp3_somali", "#B34036"]];
   const W = 900, l = 230, r = 10, rowH = 22, top = 14, cw = (W - l - r) / N;
@@ -261,11 +261,11 @@ document.getElementById("summary").innerHTML = BASINS.map(b => {
   });
   const ly = top + ROWS.length * rowH + 8;
   T.years.forEach((d, i) => g += `<text x="${(l + i * cw + cw / 2).toFixed(1)}" y="${ly}" text-anchor="middle" font-size="9.5" fill="#5e6a6b">${String(d.year).slice(2)}</text>`);
-  document.getElementById("trigstrip").innerHTML = `<h3>Trigger seasons and flood records, 2003 to 2025<span>shaded: trigger met and a flood recorded</span></h3><svg viewBox="0 0 ${W} ${ly + 8}" role="img" aria-label="Seasons the possible trigger was met, with EM-DAT, CERF and FloodScan flood records, 2003 to 2025">${g}</svg>`;
+  document.getElementById("trigstrip").innerHTML = `<h3>Seasons with a sign, and flood records, 2003 to 2025<span>shaded: a sign and a flood recorded</span></h3><svg viewBox="0 0 ${W} ${ly + 8}" role="img" aria-label="Seasons with a river flow or heavy rainfall sign, with EM-DAT, CERF and FloodScan flood records, 2003 to 2025">${g}</svg>`;
 
   const rec = d => d.emdat || d.cerf || d.floodscan_rp3_somali;
   const ra = T.years.filter(d => d.action), rr = T.years.filter(d => d.readiness);
-  document.getElementById("trignote").textContent = `${ra.filter(rec).length} of the ${ra.length} action seasons and ${rr.filter(rec).length} of the ${rr.length} readiness seasons appear in at least one flood record. Records as on the methods page: EM-DAT events in the watch's riverine areas, October to December; CERF flood allocations to Ethiopia; FloodScan events in the Somali region.`;
+  document.getElementById("trignote").textContent = `${ra.filter(rec).length} of the ${ra.length} heavy rainfall seasons and ${rr.filter(rec).length} of the ${rr.length} river flow seasons appear in at least one flood record. Records as on the methods page: EM-DAT events in the watch's riverine areas, October to December; CERF flood allocations to Ethiopia; FloodScan events in the Somali region.`;
 
   const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   const dd = iso => { if (!iso) return ""; const [, m, d] = iso.split("-").map(Number); return d + " " + MON[m - 1]; };
@@ -276,7 +276,7 @@ document.getElementById("summary").innerHTML = BASINS.map(b => {
      <td>${e.readiness ? when(e.glofas_reached, e.days_glofas_to_flood_peak) : ""}</td>
      <td>${e.action ? when(e.rain_available, e.days_rain_available_to_flood_peak) : ""}</td>
      <td>${dd(e.flood_peak)}</td></tr>`).join("");
-  document.getElementById("trigevents").innerHTML = `<table class="data opts"><thead><tr><th>Season</th><th>Basin</th><th>Readiness: GloFAS reached</th><th>Action: rainfall available</th><th>River zone flood peak</th></tr></thead><tbody>${rows}</tbody></table>`;
+  document.getElementById("trigevents").innerHTML = `<table class="data opts"><thead><tr><th>Season</th><th>Basin</th><th>River flow: GloFAS reached</th><th>Heavy rainfall: data available</th><th>River zone flood peak</th></tr></thead><tbody>${rows}</tbody></table>`;
 
   const sens = T.thresholds.map(t => `${t.basin} ${Math.round(t.threshold_mm)} mm against ${Math.round(t.next_below_mm)} mm`).join("; ");
   document.getElementById("trigsens").textContent = `Rainfall threshold against the next season below it: ${sens}. A threshold close to the next season can change with a small change in the data.`;
