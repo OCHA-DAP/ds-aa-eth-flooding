@@ -81,14 +81,15 @@ def main() -> None:
     except Exception:
         stored = pd.DataFrame(columns=["station_id", "valid_time", "discharge"])
     latest = latest_available()
-    start = latest - pd.Timedelta(days=DAYS_KEPT - 1)
-    if len(stored):
-        start = max(start, stored["valid_time"].max() + pd.Timedelta(days=1))
-    if start > latest:
+    # A requested day D comes back with valid_time D+1 (the 24 hours ending at D+1 00:00), so the days
+    # already stored are valid_time - 1. Request every day in the window not stored yet, which also fills gaps.
+    stored_days = set(pd.to_datetime(stored["valid_time"]).dt.normalize() - pd.Timedelta(days=1))
+    window = pd.date_range(latest - pd.Timedelta(days=DAYS_KEPT - 1), latest, freq="D")
+    days = pd.DatetimeIndex([d for d in window if d not in stored_days])
+    if days.empty:
         log.info(f"reanalysis up to date (latest published {latest.date()})")
         return
-    days = pd.date_range(start, latest, freq="D")
-    log.info(f"fetching v4 intermediate reanalysis {days[0].date()} to {days[-1].date()}")
+    log.info(f"fetching v4 intermediate reanalysis for {len(days)} days, {days[0].date()} to {days[-1].date()}")
 
     cells = stratus.load_csv_from_blob(f"{PROJECT_PREFIX}/raw/glofas/stations_v5_cells.csv", stage=STAGE)
     cells["box"] = cells["v5_lon"].map(box_of)

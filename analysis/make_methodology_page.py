@@ -268,7 +268,7 @@ footer p {{ margin:5px 0; line-height:1.6; }}
       <p>What sits behind the watch page: the rivers and zones it covers, how each river's
          October to December threshold was set, and how the
          years when thresholds were reached line up with the flood impact records. Every number, table and
-         figure below comes from the analysis notebook's own output.</p>
+         figure below comes straight from the analysis.</p>
     </div>
   </header>
 
@@ -324,17 +324,16 @@ footer p {{ margin:5px 0; line-height:1.6; }}
 
     <h2>Years reached and recorded floods</h2>
     <p>Three records beside the years when a threshold was reached: FloodScan flood events in the Somali-region riverine
-       zones (satellite; the extract for the other zones is not built and is a named gap),
-       EM-DAT flood events whose locations name the riverine areas and whose dates touch OND
-       (manually refreshed snapshot), and CERF allocations to Ethiopia with emergency type
-       flood (national record).</p>
+       zones (satellite; not yet available for the other zones), EM-DAT flood events whose locations name
+       the riverine areas and whose dates fall in October to December, and CERF flood allocations to
+       Ethiopia (national record).</p>
     <div class="tablewrap">{impact_table}</div>
     <p class="tnote">Shaded rows: years when a threshold was reached. The FloodScan column covers the
        Somali-region zones only; a dot marks a season with a flood event at that severity.</p>
 
     <h2>Comparison with GloFAS version 5</h2>
     <p>The watch uses GloFAS version 4 thresholds, the version the live forecast runs. For
-       reference, the same method on version 5 reanalysis (notebook 05) reaches a threshold in
+       reference, the same method on version 5 reanalysis reaches a threshold in
        9 years instead of 8: six years are shared, version 5 adds 2014, 2020 and 2021, and
        drops 2011 and 2013.</p>
     <div class="tablewrap">{v5_table}</div>
@@ -365,9 +364,8 @@ footer p {{ margin:5px 0; line-height:1.6; }}
   </article>
 
   <footer>
-    <p>Source: <a href="https://github.com/OCHA-DAP/ds-aa-eth-flooding/blob/main/analysis/04_ond_trigger_design.ipynb">analysis/04_ond_trigger_design.ipynb</a>
-       and <a href="https://github.com/OCHA-DAP/ds-aa-eth-flooding/blob/main/analysis/05_v5_reanalysis_test.ipynb">05_v5_reanalysis_test.ipynb</a>
-       in OCHA-DAP/ds-aa-eth-flooding · page generated {generated} from the executed notebooks.</p>
+    <p>The analysis code is public on GitHub: <a href="https://github.com/OCHA-DAP/ds-aa-eth-flooding">OCHA-DAP/ds-aa-eth-flooding</a>.
+       Page generated {generated}.</p>
     <p>Live monitoring: <a href="../">Ethiopia Riverine Flood Watch</a>.</p>
   </footer>
 </div>
