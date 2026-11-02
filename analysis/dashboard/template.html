@@ -460,8 +460,8 @@ function panel(title, lines, opts) {
 document.getElementById("footer").innerHTML =
   "<p>Forecast: operational GloFAS ensemble (51 runs), days 1 to 10, read at channel cells chosen on the GloFAS river network. " +
   "Thresholds: GloFAS " + DATA.threshold_version.replace("_", ".") + " reanalysis, October to December 2003 to 2025; " +
-  "set out in full on the <a href='methodology/'>methods page</a>. The page rebuilds daily from a GitHub Action at 11:15 UTC, " +
-  "with a catch-up run at 14:15 UTC.</p>" +
+  "set out in full on the <a href='methodology/'>methods page</a>. The page updates daily at about 11:15 UTC, " +
+  "and again at 14:15 UTC if the forecast is published late.</p>" +
   "<p>Forecast issued " + fmtDate(DATA.issued) + " · page updated " + esc(DATA.generated) + ".</p>";
 </script>
 </body>
