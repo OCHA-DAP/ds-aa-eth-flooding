@@ -180,8 +180,8 @@ table.data.opts .hits { display:block; font-size:11.5px; color:#B34036; }
 
     <h2>Data and method</h2>
     <ul>
-      <li>Rainfall is IMERG Late Run daily data from NASA, taken from our database as averages for each zone, for
-        1 October to 31 December. Each zone counts towards the basin in proportion to how much of it lies inside the
+      <li>Rainfall is IMERG Late Run daily data from NASA, averaged over each administrative zone, for 1 October
+        to 31 December. Each zone counts towards the basin in proportion to how much of it lies inside the
         basin. A 7-day total is one day's rainfall plus the six days before it.</li>
       <li>Flooding is FloodScan's standard flood extent from AER: the share of the river zones flooded each day, from
         1 October to 31 January, with each zone weighted by its area.</li>
