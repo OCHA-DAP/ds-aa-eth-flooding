@@ -164,16 +164,20 @@ table.data.opts .hits { display:block; font-size:11.5px; color:#B34036; }
 
     <h2>Possible thresholds</h2>
     <p>Two possible thresholds come out of the records above: one for river flow in GloFAS and one for rainfall
-       over the basin. The table shows how often each was reached in any of the three basins between 2003 and 2025. This is for monitoring
-       only. It is not an official trigger and nothing is released.</p>
+       over the basin. The table shows how often each was reached in any of the three basins between 2003 and 2025.
+       "How often" is (23 + 1) divided by the number of seasons. This is for monitoring only. It is not an official
+       trigger and nothing is released.</p>
     <div class="tablewrap" id="trigstages"></div>
     <div class="chart" id="trigstrip"></div>
     <p class="note" id="trignote"></p>
     <div class="tablewrap" id="trigevents"></div>
     <p class="note">The days are counted to the flood peak in the river zones, from the day GloFAS reached the
-       threshold or from the day the rainfall data came in, which is about two days after the rain.</p>
+       threshold or from the day the rainfall data came in, which is about two days after the rain. Rank is out of
+       the 23 seasons, 1 being the most flooded. <span id="leadnote"></span></p>
     <ul class="caveats">
       <li>Both thresholds were set using the same 23 seasons they are checked against.</li>
+      <li>The flood records are not split by basin. CERF allocations are national, FloodScan covers only the Somali
+        region, so it cannot confirm Omo Gibe seasons, and EM-DAT events are matched on the place names they list.</li>
       <li id="trigsens"></li>
       <li>The river flow check uses GloFAS river flow rebuilt from past weather, not the forecasts issued at the time.</li>
     </ul>
@@ -193,8 +197,12 @@ table.data.opts .hits { display:block; font-size:11.5px; color:#B34036; }
 
     <h2>Limitations</h2>
     <ul>
-      <li>In IMERG, 2000 has the highest 7-day rainfall of any season in Wabi Shebele and Genale Dawa. ERA5 does not
-        agree: it ranks that season 11th and 16th of 28, and FloodScan ranks the flooding 8th and 17th.</li>
+      <li>In IMERG, 2000 has the highest 7-day rainfall of any season in Wabi Shebele and Genale Dawa. For the
+        October to December total, ERA5 ranks 2000 11th and 16th of 28, where IMERG ranks it 5th and 4th, and
+        FloodScan ranks the flooding 8th and 17th.</li>
+      <li>FloodScan in South Omo sits higher from 2022: the median flooded share from October to January was 0.75 to
+        1.17% in 2022 to 2025, against 0.02 to 0.63% in 1998 to 2021. Two of Omo Gibe's three most flooded seasons,
+        2025 and 2023, fall in this period.</li>
       <li>In Genale Dawa, 2021 is the fifth most flooded season but the driest of all 28 for rainfall.</li>
       <li>IMERG is missing 14 to 16 November 2024 and 27 September 2025, and FloodScan is missing 25 November 2024.</li>
       <li>Zones that lie partly outside a basin bring in some rain from outside it. IMERG and FloodScan are both
@@ -222,7 +230,7 @@ document.getElementById("summary").innerHTML = BASINS.map(b => {
 }).join("") + (() => {
   const zc = Object.fromEntries(D.zone_corr.map(c => [c.zone, c.rho_wettest7])), gv = D.glofas_corr.flatMap(c => [c.rain7, c.total, c.flood]);
   const rng = zs => { const v = zs.map(z => zc[z]); return `${Math.min(...v).toFixed(2)} to ${Math.max(...v).toFixed(2)}`; };
-  return `<li>Rainfall and flooding tend to go together in Shabelle, Afder and South Omo (correlation ${rng(["Shabelle", "Afder", "South Omo"])}), much less so in Liban and Daawa (${rng(["Liban", "Daawa"])}). GloFAS river flow shows little link with either (${Math.min(...gv).toFixed(2)} to ${Math.max(...gv).toFixed(2)}).</li>`;
+  return `<li>Rainfall and flooding tend to go together in Shabelle, Afder and South Omo (correlation ${rng(["Shabelle", "Afder", "South Omo"])}), much less so in Liban and Daawa (${rng(["Liban", "Daawa"])}). GloFAS river flow shows little link with either (${Math.min(...gv).toFixed(2)} to ${Math.max(...gv).toFixed(2)}). Correlation goes from -1 to 1; with 28 seasons (rainfall and flooding) or 23 (GloFAS), values between about -0.4 and 0.4 could be chance.</li>`;
 })();
 
 /* map */
@@ -304,7 +312,7 @@ document.getElementById("summary").innerHTML = BASINS.map(b => {
   }
   document.getElementById("strip").innerHTML = `<h3>Top seasons in each record<span>shaded where two or more records agree</span></h3><svg viewBox="0 0 ${W} ${y0}" role="img" aria-label="Top seasons for rainfall, flooding and GloFAS river flow per basin, 2003 to 2025">${g}</svg>`;
   const gv = D.glofas_corr.flatMap(c => [c.rain7, c.total, c.flood]);
-  document.getElementById("stripnote").textContent = `The large dots show the five wettest seasons, the five most flooded seasons, and the seasons in which GloFAS reached the river's threshold. Correlation goes from -1 to 1, and with only 23 seasons anything between about -0.4 and 0.4 could be chance.`;
+  document.getElementById("stripnote").textContent = `The large dots show the five wettest seasons, the five most flooded seasons, and the seasons in which GloFAS reached the river's threshold.`;
 }
 
 /* possible trigger */
@@ -315,18 +323,18 @@ document.getElementById("summary").innerHTML = BASINS.map(b => {
   const mmv = T.thresholds.map(t => `${Math.round(t.threshold_mm)} mm in ${t.basin}`);
   const mm = mmv.slice(0, -1).join(", ") + " or " + mmv[mmv.length - 1];
   document.getElementById("trigstages").innerHTML = `<table class="data opts"><thead><tr><th>Possible threshold</th><th>What it means</th><th>Seasons</th><th>How often</th></tr></thead><tbody>
-    <tr><td class="opt">River flow</td><td>GloFAS river flow reaches the river's threshold. On the watch page this is checked with the GloFAS forecast for the next 10 days.</td><td>${yrs("readiness").length}<span class="yrs">${yrs("readiness").join(", ")}</span></td><td>once every ${every(yrs("readiness").length)} years</td></tr>
-    <tr><td class="opt">Rainfall</td><td>7-day rainfall over the basin reaches ${mm}. Each is the basin's second-highest season between 2003 and 2025.</td><td>${yrs("action").length}<span class="yrs">${yrs("action").join(", ")}</span></td><td>once every ${every(yrs("action").length)} years</td></tr>
+    <tr><td class="opt">River flow</td><td>GloFAS river flow reaches the river's threshold. The seasons here use GloFAS river flow rebuilt from past weather; the watch page checks the forecast for the next 10 days.</td><td>${yrs("readiness").length}<span class="yrs">${yrs("readiness").join(", ")}</span></td><td>once every ${every(yrs("readiness").length)} years</td></tr>
+    <tr><td class="opt">Rainfall</td><td>7-day rainfall over the basin reaches ${mm}. Each is the basin's second-highest season between 2003 and 2025, the years the GloFAS record covers.</td><td>${yrs("action").length}<span class="yrs">${yrs("action").join(", ")}</span></td><td>once every ${every(yrs("action").length)} years</td></tr>
     <tr><td class="opt">Either threshold</td><td></td><td>${both.length}<span class="yrs">${both.join(", ")}</span></td><td>once every ${every(both.length)} years</td></tr>
   </tbody></table>`;
 
   const ROWS = [["River flow threshold (GloFAS)", "readiness", "#1f2324"], ["Rainfall threshold (IMERG)", "action", "#1f69b3"],
                 ["EM-DAT flood event", "emdat", "#B34036"], ["CERF allocation", "cerf", "#B34036"],
-                ["FloodScan 1-in-3 flood, Somali region", "floodscan_rp3_somali", "#B34036"]];
+                ["FloodScan 1-in-5 flood, Somali region", "floodscan_rp5_somali", "#B34036"]];
   const W = 900, l = 230, r = 10, rowH = 22, top = 14, cw = (W - l - r) / N;
   let g = "";
   T.years.forEach((d, i) => {
-    if ((d.readiness || d.action) && (d.emdat || d.cerf || d.floodscan_rp3_somali))
+    if ((d.readiness || d.action) && (d.emdat || d.cerf || d.floodscan_rp5_somali))
       g += `<rect x="${(l + i * cw + 1).toFixed(1)}" y="${top - 8}" width="${(cw - 2).toFixed(1)}" height="${ROWS.length * rowH + 2}" fill="#f1e9c9" rx="3"></rect>`;
   });
   ROWS.forEach(([lab, key, col], j) => {
@@ -342,10 +350,10 @@ document.getElementById("summary").innerHTML = BASINS.map(b => {
   T.years.forEach((d, i) => g += `<text x="${(l + i * cw + cw / 2).toFixed(1)}" y="${ly}" text-anchor="middle" font-size="9.5" fill="#5e6a6b">${String(d.year).slice(2)}</text>`);
   document.getElementById("trigstrip").innerHTML = `<h3>Seasons a possible threshold was reached, compared with flood records<span>shaded where a threshold was reached and a flood was recorded</span></h3><svg viewBox="0 0 ${W} ${ly + 8}" role="img" aria-label="Seasons the river flow or rainfall threshold was reached, with EM-DAT, CERF and FloodScan flood records, 2003 to 2025">${g}</svg>`;
 
-  const rec = d => d.emdat || d.cerf || d.floodscan_rp3_somali;
+  const rec = d => d.emdat || d.cerf || d.floodscan_rp5_somali;
   const ra = T.years.filter(d => d.action), rr = T.years.filter(d => d.readiness);
   const part = xs => { const k = xs.filter(rec).length; return k === xs.length ? `All ${k}` : `${k} of the ${xs.length}`; };
-  document.getElementById("trignote").textContent = `${part(ra)} seasons that reached the rainfall threshold and ${part(rr)} that reached the river flow threshold show up in at least one flood record. The flood records are the same as on the methods page: EM-DAT flood events in the watch's riverine areas from October to December, CERF flood allocations to Ethiopia, and FloodScan flood events in the Somali region.`;
+  document.getElementById("trignote").textContent = `${part(ra)} seasons that reached the rainfall threshold and ${part(rr)} that reached the river flow threshold show up in at least one flood record. The flood records are the same as on the methods page: EM-DAT flood events in the watch's riverine areas from October to December, CERF flood allocations to Ethiopia, and FloodScan 1-in-5 flood events in the Somali region.`;
 
   const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   const dd = iso => { if (!iso) return ""; const [, m, d] = iso.split("-").map(Number); return d + " " + MON[m - 1]; };
@@ -355,8 +363,13 @@ document.getElementById("summary").innerHTML = BASINS.map(b => {
     `<tr><td>${e.year}</td><td class="basin" style="color:${COLOR[e.basin]}">${e.basin}</td>
      <td>${e.readiness ? when(e.glofas_reached, e.days_glofas_to_flood_peak) : ""}</td>
      <td>${e.action ? when(e.rain_available, e.days_rain_available_to_flood_peak) : ""}</td>
-     <td>${dd(e.flood_peak)}</td></tr>`).join("");
-  document.getElementById("trigevents").innerHTML = `<table class="data opts"><thead><tr><th>Season</th><th>Basin</th><th>GloFAS reached threshold</th><th>Rainfall data came in</th><th>Flood peak in river zones</th></tr></thead><tbody>${rows}</tbody></table>`;
+     <td>${dd(e.flood_peak)} <span class="sub">${e.flood_peak_pct.toFixed(2)}%, ${e.flood_rank} of 23</span></td></tr>`).join("");
+  const rain = T.events.filter(e => e.action), late = rain.filter(e => e.days_rain_available_to_flood_peak <= 0);
+  const near = BASINS.flatMap(b => D.years[b].filter(d => d.glofas_reached && d.glofas_ratio < 1.01).map(d => `${b} ${d.year}`));
+  const andList = xs => xs.length > 1 ? xs.slice(0, -1).join(", ") + " and " + xs[xs.length - 1] : xs[0];
+  document.getElementById("leadnote").textContent = `In ${late.length} of the ${rain.length} basin seasons that reached the rainfall threshold, the rainfall data came in on or after the flood peak.` +
+    (near.length ? ` ${andList(near)} reached the river flow threshold by less than 1%: each river's threshold was set at the level of one of its own seasons.` : "");
+  document.getElementById("trigevents").innerHTML = `<table class="data opts"><thead><tr><th>Season</th><th>Basin</th><th>GloFAS reached threshold</th><th>Rainfall data came in</th><th>Flood peak in river zones (share flooded, rank)</th></tr></thead><tbody>${rows}</tbody></table>`;
 
   // only the basins whose threshold is within 5% of the next season down
   const close = T.thresholds.filter(t => t.next_below_mm >= 0.95 * t.threshold_mm);
