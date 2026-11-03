@@ -34,10 +34,10 @@ article li { margin-bottom:6px; } article a { color:var(--b6); }
 .legend { font-size:13px; color:var(--n8); } .legend .row { display:flex; gap:9px; align-items:flex-start; margin:0 0 12px; }
 .legend .sw { width:14px; height:14px; border-radius:3px; flex:none; margin-top:3px; }
 .legend .sub { font-size:12px; color:var(--n7); }
-.chart { border:1px solid #e2e7e7; border-radius:5px; padding:10px 12px 6px; margin:14px 0; background:#fff; }
+.chart { border:1px solid #e2e7e7; border-radius:5px; padding:10px 12px 6px; margin:14px 0; background:#fff; overflow-x:auto; }
 .chart h3 { font-family:'Merriweather',Georgia,serif; font-size:15px; margin:0 0 4px; display:flex; justify-content:space-between; gap:10px; }
 .chart h3 span { font-family:'Roboto',sans-serif; font-weight:400; font-size:12px; color:var(--n7); }
-.chart svg { display:block; width:100%; height:auto; }
+.chart svg { display:block; width:100%; height:auto; min-width:720px; }  /* charts scroll sideways on phones instead of shrinking */
 figcaption, .note { font-size:12px; color:var(--n7); line-height:1.5; }
 table.data { border-collapse:collapse; width:100%; margin:12px 0 4px; font-size:13px; }
 table.data th { text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--n7); font-weight:700; border-bottom:2px solid var(--b1); padding:7px 9px 6px; vertical-align:bottom; }
@@ -78,7 +78,7 @@ table.data.opts .hits { display:block; font-size:11.5px; color:#B34036; }
     </div>
     <p class="note">Rainfall is measured over the whole basin (coloured). Flooding is measured in the zones along
        the rivers (hatched): Shabelle for Wabi Shebele, Afder, Liban and Daawa for Genale Dawa, and South Omo for
-       Omo Gibe.</p>
+       Omo Gibe. Zones are drawn whole, so some reach beyond the basin outline.</p>
 
     <h2>Rainfall and flooding by season</h2>
     <p>For each season, the top bar is the wettest 7 days over the basin and the bottom bar is the largest share
@@ -238,9 +238,9 @@ document.getElementById("summary").innerHTML = BASINS.map(b => {
     rs.forEach((d, i) => g += `<text x="${(l + i * cw + cw / 2).toFixed(1)}" y="${ly}" text-anchor="middle" font-size="9.5" fill="#5e6a6b">${String(d.year).slice(2)}</text>`);
     y0 = ly + 18;
   }
-  document.getElementById("strip").innerHTML = `<h3>Top seasons in each record<span>shaded where two or more records agree</span></h3><svg viewBox="0 0 ${W} ${y0}" role="img" aria-label="Top seasons for rainfall, flooding and GloFAS river flow per basin, 2003 to 2025">${g}</svg>`;
+  document.getElementById("strip").innerHTML = `<h3><span>shaded where two or more records agree</span></h3><svg viewBox="0 0 ${W} ${y0}" role="img" aria-label="Top seasons for rainfall, flooding and GloFAS river flow per basin, 2003 to 2025">${g}</svg>`;
   const gv = D.glofas_corr.flatMap(c => [c.rain7, c.total, c.flood]);
-  document.getElementById("stripnote").textContent = `The large dots show the five wettest seasons, the five most flooded seasons, and the seasons in which GloFAS reached the river's threshold.`;
+  document.getElementById("stripnote").textContent = `The large dots show the five wettest seasons, the five most flooded seasons, and the seasons in which GloFAS reached the river's threshold. Seasons here are ranked over 2003 to 2025, the years GloFAS covers, so the five wettest and most flooded can differ from the darker bars above, which are ranked over 1998 to 2025.`;
 }
 
 /* possible trigger */
@@ -253,7 +253,7 @@ document.getElementById("summary").innerHTML = BASINS.map(b => {
   document.getElementById("trigstages").innerHTML = `<table class="data opts"><thead><tr><th>Possible threshold</th><th>What it means</th><th>Seasons</th><th>How often</th></tr></thead><tbody>
     <tr><td class="opt">River flow</td><td>GloFAS river flow reaches the river's threshold. The seasons here use GloFAS river flow rebuilt from past weather; the watch page checks the forecast for the next 10 days.</td><td>${yrs("readiness").length}<span class="yrs">${yrs("readiness").join(", ")}</span></td><td>once every ${every(yrs("readiness").length)} years</td></tr>
     <tr><td class="opt">Rainfall</td><td>7-day rainfall over the basin reaches ${mm}. Each is the basin's second-highest season between 2003 and 2025, the years the GloFAS record covers.</td><td>${yrs("action").length}<span class="yrs">${yrs("action").join(", ")}</span></td><td>once every ${every(yrs("action").length)} years</td></tr>
-    <tr><td class="opt">Either threshold</td><td></td><td>${both.length}<span class="yrs">${both.join(", ")}</span></td><td>once every ${every(both.length)} years</td></tr>
+    <tr><td class="opt">Either threshold</td><td>The river flow or the rainfall threshold, in any of the three basins.</td><td>${both.length}<span class="yrs">${both.join(", ")}</span></td><td>once every ${every(both.length)} years</td></tr>
   </tbody></table>`;
 
   const ROWS = [["River flow threshold (GloFAS)", "readiness", "#1f2324"], ["Rainfall threshold (IMERG)", "action", "#1f69b3"],
