@@ -17,9 +17,13 @@ Reads from blob:
 - processed/glofas/station_zone_mapping_all.csv
 - processed/dashboard/river_cells.json
 - processed/glofas/glofas_reanalysis_recent.parquet  (fetch_glofas_reanalysis_recent.py; optional)
+- processed/rainfall/basin_rainfall_live.parquet      (fetch_basin_rainfall_live.py, Databricks; optional)
+- processed/rainfall/possible_trigger_thresholds.csv  (possible_trigger.py: basin 7-day rainfall thresholds)
 
 The page checks the GloFAS ensemble median at leads 1 to 10 days; days outside
-October to December do not count. The version pin below guards the v4 scale.
+October to December do not count. Basin rainfall (IMERG 7-day totals against
+the possible thresholds on the rainfall page) is shown separately and does not
+change the river status. The version pin below guards the v4 scale.
 
 Writes analysis/dashboard/eth_flood_dashboard.html and docs/index.html from
 template.html (placeholder __DASHBOARD_DATA__), and uploads the JSON payload
@@ -46,6 +50,7 @@ OUT_DIR = HERE / "dashboard"
 OUT_DIR.mkdir(exist_ok=True)
 RUN_LOG_BLOB = f"{PROJECT_PREFIX}/processed/dashboard/run_log.json"
 RECENT_DAYS = 30  # days of recent reanalysis shown before the forecast
+RAIN_DAYS_SHOWN = 60  # outside October to December, the rainfall charts show the last 60 days
 
 RIVERS = ["Wabi Shebelle", "Genale Dawa", "Omo", "Bilate", "Gamo lakes", "Baro", "Akobo"]
 # EDRMC riverine zones (ADM2_EN) -> the river systems that put them at risk
@@ -124,6 +129,44 @@ def update_run_log(issue: pd.Timestamp, rivers_status: dict) -> None:
         json.dumps(log[:60]).encode(), RUN_LOG_BLOB,
         stage=STAGE, container_name="projects", content_type="application/json",
     )
+
+
+def load_basin_rain() -> dict | None:
+    """Basin 7-day IMERG totals against each basin's possible threshold: the
+    season so far from 1 October, or the last RAIN_DAYS_SHOWN days outside
+    October to December."""
+    try:
+        daily = stratus.load_parquet_from_blob(
+            f"{PROJECT_PREFIX}/processed/rainfall/basin_rainfall_live.parquet", stage=STAGE
+        ).set_index("date")
+        thr = stratus.load_csv_from_blob(
+            f"{PROJECT_PREFIX}/processed/rainfall/possible_trigger_thresholds.csv", stage=STAGE
+        ).set_index("basin")["threshold_mm"]
+    except Exception as exc:
+        print(f"no basin rainfall ({type(exc).__name__}): the rainfall section is left out")
+        return None
+    daily.index = pd.to_datetime(daily.index)
+    d7 = daily.rolling(7, min_periods=7).sum().dropna(how="all")
+    latest = d7.index.max()
+    start = (pd.Timestamp(latest.year, 10, 1) if latest.month in OND
+             else pd.Timestamp(latest.year - 1, 10, 1) if latest.month == 1
+             else latest - pd.Timedelta(days=RAIN_DAYS_SHOWN - 1))
+    d7 = d7[d7.index >= start]
+    basins = []
+    for b in d7.columns:
+        s = d7[b].dropna()
+        ond = s[s.index.month.isin(OND)]
+        top = ond.idxmax() if len(ond) else None
+        basins.append({
+            "basin": b,
+            "threshold": float(thr[b]),
+            "days": [{"date": t.strftime("%Y-%m-%d"), "mm": round(float(v), 1)} for t, v in s.items()],
+            "latest_mm": round(float(s.iloc[-1]), 1),
+            "season_max": round(float(ond.max()), 1) if top is not None else None,
+            "season_max_date": top.strftime("%Y-%m-%d") if top is not None else None,
+            "reached": bool(len(ond) and ond.max() >= thr[b]),
+        })
+    return {"to": latest.strftime("%Y-%m-%d"), "basins": basins}
 
 
 def load_reanalysis_by_version() -> pd.DataFrame:
@@ -267,6 +310,7 @@ def main() -> None:
         "map": build_map_payload(),
         "rivers": load_river_cells(),
         "stations": stations_payload,
+        "rain": load_basin_rain(),
     }
     update_run_log(issue, rivers_status)
 
