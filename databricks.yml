@@ -1,0 +1,90 @@
+# Databricks Asset Bundle — ds-aa-eth-flooding
+#
+# One scheduled job, eth_basin_rainfall: daily IMERG rainfall over the Wabi
+# Shebele, Genale Dawa and Omo Gibe basins from prod public.imerg, written to
+# dev blob (processed/rainfall/basin_rainfall_live.parquet) for the watch page.
+# GitHub runners cannot reach the DB, so the page build (ond-monitoring, 11:15
+# UTC) reads this file from blob instead. Runs at 16:30 UTC, after the
+# ds-raster-pipelines "Run IMERG" job (14:40 UTC) has written the day's stats.
+#
+# DB and blob credentials are NOT here: the Job Compute policy injects DSCI_AZ_DB_PROD_* and DSCI_AZ_BLOB_DEV_SAS(_WRITE) from the `dsci`
+# secret scope.
+#
+#   databricks bundle validate -t dev  -p default
+#   databricks bundle deploy   -t dev  -p default --var git_branch=my-branch   # feature test (paused)
+#   databricks bundle run eth_basin_rainfall -t dev -p default
+#   databricks bundle destroy  -t dev  -p default
+#   databricks bundle deploy   -t prod -p default                              # deploys UNPAUSED
+
+bundle:
+  name: ds-aa-eth-flooding
+
+variables:
+  git_branch:
+    description: Repo branch the job pulls the code from
+    default: main
+
+.libs: &libs
+  - pypi: { package: "ocha-stratus==0.1.7" }
+  - pypi: { package: "sqlalchemy==2.0.36" }
+  - pypi: { package: "psycopg2-binary==2.9.10" }
+
+resources:
+  jobs:
+
+    eth_basin_rainfall:
+      name: ETH Basin Rainfall
+      description: "Daily [IMERG](https://gpm.nasa.gov/data/imerg) rainfall over the Wabi Shebele, Genale Dawa and Omo Gibe basins for the Ethiopia Riverine Flood Watch page"
+      git_source:
+        git_url: https://github.com/OCHA-DAP/ds-aa-eth-flooding.git
+        git_provider: gitHub
+        git_branch: ${var.git_branch}
+      tags:
+        databricks: job
+        type: monitoring
+        hazard: flood
+
+      permissions:
+        - group_name: dsci
+          level: CAN_MANAGE
+
+      schedule:
+        quartz_cron_expression: "0 30 16 * * ?"
+        timezone_id: UTC
+        pause_status: UNPAUSED
+
+      max_concurrent_runs: 1
+
+      email_notifications:
+        on_failure:
+          - pauline.ndirangu@un.org
+
+      job_clusters:
+        - job_cluster_key: main
+          new_cluster:
+            # Job Compute policy (same as ds-aa-som-floods): injects DSCI_AZ_DB_* and
+            # DSCI_AZ_BLOB_* from the dsci scope
+            policy_id: "000C79D951EAF0D6"
+            apply_policy_default_values: true
+            num_workers: 1
+
+      tasks:
+        - task_key: basin_rainfall
+          job_cluster_key: main
+          libraries: *libs
+          spark_python_task:
+            python_file: analysis/fetch_basin_rainfall_live.py
+            source: GIT
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      profile: default
+
+  prod:
+    mode: production
+    workspace:
+      profile: default
+      root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}

@@ -85,6 +85,8 @@ figcaption { font-size:12px; color:var(--n7); margin-top:7px; line-height:1.5; }
 .smhead { display:flex; justify-content:space-between; align-items:baseline; gap:10px; font-family:'Merriweather',Georgia,serif; font-size:14px; font-weight:700; color:var(--n9); margin:0 0 4px; }
 .smpeak { font-family:'Roboto',sans-serif; font-size:12px; font-weight:400; color:var(--n7); white-space:nowrap; }
 .smpeak.over { color:#B34036; font-weight:700; }
+.raingrid { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:14px; }
+@media (max-width:860px){ .raingrid { grid-template-columns:1fr; } }
 .smleg { display:flex; flex-wrap:wrap; gap:4px 14px; font-size:11px; color:var(--n7); margin-top:2px; }
 .smleg svg { display:inline-block; width:22px; height:8px; vertical-align:middle; margin-right:4px; }
 details.howto { margin:14px 0 4px; border:1px solid #e2e7e7; border-radius:6px; background:#fff; }
@@ -103,9 +105,7 @@ table.data td.over { color:#B34036; font-weight:600; }
 .bar { display:inline-block; height:9px; background:var(--b1); border-radius:2px; vertical-align:middle; margin-right:6px; }
 .bar.over { background:#B34036; }
 .tablewrap { overflow-x:auto; }
-footer { margin:34px 44px 0; padding:14px 0 40px; border-top:1px solid #eef1f1; font-size:12.5px; color:var(--n7); max-width:95ch; }
-footer p { margin:5px 0; line-height:1.6; }
-@media (max-width:640px){ article { padding:4px 22px 16px; } .hero { padding:32px 22px 28px; } footer { margin:34px 22px 0; } .brand { padding:12px 22px; } .brand img { height:34px; } }
+@media (max-width:640px){ article { padding:4px 22px 16px; } .hero { padding:32px 22px 28px; } .brand { padding:12px 22px; } .brand img { height:34px; } }
 </style>
 </head>
 <body>
@@ -161,6 +161,19 @@ footer p { margin:5px 0; line-height:1.6; }
        threshold, and its river system is REACHED.</p>
     <div class="tablewrap" id="tablebox"></div>
 
+    <section id="rainsec" hidden>
+      <h2>Rainfall over the basins</h2>
+      <p>How much rain fell over the Wabi Shebele, Genale Dawa and Omo Gibe basins in the last 7 days,
+         from IMERG satellite estimates. The dashed line is each basin's threshold, set at its second-highest
+         October to December 7-day total from 2003 to 2025 (more on the <a href="rainfall/">rainfall and
+         flooding</a> page). This is rain that has already fallen, not a forecast. It does not affect the
+         river status above.</p>
+      <figure>
+        <div class="raingrid" id="raingrid"></div>
+        <figcaption id="raincap"></figcaption>
+      </figure>
+    </section>
+
     <h2>How to read this page</h2>
     <ul>
       <li><strong>What is checked.</strong> Every day, GloFAS runs its 10-day river forecast 51 times
@@ -192,7 +205,6 @@ footer p { margin:5px 0; line-height:1.6; }
     </div>
   </article>
 
-  <footer id="footer"></footer>
 </div>
 
 <script>
@@ -456,13 +468,57 @@ function panel(title, lines, opts) {
      <tbody>${rows}</tbody></table>`;
 }
 
-/* footer */
-document.getElementById("footer").innerHTML =
-  "<p>Forecast: operational GloFAS ensemble (51 runs), days 1 to 10, read at channel cells chosen on the GloFAS river network. " +
-  "Thresholds: GloFAS " + DATA.threshold_version.replace("_", ".") + " reanalysis, October to December 2003 to 2025; " +
-  "set out in full on the <a href='methodology/'>methods page</a>. The page updates daily at about 11:15 UTC, " +
-  "and again at 14:15 UTC if the forecast is published late.</p>" +
-  "<p>Forecast issued " + fmtDate(DATA.issued) + " · page updated " + esc(DATA.generated) + ".</p>";
+/* basin rainfall: 7-day totals against the possible thresholds */
+if (DATA.rain) {
+  const BASIN_COLOR = { "Wabi Shebele": RIVER_COLOR["Wabi Shebelle"], "Genale Dawa": RIVER_COLOR["Genale Dawa"], "Omo Gibe": RIVER_COLOR["Omo"] };
+  const top = Math.max(...DATA.rain.basins.flatMap(b => b.days.map(d => d.mm).concat([b.threshold]))) * 1.12;
+  const step = top > 150 ? 50 : 25;
+  const rainPanel = b => {
+    const W = 320, H = 190, m = { t:14, r:10, b:24, l:34 }, iw = W - m.l - m.r, ih = H - m.t - m.b;
+    const days = b.days, d0 = dayNum(days[0].date), d1 = dayNum(days[days.length - 1].date), span = Math.max(1, d1 - d0);
+    const x = t => m.l + (t - d0) / span * iw, y = v => m.t + ih - v / top * ih;
+    const color = BASIN_COLOR[b.basin] || "#1f69b3";
+    let g = "";
+    for (let v = 0; v <= top + 1e-9; v += step) {
+      g += '<line x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + y(v).toFixed(1) + '" y2="' + y(v).toFixed(1) + '" stroke="#e6eaea"></line>';
+      g += '<text x="' + (m.l - 5) + '" y="' + (y(v) + 3.2).toFixed(1) + '" text-anchor="end" font-size="9" fill="#5e6a6b">' + v + "</text>";
+    }
+    g += '<line x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + y(b.threshold).toFixed(1) + '" y2="' + y(b.threshold).toFixed(1) + '" stroke="#B34036" stroke-width="1.5" stroke-dasharray="6 4"></line>';
+    g += '<text x="' + (m.l + 4) + '" y="' + (y(b.threshold) - 4).toFixed(1) + '" font-size="9" fill="#B34036" font-weight="700">threshold ' + Math.round(b.threshold) + " mm</text>";
+    let d = "", pen = false, prev = null;
+    days.forEach(p => {
+      const t = dayNum(p.date);
+      if (p.mm == null || (prev != null && t - prev > 1)) pen = false;
+      if (p.mm != null) { d += (pen ? "L" : "M") + x(t).toFixed(1) + " " + y(p.mm).toFixed(1); pen = true; }
+      prev = t;
+    });
+    g += '<path d="' + d + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></path>';
+    days.forEach(p => {
+      const mo = Number(p.date.slice(5, 7));
+      if (p.mm != null && p.mm >= b.threshold && mo >= 10)
+        g += '<circle cx="' + x(dayNum(p.date)).toFixed(1) + '" cy="' + y(p.mm).toFixed(1) + '" r="3.2" fill="#B34036" stroke="#fff" stroke-width="1"><title>' + fmtDay(p.date) + ": " + p.mm + " mm</title></circle>";
+    });
+    const ticks = Array.from({ length: Math.floor(span / 14) + 1 }, (_, k) => d0 + 14 * k).filter(t => d1 - t >= 5).concat([d1]);
+    ticks.forEach((t, k) => {
+      const anchor = k === ticks.length - 1 ? "end" : k === 0 ? "start" : "middle";
+      g += '<text x="' + x(t).toFixed(1) + '" y="' + (H - 7) + '" text-anchor="' + anchor + '" font-size="9" fill="#5e6a6b">' + fmtDay(isoOf(t)) + "</text>";
+    });
+    const note = (b.reached ? "reached · " : "") + "latest " + Math.round(b.latest_mm) + " mm";
+    const sub = b.season_max == null ? "No October to December day yet." :
+      "Highest since 1 October: " + Math.round(b.season_max) + " mm on " + fmtDay(b.season_max_date) + " (" + pct(b.season_max / b.threshold) + " of the threshold).";
+    return '<div class="sm' + (b.reached ? " act" : "") + '"><div class="smhead"><span><span class="rivdot" style="background:' + color + '"></span>' + esc(b.basin) +
+      '</span><span class="smpeak' + (b.reached ? " over" : "") + '">' + note + "</span></div>" +
+      '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + esc(b.basin) + ' 7-day rainfall in mm against the threshold">' + g + "</svg>" +
+      '<div class="smleg"><span>' + sub + "</span></div></div>";
+  };
+  document.getElementById("raingrid").innerHTML = DATA.rain.basins.map(rainPanel).join("");
+  document.getElementById("raincap").textContent =
+    "Each point is the rain that fell over the basin in the 7 days up to that day, in mm. " +
+    "Red dots mark October to December days at or above the threshold. " +
+    "Latest data: " + fmtDate(DATA.rain.to) + ". IMERG data arrive a day or two after the rain.";
+  document.getElementById("rainsec").hidden = false;
+}
+
 </script>
 </body>
 </html>
