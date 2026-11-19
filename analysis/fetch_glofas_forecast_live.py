@@ -45,12 +45,13 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 log = logging.getLogger("fetch_forecast_live")
 logging.getLogger("azure").setLevel(logging.WARNING)
 
-# N, W, S, E boxes covering the seven monitored river systems. The Somali box
-# keeps its legacy blob-name stem (no box suffix) so existing raw files reuse.
+# N, W, S, E box covering the monitored rivers (Wabi Shebelle + Genale Dawa).
+# The Somali box keeps its legacy blob-name stem (no box suffix) so existing raw
+# files reuse. The Gambella (Baro, Akobo) and Omo/Rift boxes were dropped on
+# 18 Nov 2026 when the watch narrowed to the two Somali-region rivers; cells in
+# them are skipped.
 BOXES = {
     "": [6.575, 39.95, 3.65, 45.325],          # Somali region rivers + Dawa
-    "gambella": [8.7, 32.9, 6.2, 35.6],        # Baro + Akobo
-    "omo_rift": [7.4, 35.6, 4.3, 38.4],        # lower Omo + Bilate + lakes
 }
 
 

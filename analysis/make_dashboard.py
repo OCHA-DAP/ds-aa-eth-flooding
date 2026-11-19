@@ -1,15 +1,14 @@
 """
 Build the riverine flood monitoring page for the EDRMC OND zones.
 
-The trigger (notebook 04, working group 29 Sep 2026): reached when any of the
-seven river systems (Wabi Shebelle | Genale Dawa | Omo | Bilate | Gamo lakes |
-Baro | Akobo) has a station at or over its threshold on a forecast day in
-October to December. Thresholds start at each river's 3rd-largest normalised
-OND seasonal peak on GloFAS v4 reanalysis 2003-2025 and are lowered where that
-catches further seasons already inside the overall activation years (adjusted
-30 Sep 2026; a 1-in-8 to 1-in-6 event per river), chosen so the overall
-any-river frequency is 1-in-3.0 (8 activations in 23 years: 2008, 2011, 2013,
-2017, 2019, 2023, 2024, 2025).
+The trigger (notebook 04; narrowed to the two Somali-region rivers 18 Nov
+2026): reached when the Wabi Shebelle or the Genale Dawa has a station at or
+over its threshold on a forecast day in October to December. Thresholds sit at
+each river's chosen rank of normalised OND seasonal peak on GloFAS v4
+reanalysis 2003-2025 (Wabi Shebelle 3rd, 1-in-8; Genale Dawa 2nd, 1-in-12; depths re-chosen 19 Nov
+2026), either river 1-in-4.8 (5 activations in 23 years: 2013, 2017, 2019, 2023,
+2024). Chosen so river flow and basin rainfall (possible_trigger.py) are each
+reached in 5 seasons and either in 8, 1-in-3.0.
 
 Reads from blob:
 - processed/glofas/glofas_forecast_latest.parquet   (fetch_glofas_forecast_live.py)
@@ -52,17 +51,13 @@ RUN_LOG_BLOB = f"{PROJECT_PREFIX}/processed/dashboard/run_log.json"
 RECENT_DAYS = 30  # days of recent reanalysis shown before the forecast
 RAIN_DAYS_SHOWN = 60  # outside October to December, the rainfall charts show the last 60 days
 
-RIVERS = ["Wabi Shebelle", "Genale Dawa", "Omo", "Bilate", "Gamo lakes", "Baro", "Akobo"]
-# EDRMC riverine zones (ADM2_EN) -> the river systems that put them at risk
+RIVERS = ["Wabi Shebelle", "Genale Dawa"]
+# riverine zones (ADM2_EN) -> the river systems that put them at risk
 ZONE_RIVERS = {
     "Shabelle": ["Wabi Shebelle"],
     "Afder": ["Genale Dawa"], "Liban": ["Genale Dawa"], "Daawa": ["Genale Dawa"],
-    "South Omo": ["Omo"],
-    "Sidama": ["Bilate"], "West Guji": ["Bilate"],
-    "Gamo": ["Gamo lakes"],
-    "Itang Special woreda": ["Baro"], "Nuwer": ["Baro"],
-    "Agnewak": ["Baro", "Akobo"],
 }
+BASINS = ["Wabi Shebele", "Genale Dawa"]  # rainfall basins shown (IMERG basin names)
 
 # The operational forecast and the GloFAS map viewer thresholds are v4-scale
 # (verified 2026-08-31: viewer RP1.5 ~ 200 m3/s at the Webe Gestro point =
@@ -153,7 +148,7 @@ def load_basin_rain() -> dict | None:
              else latest - pd.Timedelta(days=RAIN_DAYS_SHOWN - 1))
     d7 = d7[d7.index >= start]
     basins = []
-    for b in d7.columns:
+    for b in [b for b in BASINS if b in d7.columns]:
         s = d7[b].dropna()
         ond = s[s.index.month.isin(OND)]
         top = ond.idxmax() if len(ond) else None
@@ -214,14 +209,16 @@ def main() -> None:
     levels = stratus.load_csv_from_blob(
         f"{PROJECT_PREFIX}/processed/glofas/ond_trigger_levels.csv", stage=STAGE
     ).set_index("station_id")
+    levels = levels[levels["river"].isin(RIVERS)]
     mapping = stratus.load_csv_from_blob(
         f"{PROJECT_PREFIX}/processed/glofas/station_zone_mapping_all.csv", stage=STAGE
     )
+    mapping = mapping[mapping["station_id"].isin(levels.index)]
 
     fc["issued_time"] = pd.to_datetime(fc["issued_time"])
     fc["valid_time"] = pd.to_datetime(fc["valid_time"])
     issue = fc["issued_time"].max()
-    fc = fc[fc["issued_time"] == issue]
+    fc = fc[(fc["issued_time"] == issue) & fc["station_id"].isin(levels.index)]
 
     try:
         recent = stratus.load_parquet_from_blob(

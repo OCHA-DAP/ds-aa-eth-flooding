@@ -1,6 +1,6 @@
 """
 Build docs/rainfall/index.html: October to December rainfall over the Wabi
-Shebele, Genale Dawa and Omo Gibe basins, flooding in their river zones
+Shebele and Genale Dawa basins, flooding in their river zones
 (1 October to 31 January) and GloFAS river flow, 1998-2025.
 
 Reads the outputs of basin_rainfall_ond.py and the basin outlines from blob;
@@ -23,7 +23,7 @@ STAGE = "dev"
 P = "ds-aa-eth-flooding/"
 OUT = Path(__file__).resolve().parent.parent / "docs" / "rainfall"
 OUT.mkdir(parents=True, exist_ok=True)
-BASINS = ["Wabi Shebele", "Genale Dawa", "Omo Gibe"]
+BASINS = ["Wabi Shebele", "Genale Dawa"]
 
 years = stratus.load_csv_from_blob(P + "processed/rainfall/basin_ond_years.csv", stage=STAGE)
 weights = stratus.load_csv_from_blob(P + "processed/rainfall/basin_zone_weights.csv", stage=STAGE)
@@ -31,9 +31,10 @@ pt_thr = stratus.load_csv_from_blob(P + "processed/rainfall/possible_trigger_thr
 pt_ev = stratus.load_csv_from_blob(P + "processed/rainfall/possible_trigger_events.csv", stage=STAGE)
 pt_yr = stratus.load_csv_from_blob(P + "processed/rainfall/possible_trigger_years.csv", stage=STAGE)
 zc = stratus.load_csv_from_blob(P + "processed/rainfall/zone_flood_correlation.csv", stage=STAGE)
-ZONE_PCODES = ["ET0506", "ET0508", "ET0509", "ET0511", "ET0707"]
+ZONE_PCODES = ["ET0506", "ET0508", "ET0509", "ET0511"]
 basins = gpd.read_file(stratus.load_blob_data(P + "processed/basins/eth_rainfall_basins.geojson",
                                               stage=STAGE, container_name="projects")).to_crs(4326)
+basins = basins[basins.basin.isin(BASINS)]
 raw = stratus.load_blob_data("eth_shp.zip", stage=STAGE, container_name="polygon")
 tmp = tempfile.mkdtemp()
 zipfile.ZipFile(io.BytesIO(raw.getvalue() if hasattr(raw, "getvalue") else raw)).extractall(tmp)
@@ -76,7 +77,7 @@ PAGE = r"""<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Basin Rainfall and Flooding</title>
-<meta name="description" content="October to December rainfall, GloFAS river flow and FloodScan flooded area for the Wabi Shebele, Genale Dawa and Omo Gibe basins in Ethiopia, 1998 to 2025, set against recorded floods.">
+<meta name="description" content="October to December rainfall, GloFAS river flow and FloodScan flooded area for the Wabi Shebele and Genale Dawa basins in Ethiopia, 1998 to 2025, set against recorded floods.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
@@ -135,9 +136,9 @@ table.data.opts .hits { display:block; font-size:11.5px; color:#B34036; }
   </div>
   <header class="hero">
     <p class="crumb"><a href="../">Ethiopia Riverine Flood Watch</a> / rainfall and flooding</p>
-    <h1>Rainfall and flooding in three river basins, 1998 to 2025</h1>
-    <p>This page looks at rainfall, river flow and satellite-mapped flooded area in the Wabi Shebele, Genale Dawa
-       and Omo Gibe basins for every season from 1998 to 2025, set against recorded floods. Rainfall comes from IMERG,
+    <h1>Rainfall and flooding in the Wabi Shebele and Genale Dawa basins, 1998 to 2025</h1>
+    <p>This page looks at rainfall, river flow and satellite-mapped flooded area in the Wabi Shebele and Genale Dawa
+       basins for every season from 1998 to 2025, set against recorded floods. Rainfall comes from IMERG,
        river flow from GloFAS, flooded area from FloodScan, and recorded floods from EM-DAT and CERF.</p>
   </header>
 
@@ -146,12 +147,12 @@ table.data.opts .hits { display:block; font-size:11.5px; color:#B34036; }
 
     <h2>Basins and zones</h2>
     <div class="maprow">
-      <div class="map"><svg id="map" role="img" aria-label="Map of Ethiopia with the three river basins, the zones used for rainfall and the river zones used for FloodScan flooded area"></svg></div>
+      <div class="map"><svg id="map" role="img" aria-label="Map of Ethiopia with the two river basins, the zones used for rainfall and the river zones used for FloodScan flooded area"></svg></div>
       <div class="legend" id="legend"></div>
     </div>
     <p class="note">Rainfall is measured over the whole basin (coloured). FloodScan flooded area is measured in the
-       zones along the rivers (hatched): Shabelle for Wabi Shebele, Afder, Liban and Daawa for Genale Dawa, and South Omo for
-       Omo Gibe. Zones are drawn whole, so some reach beyond the basin outline.</p>
+       zones along the rivers (hatched): Shabelle for Wabi Shebele, and Afder, Liban and Daawa for Genale Dawa. Zones are drawn
+       whole, so some reach beyond the basin outline.</p>
 
     <h2>Rainfall and FloodScan flooded area by season</h2>
     <p>For each season, the top bar is the wettest 7 days over the basin and the bottom bar is the largest share
@@ -166,7 +167,7 @@ table.data.opts .hits { display:block; font-size:11.5px; color:#B34036; }
     <h2>Possible thresholds</h2>
     <p>This section sets out two possible thresholds, one for river flow in GloFAS and one for rainfall over the
        basin, and sets the seasons they were reached against recorded floods. The table shows how often each was
-       reached in any of the three basins between 2003 and 2025.
+       reached in either basin between 2003 and 2025.
        "How often" is (23 + 1) divided by the number of seasons. This is for monitoring only. It is not an official
        trigger and nothing is released.</p>
     <div class="tablewrap" id="trigstages"></div>
@@ -179,7 +180,7 @@ table.data.opts .hits { display:block; font-size:11.5px; color:#B34036; }
     <ul class="caveats">
       <li>Both thresholds were set using the same 23 seasons they are checked against.</li>
       <li>The flood records are not split by basin. EM-DAT events are matched on the place names they list, and CERF
-        allocations are national. FloodScan's 1-in-5 record covers only the Somali region, which does not include Omo Gibe.</li>
+        allocations are national.</li>
       <li id="trigsens"></li>
       <li>The river flow check uses GloFAS river flow rebuilt from past weather, not the forecasts issued at the time.</li>
     </ul>
@@ -191,7 +192,7 @@ table.data.opts .hits { display:block; font-size:11.5px; color:#B34036; }
         basin. A 7-day total is one day's rainfall plus the six days before it.</li>
       <li>Flooded area is FloodScan's standard flood extent from AER, a satellite estimate: the share of the river
         zones it shows as flooded each day, from 1 October to 31 January, with each zone weighted by its area.</li>
-      <li>Recorded floods are EM-DAT flood events whose locations name the watch's riverine areas and whose dates
+      <li>Recorded floods are EM-DAT flood events whose locations name places in the Somali-region riverine areas and whose dates
         fall in October to December, and CERF flood allocations to Ethiopia (national record), as on the methods page.</li>
       <li>River flow is the GloFAS version 4 reanalysis (river flow rebuilt from past weather) at the watch page's
         stations, shown as a share of each river's threshold, for 2003 to 2025.</li>
@@ -204,9 +205,6 @@ table.data.opts .hits { display:block; font-size:11.5px; color:#B34036; }
       <li>In IMERG, 2000 has the highest 7-day rainfall of any season in Wabi Shebele and Genale Dawa. For the
         October to December total, ERA5 ranks 2000 11th and 16th of 28, where IMERG ranks it 5th and 4th, and
         FloodScan ranks its flooded area 8th and 17th.</li>
-      <li>FloodScan in South Omo sits higher from 2022: the median flooded share from October to January was 0.75 to
-        1.17% in 2022 to 2025, against 0.02 to 0.63% in 1998 to 2021. Two of Omo Gibe's three seasons with the largest FloodScan flooded area,
-        2025 and 2023, fall in this period.</li>
       <li>In Genale Dawa, 2021 has the fifth largest FloodScan flooded area and the lowest rainfall of all 28 seasons.</li>
       <li>FloodScan is a satellite estimate of flooded area. It is not a record of floods or their impacts.</li>
       <li>IMERG is missing 14 to 16 November 2024 and 27 September 2025, and FloodScan is missing 25 November 2024.</li>
@@ -219,7 +217,7 @@ table.data.opts .hits { display:block; font-size:11.5px; color:#B34036; }
 </div>
 <script>
 const D = __DATA__;
-const COLOR = { "Wabi Shebele": "#2a78d6", "Genale Dawa": "#1baf7a", "Omo Gibe": "#eb6834" };
+const COLOR = { "Wabi Shebele": "#2a78d6", "Genale Dawa": "#1baf7a" };
 const BASINS = Object.keys(COLOR);
 const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const day = iso => { const [y,m,d] = iso.split("-").map(Number); return d + " " + MON[m-1] + " " + y; };
@@ -233,8 +231,8 @@ document.getElementById("summary").innerHTML = BASINS.map(b => {
   return `<li><b>${b}:</b> the wettest seasons were ${list(topN(b, "rank_7day", 3).map(t => t.year))}, and those with the largest FloodScan flooded area ${list(topN(b, "rank_flood", 3).map(t => t.year))}. GloFAS reached its threshold in ${list(D.years[b].filter(d => d.glofas_reached).map(d => d.year))}.</li>`;
 }).join("") + (() => {
   const zc = Object.fromEntries(D.zone_corr.map(c => [c.zone, c.rho_wettest7])), gv = D.glofas_corr.flatMap(c => [c.rain7, c.total, c.flood]);
-  const rng = zs => { const v = zs.map(z => zc[z]); return `${Math.min(...v).toFixed(2)} to ${Math.max(...v).toFixed(2)}`; };
-  return `<li>Correlation between rainfall and FloodScan flooded area: ${rng(["Shabelle", "Afder", "South Omo"])} in Shabelle, Afder and South Omo, and ${rng(["Liban", "Daawa"])} in Liban and Daawa. Correlation between GloFAS river flow and rainfall or FloodScan flooded area: ${Math.min(...gv).toFixed(2)} to ${Math.max(...gv).toFixed(2)}. Correlation goes from -1 to 1; with 28 seasons (rainfall and FloodScan) or 23 (GloFAS), values between about -0.4 and 0.4 can arise by chance.</li>`;
+  const zs = ["Shabelle", "Afder", "Liban", "Daawa"].map(z => `${zc[z].toFixed(2)} in ${z}`);
+  return `<li>Correlation between rainfall and FloodScan flooded area: ${zs.slice(0, -1).join(", ")} and ${zs[zs.length - 1]}. Correlation between GloFAS river flow and rainfall or FloodScan flooded area: ${Math.min(...gv).toFixed(2)} to ${Math.max(...gv).toFixed(2)}. Correlation goes from -1 to 1; with 28 seasons (rainfall and FloodScan) or 23 (GloFAS), values between about -0.4 and 0.4 can arise by chance.</li>`;
 })();
 
 /* map */
@@ -328,8 +326,8 @@ document.getElementById("summary").innerHTML = BASINS.map(b => {
   const mm = mmv.slice(0, -1).join(", ") + " or " + mmv[mmv.length - 1];
   document.getElementById("trigstages").innerHTML = `<table class="data opts"><thead><tr><th>Possible threshold</th><th>What it means</th><th>Seasons</th><th>How often</th></tr></thead><tbody>
     <tr><td class="opt">River flow</td><td>GloFAS river flow reaches the river's threshold. The seasons here use GloFAS river flow rebuilt from past weather; the watch page checks the forecast for the next 10 days.</td><td>${yrs("readiness").length}<span class="yrs">${yrs("readiness").join(", ")}</span></td><td>once every ${every(yrs("readiness").length)} years</td></tr>
-    <tr><td class="opt">Rainfall</td><td>7-day rainfall over the basin reaches ${mm}. Each is the basin's second-highest season between 2003 and 2025, the years the GloFAS record covers.</td><td>${yrs("action").length}<span class="yrs">${yrs("action").join(", ")}</span></td><td>once every ${every(yrs("action").length)} years</td></tr>
-    <tr><td class="opt">Either threshold</td><td>The river flow or the rainfall threshold, in any of the three basins.</td><td>${both.length}<span class="yrs">${both.join(", ")}</span></td><td>once every ${every(both.length)} years</td></tr>
+    <tr><td class="opt">Rainfall</td><td>7-day rainfall over the basin reaches ${mm}. These are the Wabi Shebele basin's 3rd-highest and the Genale Dawa basin's 4th-highest season between 2003 and 2025, the years the GloFAS record covers.</td><td>${yrs("action").length}<span class="yrs">${yrs("action").join(", ")}</span></td><td>once every ${every(yrs("action").length)} years</td></tr>
+    <tr><td class="opt">Either threshold</td><td>The river flow or the rainfall threshold, in either basin.</td><td>${both.length}<span class="yrs">${both.join(", ")}</span></td><td>once every ${every(both.length)} years</td></tr>
   </tbody></table>`;
 
   const ROWS = [["River flow threshold (GloFAS)", "readiness", "#1f2324"], ["Rainfall threshold (IMERG)", "action", "#1f69b3"],
@@ -376,7 +374,7 @@ document.getElementById("summary").innerHTML = BASINS.map(b => {
   document.getElementById("trigevents").innerHTML = `<table class="data opts"><thead><tr><th>Season</th><th>Basin</th><th>GloFAS reached threshold</th><th>Rainfall data came in</th><th>FloodScan peak in river zones (share, rank)</th></tr></thead><tbody>${rows}</tbody></table>`;
 
   document.getElementById("trigsens").textContent = "Rainfall threshold and the next season below it: " +
-    T.thresholds.map(t => `${t.basin} ${Math.round(t.threshold_mm)} and ${Math.round(t.next_below_mm)} mm`).join(", ") + ".";
+    T.thresholds.map(t => `${t.basin} ${t.threshold_mm.toFixed(1)} and ${t.next_below_mm.toFixed(1)} mm`).join(", ") + ".";
 }
 
 </script>

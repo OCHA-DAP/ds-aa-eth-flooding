@@ -1,11 +1,13 @@
 """
-Possible trigger for the three basins, backtested on the 2003-2025 seasons.
+Possible trigger for the Wabi Shebele and Genale Dawa basins, backtested on the 2003-2025 seasons.
 
 Readiness: GloFAS river flow reaches the river's threshold on the watch
 (reached years from processed/comparison/ond_trigger_activations.parquet).
 Action: basin 7-day IMERG rainfall, 1 October to 31 December, reaches the
-basin's threshold = its 2nd-highest season maximum over 2003-2025 (1-in-12
-per basin), so that either stage is met no more than 1 year in 3.
+basin's threshold = its ACTION_RANK-th highest season maximum over 2003-2025
+(Wabi Shebele 3rd, Genale Dawa 4th). Set 19 Nov 2026 so rainfall and river
+flow carry equal weight (5 seasons each in 23) and either is met no more
+than 1 year in 3 (8 seasons).
 Checked against the river-zone FloodScan series (1 October to 31 January) and
 the impact record used on the methods page (EM-DAT, CERF, FloodScan 1-in-3 and
 1-in-5 events in the Somali region).
@@ -20,11 +22,11 @@ import pandas as pd
 
 STAGE = "dev"
 P = "ds-aa-eth-flooding/processed/"
-BASINS = ["Wabi Shebele", "Genale Dawa", "Omo Gibe"]
-GLOFAS_RIVER = {"Wabi Shebele": "Wabi Shebelle", "Genale Dawa": "Genale Dawa", "Omo Gibe": "Omo"}
+BASINS = ["Wabi Shebele", "Genale Dawa"]
+GLOFAS_RIVER = {"Wabi Shebele": "Wabi Shebelle", "Genale Dawa": "Genale Dawa"}
 YEARS = list(range(2003, 2026))
 DATA_DELAY_DAYS = 2  # IMERG reaches the database about two days after each day
-ACTION_RANK = 2  # action threshold = the basin's ACTION_RANK-th highest season, 2003-2025
+ACTION_RANK = {"Wabi Shebele": 3, "Genale Dawa": 4}  # action threshold = the basin's ACTION_RANK-th highest season, 2003-2025
 
 rain = stratus.load_parquet_from_blob(P + "rainfall/basin_daily_imerg.parquet", stage=STAGE).set_index("date")
 d7 = rain.rolling(7, min_periods=7).sum()
@@ -57,9 +59,9 @@ def first_on_or_over(x: pd.Series, thr: float):
 thr_rows, events = [], []
 for b in BASINS:
     season_max = pd.Series({y: d7[b][f"{y}-10-01":f"{y}-12-31"].max() for y in YEARS})
-    thr = float(season_max.nlargest(ACTION_RANK).iloc[-1])
+    thr = float(season_max.nlargest(ACTION_RANK[b]).iloc[-1])
     ranked = season_max.sort_values(ascending=False)
-    thr_rows.append({"basin": b, "threshold_mm": round(thr, 1), "next_below_mm": round(float(ranked.iloc[ACTION_RANK]), 1)})
+    thr_rows.append({"basin": b, "threshold_mm": round(thr, 1), "next_below_mm": round(float(ranked.iloc[ACTION_RANK[b]]), 1)})
     fpk = {y: flood[b][f"{y}-10-01":f"{y + 1}-01-31"] for y in YEARS}
     fpeak = pd.Series({y: v.max() for y, v in fpk.items()})
     frank = fpeak.rank(ascending=False, method="first").astype(int)
