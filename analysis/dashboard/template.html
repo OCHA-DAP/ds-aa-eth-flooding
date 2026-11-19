@@ -186,7 +186,7 @@ table.data td.over { color:#B34036; font-weight:600; }
         October to December seasons 2003 to 2025 on the GloFAS version 4 record (the version the live
         forecast runs on). On that record, the Wabi Shebelle reaches its threshold about 1 year in 8,
         the Genale Dawa about 1 year in 12, and at least one of the two about 1 year in 5 (5 of 23
-        years: 2013, 2017, 2019, 2023, 2024). With the rainfall thresholds below, river flow or
+        years: 2013, 2017, 2019, 2023, 2024). With the rainfall thresholds above, river flow or
         rainfall is reached in 8 of 23 years, about 1 year in 3. Details, tables and the record against floods: the
         <a href="methodology/">methods page</a>.</li>
       <li><strong>Only October to December counts.</strong> The page updates all year. Forecast days
@@ -481,7 +481,12 @@ if (DATA.rain) {
       g += '<text x="' + (m.l - 5) + '" y="' + (y(v) + 3.2).toFixed(1) + '" text-anchor="end" font-size="9" fill="#5e6a6b">' + v + "</text>";
     }
     g += '<line x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + y(b.threshold).toFixed(1) + '" y2="' + y(b.threshold).toFixed(1) + '" stroke="#B34036" stroke-width="1.5" stroke-dasharray="6 4"></line>';
-    g += '<text x="' + (m.l + 4) + '" y="' + (y(b.threshold) - 4).toFixed(1) + '" font-size="9" fill="#B34036" font-weight="700">threshold ' + Math.round(b.threshold) + " mm</text>";
+    // threshold label on the side (left or right) where the rain line stays lowest, with a white halo
+    const lw = 70 / iw * span;
+    const sideMax = (a, z) => Math.max(0, ...days.filter(p => p.mm != null && dayNum(p.date) >= a && dayNum(p.date) <= z).map(p => p.mm));
+    const onRight = sideMax(d1 - lw, d1) < sideMax(d0, d0 + lw);
+    const thrLabel = '<text x="' + (onRight ? W - m.r - 2 : m.l + 4) + '" y="' + (y(b.threshold) - 4).toFixed(1) + '" text-anchor="' + (onRight ? "end" : "start") +
+      '" font-size="9" fill="#B34036" font-weight="700" stroke="#fff" stroke-width="3" paint-order="stroke">threshold ' + Math.round(b.threshold) + " mm</text>";
     let d = "", pen = false, prev = null;
     days.forEach(p => {
       const t = dayNum(p.date);
@@ -495,7 +500,8 @@ if (DATA.rain) {
       if (p.mm != null && p.mm >= b.threshold && mo >= 10)
         g += '<circle cx="' + x(dayNum(p.date)).toFixed(1) + '" cy="' + y(p.mm).toFixed(1) + '" r="3.2" fill="#B34036" stroke="#fff" stroke-width="1"><title>' + fmtDay(p.date) + ": " + p.mm + " mm</title></circle>";
     });
-    const ticks = Array.from({ length: Math.floor(span / 14) + 1 }, (_, k) => d0 + 14 * k).filter(t => d1 - t >= 5).concat([d1]);
+    g += thrLabel;  // drawn after the line so the label sits on top
+    const ticks = Array.from({ length: Math.floor(span / 14) + 1 }, (_, k) => d0 + 14 * k).filter(t => d1 - t >= 9).concat([d1]);
     ticks.forEach((t, k) => {
       const anchor = k === ticks.length - 1 ? "end" : k === 0 ? "start" : "middle";
       g += '<text x="' + x(t).toFixed(1) + '" y="' + (H - 7) + '" text-anchor="' + anchor + '" font-size="9" fill="#5e6a6b">' + fmtDay(isoOf(t)) + "</text>";
