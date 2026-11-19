@@ -1,6 +1,7 @@
 """
-Wettest October to December weeks over the Wabi Shebele, Genale Dawa and
-Omo Gibe basins, 1998-2025, from the team DB.
+Wettest October to December weeks over the Wabi Shebele and Genale Dawa
+basins, 1998-2025, from the team DB. (Omo Gibe was dropped on 18 Nov 2026
+when the watch narrowed to the two Somali-region rivers.)
 
 Rainfall: public.imerg (IMERG daily, zone level, prod DB); public.era5
 (monthly) as a second record for the season totals. Flooding: public.floodscan
@@ -32,16 +33,16 @@ import pandas as pd
 
 STAGE = "dev"
 P = "ds-aa-eth-flooding/"
-BASINS = ["Wabi Shebele", "Genale Dawa", "Omo Gibe"]
+BASINS = ["Wabi Shebele", "Genale Dawa"]
 YEARS = list(range(1998, 2026))
 OND = [10, 11, 12]
 PCT = {10: 90, 11: 99, 12: 99}
 FLOOD_ZONES = {"Wabi Shebele": ["ET0506"],                          # Shabelle
-               "Genale Dawa": ["ET0508", "ET0509", "ET0511"],        # Afder, Liban, Daawa
-               "Omo Gibe": ["ET0707"]}                               # South Omo
+               "Genale Dawa": ["ET0508", "ET0509", "ET0511"]}        # Afder, Liban, Daawa
 
 basins = gpd.read_file(stratus.load_blob_data(P + "processed/basins/eth_rainfall_basins.geojson",
                                               stage=STAGE, container_name="projects")).to_crs(32637)
+basins = basins[basins.basin.isin(BASINS)]
 raw = stratus.load_blob_data("eth_shp.zip", stage=STAGE, container_name="polygon")
 tmp = tempfile.mkdtemp()
 zipfile.ZipFile(io.BytesIO(raw.getvalue() if hasattr(raw, "getvalue") else raw)).extractall(tmp)
@@ -113,7 +114,7 @@ res = res.drop(columns="era5_ond_total").round({"max_7day_mm": 1, "ond_total_mm"
 # GloFAS (v4 reanalysis, the watch's OND record 2003-2025), as in 04_ond_trigger_design: station season
 # peak / station median season peak, max over the river's stations, divided by the river's threshold
 # ratio -> season peak relative to the threshold. Reached years are read from the watch's own table.
-GLOFAS_RIVER = {"Wabi Shebele": "Wabi Shebelle", "Genale Dawa": "Genale Dawa", "Omo Gibe": "Omo"}
+GLOFAS_RIVER = {"Wabi Shebele": "Wabi Shebelle", "Genale Dawa": "Genale Dawa"}
 frames = []
 for blob in ["glofas_discharge.parquet", "glofas_discharge_reporting_points.parquet"]:
     df = stratus.load_parquet_from_blob(P + f"processed/glofas/{blob}", stage=STAGE)

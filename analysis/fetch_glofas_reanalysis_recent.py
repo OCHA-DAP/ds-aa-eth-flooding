@@ -35,11 +35,10 @@ CONSTRAINTS_URL = (
     "https://ewds.climate.copernicus.eu/api/catalogue/v1/collections/"
     "cems-glofas-historical/constraints.json"
 )
-# N, W, S, E: the same boxes as fetch_glofas_forecast_live.py
+# N, W, S, E: the same box as fetch_glofas_forecast_live.py (Wabi Shebelle + Genale
+# Dawa; the Gambella and Omo/Rift boxes were dropped on 18 Nov 2026, their cells skipped)
 BOXES = {
     "somali": [6.575, 39.95, 3.65, 45.325],
-    "gambella": [8.7, 32.9, 6.2, 35.6],
-    "omo_rift": [7.4, 35.6, 4.3, 38.4],
 }
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")

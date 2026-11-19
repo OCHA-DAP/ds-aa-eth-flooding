@@ -3,7 +3,7 @@ Flooding in the zones along the rivers against rainfall over their catchments,
 October to December 1998-2025.
 
 Zones (MoWE flood-prone list): Shabelle (Wabi Shebele); Afder, Liban, Daawa
-(Genale Dawa); South Omo (Omo Gibe). For each zone and season: FloodScan SFED
+(Genale Dawa). For each zone and season: FloodScan SFED
 peak (% of zone flooded) and its date, against the catchment's wettest 7-day
 rainfall and its date (from basin_rainfall_ond.py). Spearman rank correlation
 across the 28 seasons, the lag between rain peak and flood peak, and the daily
@@ -23,7 +23,7 @@ from scipy.stats import spearmanr
 STAGE = "dev"
 P = "ds-aa-eth-flooding/processed/rainfall/"
 ZONES = {"ET0506": ("Shabelle", "Wabi Shebele"), "ET0508": ("Afder", "Genale Dawa"), "ET0509": ("Liban", "Genale Dawa"),
-         "ET0511": ("Daawa", "Genale Dawa"), "ET0707": ("South Omo", "Omo Gibe")}
+         "ET0511": ("Daawa", "Genale Dawa")}
 OND = [10, 11, 12]
 YEARS = range(1998, 2026)
 

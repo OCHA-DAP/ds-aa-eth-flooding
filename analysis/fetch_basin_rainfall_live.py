@@ -1,6 +1,6 @@
 """
-Daily IMERG rainfall over the Wabi Shebele, Genale Dawa and Omo Gibe basins
-for the watch page, from the team DB.
+Daily IMERG rainfall over the Wabi Shebele and Genale Dawa basins for the
+watch page, from the team DB.
 
 Runs as the Databricks job in databricks.yml: GitHub runners cannot reach the
 DB, so this job writes the basin series to blob and the page build
@@ -22,11 +22,11 @@ import pandas as pd
 
 STAGE = "dev"
 P = "ds-aa-eth-flooding/processed/rainfall/"
-BASINS = ["Wabi Shebele", "Genale Dawa", "Omo Gibe"]
+BASINS = ["Wabi Shebele", "Genale Dawa"]
 DAYS_KEPT = 150  # covers 1 October to 31 December plus the 6 days a 7-day total needs before it
 
 weights = stratus.load_csv_from_blob(P + "basin_zone_weights.csv", stage=STAGE)
-pc = tuple(sorted(weights.ADM2_PCODE.unique()))
+pc = tuple(sorted(weights[weights.basin.isin(BASINS)].ADM2_PCODE.unique()))
 start = date.today() - timedelta(days=DAYS_KEPT)
 imerg = pd.read_sql(f"""select pcode, valid_date, mean from public.imerg where iso3 = 'ETH' and adm_level = 2
                         and pcode in {pc} and valid_date >= '{start}'""",
@@ -34,7 +34,7 @@ imerg = pd.read_sql(f"""select pcode, valid_date, mean from public.imerg where i
 wide = imerg.pivot_table(index="valid_date", columns="pcode", values="mean")
 
 out = {}
-for b, g in weights.groupby("basin"):
+for b, g in weights[weights.basin.isin(BASINS)].groupby("basin"):
     w = g.set_index("ADM2_PCODE").area_in_basin_km2.reindex(wide.columns).dropna()
     sub = wide[w.index]
     out[b] = sub.mul(w, axis=1).sum(axis=1, min_count=1) / sub.notna().mul(w, axis=1).sum(axis=1)

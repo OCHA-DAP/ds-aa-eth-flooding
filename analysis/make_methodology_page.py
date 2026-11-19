@@ -27,7 +27,7 @@ FIGS.mkdir(exist_ok=True)
 nb = json.loads(NB.read_text(encoding="utf-8"))
 nb5 = json.loads(NB5.read_text(encoding="utf-8"))
 
-RIVER_ORDER = ["Wabi Shebelle", "Genale Dawa", "Omo", "Bilate", "Gamo lakes", "Baro", "Akobo"]
+RIVER_ORDER = ["Wabi Shebelle", "Genale Dawa"]
 # display names + zones as on the monitoring page (processed/glofas/station_zone_mapping_all.csv)
 STATIONS = {
     "G1904": ("Shabelle at Gode (G1904)", "Shebelle"),
@@ -39,11 +39,6 @@ STATIONS = {
     "RP_4205_0415": ("Genale/Juba at Dolow", "Liban"),
     "dawa_1": ("Dawa (40.73E 4.43N)", "Daawa"),
     "station_5": ("Webe Gestro (42.08E 4.73N)", "Afder"),
-    "omo_1": ("Omo lower (South Omo)", "South Omo"),
-    "bilate_1": ("Bilate (Loka Abaya)", "Sidama"),
-    "gamo_1": ("Abaya-Chamo lakes (Kulfo area)", "Gamo"),
-    "baro_1": ("Baro at Itang", "Itang Special woreda"),
-    "akobo_1": ("Akobo (Agnewak)", "Agnewak"),
 }
 
 
@@ -87,6 +82,11 @@ def n0(x) -> str:
     return f"{math.floor(x + 0.5):,}"
 
 
+def and_list(xs) -> str:
+    xs = list(xs)
+    return ", ".join(xs[:-1]) + " and " + xs[-1] if len(xs) > 1 else "".join(xs)
+
+
 def chips(years) -> str:
     return " ".join(f'<span class="yr">{y}</span>' for y in years)
 
@@ -121,17 +121,19 @@ levels_table = (
 acts_text = stream_of("per-river activation seasons")
 overall_m = re.search(r"overall: (\d+) activation years in (\d+) \| RP ([\d.]+)", acts_text)
 n_act, n_yrs, rp = overall_m.groups()
-act_rows = []
+act_rows, union = [], set()
 for river, per_rp, yrs in re.findall(r"^\s{2}(.+?)\s+\(([\d.]+)-yr\): \[(.*)\]", acts_text, re.M):
+    union |= set(yrs.split(", "))
     act_rows.append(
         f'<tr><td class="river">{river}</td><td>{chips(yrs.split(", "))}</td>'
-        f'<td class="num">1-in-{float(per_rp):.0f}</td></tr>'
+        f'<td class="num">1-in-{float(per_rp):.1f}</td></tr>'
     )
-union_years = ["2008", "2011", "2013", "2017", "2019", "2023", "2024", "2025"]
+union_years = sorted(union)
+assert len(union_years) == int(n_act), (union_years, n_act)
 acts_table = (
     '<table class="data"><thead><tr><th>River system</th><th>OND seasons at or over its threshold</th>'
     '<th class="num">Frequency</th></tr></thead><tbody>' + "".join(act_rows) +
-    f'<tr class="total"><td class="river">Any river (overall)</td><td>{chips(union_years)}</td>'
+    f'<tr class="total"><td class="river">Either river (overall)</td><td>{chips(union_years)}</td>'
     f'<td class="num">1-in-{float(rp):.1f}</td></tr></tbody></table>'
 )
 
@@ -186,6 +188,11 @@ v5_table = (
     '<th>Years</th></tr></thead><tbody>' + "".join(v5_rows) + "</tbody></table>"
 )
 
+v5_both = [y.strip() for y in v5_diff["in both"].split(",") if y.strip()]
+v5_add = [y.strip() for y in v5_diff["only in v5"].split(",") if y.strip()]
+v5_drop = [y.strip() for y in v5_diff["only in v4"].split(",") if y.strip()]
+v5_n = len(v5_both) + len(v5_add)
+
 fig_stat = png_of("Season peak compared with a typical season", "season_statistic.png")
 fig_tiles = png_of("Years each river reached its threshold", "activations.png")
 
@@ -197,7 +204,7 @@ page = f"""<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Flood Watch Methods</title>
-<meta name="description" content="How the Ethiopia Riverine Flood Watch works: the rivers and zones covered, how each river's OND threshold was set, the backtest and the impact record.">
+<meta name="description" content="How the Ethiopia Riverine Flood Watch works: the Wabi Shebelle and Genale Dawa stations, how each river's OND threshold was set, the backtest and the impact record.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
@@ -275,34 +282,31 @@ footer p {{ margin:5px 0; line-height:1.6; }}
   <article>
     <div class="keybox">
       <p class="status">When the watch page shows REACHED</p>
-      <p>The watch page shows REACHED when any of the seven river systems (Wabi Shebelle |
-         Genale Dawa | lower Omo | Bilate | Abaya-Chamo lakes | Baro | Akobo) is at or over its
-         OND threshold on a forecast day between 1 October and 31 December. Each river's threshold
-         starts at the peak of its 3rd-largest OND season on the 2003 to 2025 GloFAS record
-         and is lowered where that catches further seasons in years when a threshold was already
-         reached, without letting any new year in: a 1-in-8 to 1-in-6 event depending on the
-         river. On the record, at least one river is at or over its threshold in 8 years in 23 =
-         1-in-3.0 (2008, 2011, 2013, 2017, 2019, 2023, 2024, 2025). This is monitoring only:
-         there is no official trigger behind this page and nothing is released when a threshold
-         is reached.</p>
+      <p>The watch page shows REACHED when the Wabi Shebelle or the Genale Dawa is at or over
+         its OND threshold on a forecast day between 1 October and 31 December. The Wabi
+         Shebelle's threshold is the peak of its 3rd-largest OND season on the 2003 to 2025
+         GloFAS record (1-in-8) and the Genale Dawa's the peak of its 2nd-largest (1-in-12). On
+         the record, at least one of the two is at or over its threshold in {n_act} years in {n_yrs} =
+         1-in-{float(rp):.1f} ({and_list(union_years)}). This is monitoring only: there is no
+         official trigger behind this page and nothing is released when a threshold is
+         reached.</p>
     </div>
 
     <h2>Rivers and zones monitored</h2>
-    <p>The watch covers the river basin and zone pairs the EDRMC Bega flood alert lists as at
-       risk of riverine flooding: the middle and lower Wabi Shebelle (Shebelle zone) | the lower
-       Genale Dawa (Afder, Liben, Dawa) | the lower Omo (South Omo) | the Bilate (Sidama, West
-       Guji) | the Kulfo, Slena and Sego at Arba Minch (Gamo) | the Akobo (Agnewak) | the Baro
-       (Itang, Nuwer, Agnewak). Fourteen GloFAS points monitor these reaches; each sits on a
-       channel cell verified against the model's own discharge field and named river geometry.</p>
+    <p>The watch covers two rivers in the Somali region: the middle and lower Wabi Shebelle
+       (Shebelle zone) and the lower Genale Dawa (Afder, Liben, Dawa). Nine GloFAS points
+       monitor these reaches; each sits on a channel cell verified against the model's own
+       discharge field and named river geometry.</p>
 
     <h2>River thresholds, station by station</h2>
     <p>Each station's typical season peak is the median of its 23 October to December peaks
        (the highest daily flow of each season, 2003 to 2025). Each season, every station's peak
        is compared with its typical peak, and the river takes its highest station. The river's
-       factor starts at its 3rd-biggest season and is lowered to also catch lower-ranked seasons
-       in years when a threshold was already reached, stopping at the first season outside them so
-       no new year can enter (Genale Dawa and Baro gain 2019, Akobo gains 2008). Each station's
-       threshold is its typical season peak times the river's factor. Record: GloFAS version 4
+       factor is set at its 3rd-biggest season for the Wabi Shebelle and its 2nd-biggest for the
+       Genale Dawa. The pair is chosen so river flow and the basin rainfall thresholds on the
+       <a href="../rainfall/">rainfall page</a> are each reached in 5 of the 23 seasons, and one or
+       the other in 8 seasons, 1 year in 3.
+       Each station's threshold is its typical season peak times the river's factor. Record: GloFAS version 4
        reanalysis, October to December, 2003 to 2025; version 4 is used because the live
        forecast runs on it.</p>
     <div class="tablewrap">{levels_table}</div>
@@ -317,25 +321,25 @@ footer p {{ margin:5px 0; line-height:1.6; }}
     </figure>
     <figure>
       <img src="{fig_tiles}" alt="Seasons at or over each river's threshold and the union">
-      <figcaption>Seasons at or over each river's threshold, and the any-river union across
-        them.</figcaption>
+      <figcaption>Seasons at or over each river's threshold, and the years when either river
+        was.</figcaption>
     </figure>
     <div class="tablewrap">{acts_table}</div>
 
     <h2>Years reached and recorded floods</h2>
     <p>Three records beside the years when a threshold was reached: FloodScan flood events in the Somali-region riverine
-       zones (satellite; not yet available for the other zones), EM-DAT flood events whose locations name
-       the riverine areas and whose dates fall in October to December, and CERF flood allocations to
+       zones (satellite), EM-DAT flood events whose locations name places in the Somali-region
+       riverine areas and whose dates fall in October to December, and CERF flood allocations to
        Ethiopia (national record).</p>
     <div class="tablewrap">{impact_table}</div>
-    <p class="tnote">Shaded rows: years when a threshold was reached. The FloodScan column covers the
-       Somali-region zones only; a dot marks a season with a flood event at that severity.</p>
+    <p class="tnote">Shaded rows: years when a threshold was reached. A dot marks a season with a
+       FloodScan flood event at that severity.</p>
 
     <h2>Comparison with GloFAS version 5</h2>
     <p>The watch uses GloFAS version 4 thresholds, the version the live forecast runs. For
        reference, the same method on version 5 reanalysis reaches a threshold in
-       9 years instead of 8: six years are shared, version 5 adds 2014, 2020 and 2021, and
-       drops 2011 and 2013.</p>
+       {v5_n} years instead of {n_act}: {len(v5_both)} years are shared, version 5 adds {and_list(v5_add)}, and
+       drops {and_list(v5_drop)}.</p>
     <div class="tablewrap">{v5_table}</div>
     <p class="tnote">Version 5 thresholds are not used in monitoring yet: GloFAS version 5 forecasts
        are coming soon.</p>
@@ -348,13 +352,10 @@ footer p {{ margin:5px 0; line-height:1.6; }}
 
     <h2>Limitations</h2>
     <ul>
-      <li>The Kulfo, Slena and Sego at Arba Minch are below GloFAS's 0.05 degree grid; the Gamo
-        station is the Abaya-Chamo lake system cell and is labelled as such.</li>
       <li>The Dawa is monitored by a dedicated cell in Daawa zone; the Dolow cell sits below the
         Genale-Dawa confluence.</li>
       <li>All values are model quantities, not gauge readings.</li>
       <li>Forecast accuracy at each lead time is not shown here.</li>
-      <li>FloodScan covers the Somali-region zones only.</li>
     </ul>
 
     <h2 id="contact">Contact</h2>
